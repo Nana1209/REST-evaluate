@@ -54,6 +54,8 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class ValidatorController{
@@ -92,6 +94,8 @@ public class ValidatorController{
             return new ResponseContext().status(Response.Status.INTERNAL_SERVER_ERROR).entity( "Failed to process URL" );
         }
 
+        System.out.println("message:"+validationResponse.getMessages());
+
         return processValidationResponse(validationResponse);
     }
 
@@ -109,6 +113,7 @@ public class ValidatorController{
         }catch (Exception e){
             return new ResponseContext().status(Response.Status.INTERNAL_SERVER_ERROR).entity( "Failed to process URL" );
         }
+
 
         return processValidationResponse(validationResponse);
     }
@@ -320,7 +325,7 @@ public class ValidatorController{
                     output.addMessage(message);
                     System.out.println(message);
                 }
-                System.out.println("no message!");
+                //System.out.println("no message!");
                 Set paths = result.getOpenAPI().getPaths().keySet();
                 for (String p : result.getOpenAPI().getPaths().keySet()){
                     if(!(p.indexOf("_") < 0)){
@@ -329,9 +334,31 @@ public class ValidatorController{
                     if(p!=p.toLowerCase()){
                         System.out.println(p+"need to be lowercase");
                     }
+                    Pattern pattern1 = Pattern.compile("v(ers?|ersion)?[0-9.]*");
+                    Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
+                    if(m1.find()){
+                        System.out.println("version shouldn't in paths "+p);
+                    }
+                    Pattern pattern2 = Pattern.compile("api?");
+                    Matcher m2 = pattern2.matcher(p); // 获取 matcher 对象
+                    if(m2.find()){
+                        System.out.println("paths:"+p+" shouldn't include api");
+                    }
+                    String crudnames[]={"del", "delete", "remove", "drop", "post", "create", "new", "push", "put", "update", "get", "read"};
+                    boolean isCrudy = false;
+                    for(int i=0; i< crudnames.length; i++){
+                        // notice it should start with the CRUD name
+                        if (p.toLowerCase().indexOf(crudnames[i]) >=0) {
+                            isCrudy = true;
+                            break;
+                        }
+                    }
+                    if(isCrudy){
+                        System.out.println(p+" shouldn't has CRUD in paths");
+                    }
 
                 }
-                System.out.println(paths);
+                //System.out.println(paths);
             }
         }
         // do actual JSON schema validation

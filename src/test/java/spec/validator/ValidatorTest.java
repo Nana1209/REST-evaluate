@@ -167,8 +167,8 @@ public class ValidatorTest {
 
     @Test
     public void testValidateInvalid30SpecByUrl() throws Exception {
-        String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
-        //String url = "http://localhost:${dynamicPort}/invalid/yaml";
+        //String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
+        String url = "http://localhost:${dynamicPort}/invalid/yaml";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
 
         ValidatorController validator = new ValidatorController();

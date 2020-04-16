@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 build/
 lib/*.jar
 target
@@ -10,4 +11,18 @@ samples/scala-play2/logs
 .cache
 atlassian-ide-plugin.xml
 *.iml
+=======
+build/
+lib/*.jar
+target
+samples/scala-play2/logs
+.idea
+.idea_modules
+.settings
+.project
+.classpath
+.cache
+atlassian-ide-plugin.xml
+*.iml
+>>>>>>> b50fc9f3d84af93f134770dc1eab0d1d5656efd9
 .java-version

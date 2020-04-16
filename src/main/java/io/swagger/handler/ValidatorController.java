@@ -53,6 +53,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ValidatorController{
@@ -244,7 +245,7 @@ public class ValidatorController{
 
         // read the spec contents, bail if it fails
         try {
-            content = getUrlContents(url, ValidatorController.rejectLocal, ValidatorController.rejectRedirect);
+            content = getUrlContents(url, ValidatorController.rejectLocal, ValidatorController.rejectRedirect); //获取url提供的swagger文档，返回响应entity
         } catch (Exception e) {
             ProcessingMessage pm = new ProcessingMessage();
             pm.setLogLevel(LogLevel.ERROR);
@@ -262,7 +263,7 @@ public class ValidatorController{
 
         // convert to a JsonNode
 
-        JsonNode spec = readNode(content);
+        JsonNode spec = readNode(content); //解析json/yaml格式，生成树结构
         if (spec == null) {
             ProcessingMessage pm = new ProcessingMessage();
             pm.setLogLevel(LogLevel.ERROR);
@@ -285,7 +286,7 @@ public class ValidatorController{
             isVersion2 = true;
             SwaggerDeserializationResult result = null;
             try {
-                result = readSwagger(content);
+                result = readSwagger(content);  //根据content构建swagger model
             } catch (Exception e) {
                 LOGGER.debug("can't read Swagger contents", e);
 
@@ -299,6 +300,7 @@ public class ValidatorController{
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                 }
+                System.out.println(result.getSwagger().getPaths().keySet().toString());
             }
         } else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
             SwaggerParseResult result = null;
@@ -316,7 +318,20 @@ public class ValidatorController{
             if (result != null) {
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
+                    System.out.println(message);
                 }
+                System.out.println("no message!");
+                Set paths = result.getOpenAPI().getPaths().keySet();
+                for (String p : result.getOpenAPI().getPaths().keySet()){
+                    if(!(p.indexOf("_") < 0)){
+                        System.out.println(p+"has _");
+                    }
+                    if(p!=p.toLowerCase()){
+                        System.out.println(p+"need to be lowercase");
+                    }
+
+                }
+                System.out.println(paths);
             }
         }
         // do actual JSON schema validation

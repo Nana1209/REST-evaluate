@@ -38,7 +38,9 @@ public class ValidatorTest {
     private static final String IMAGE = "image";
     private static final String PNG = "png";
     private static final String VALID_30_YAML = "/valid_oas3.yaml";
+    private static final String VALID_30_JSON = "/valid_oas3.json";
     private static final String INVALID_30_YAML ="/invalid_oas3.yaml";
+    private static final String INVALID_30_1_YAML ="/invalid_oas3_1.yaml";
     private static final String VALID_20_YAML = "/valid_swagger2.yaml";
     private static final String INVALID_20_YAML ="/invalid_swagger2.yaml";
     private static final String VALID_IMAGE = "valid.png";
@@ -68,9 +70,27 @@ public class ValidatorTest {
                         .withBody(pathFile
                                 .getBytes(StandardCharsets.UTF_8))));
 
+        pathFile = FileUtils.readFileToString(new File("src/test/resources/valid_oas3.json"));
+
+        WireMock.stubFor(get(urlPathMatching("/valid/json"))
+                .willReturn(aResponse()
+                        .withStatus(HttpURLConnection.HTTP_OK)
+                        .withHeader("Content-type", "application/json")
+                        .withBody(pathFile
+                                .getBytes(StandardCharsets.UTF_8))));
+
         pathFile = FileUtils.readFileToString(new File("src/test/resources/invalid_oas3.yaml"));
 
         WireMock.stubFor(get(urlPathMatching("/invalid/yaml"))
+                .willReturn(aResponse()
+                        .withStatus(HttpURLConnection.HTTP_OK)
+                        .withHeader("Content-type", "application/yaml")
+                        .withBody(pathFile
+                                .getBytes(StandardCharsets.UTF_8))));
+
+        pathFile = FileUtils.readFileToString(new File("src/test/resources/invalid_oas3_1.yaml"));
+
+        WireMock.stubFor(get(urlPathMatching("/invalid_1/yaml"))
                 .willReturn(aResponse()
                         .withStatus(HttpURLConnection.HTTP_OK)
                         .withHeader("Content-type", "application/yaml")
@@ -108,6 +128,7 @@ public class ValidatorTest {
     @Test
     public void testValidateValid20SpecByUrl() throws Exception {
         String url = "http://localhost:${dynamicPort}/validswagger/yaml";
+        //String url = "http://localhost:${dynamicPort}/valid/json";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
 
         ValidatorController validator = new ValidatorController();
@@ -124,8 +145,12 @@ public class ValidatorTest {
 
     @Test
     public void testValidateValid30SpecByUrl() throws Exception {
-        String url = "http://localhost:${dynamicPort}/valid/yaml";
+        //String url = "http://localhost:${dynamicPort}/valid/yaml";
+        //String url = "http://localhost:${dynamicPort}/invalid/yaml";
+        String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
+        //String url = "http://localhost:${dynamicPort}/valid/json";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
+        //url="https://opensource.box.com/box-openapi/openapi.json";
 
         ValidatorController validator = new ValidatorController();
         ResponseContext response = validator.validateByUrl(new RequestContext(), url);
@@ -136,12 +161,14 @@ public class ValidatorTest {
         InputStream valid = this.getClass().getClassLoader().getResourceAsStream(VALID_IMAGE);
 
         Assert.assertTrue( validateEquals(entity,valid) == true);
+        System.out.println("success");
 
     }
 
     @Test
     public void testValidateInvalid30SpecByUrl() throws Exception {
-        String url = "http://localhost:${dynamicPort}/invalid/yaml";
+        String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
+        //String url = "http://localhost:${dynamicPort}/invalid/yaml";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
 
         ValidatorController validator = new ValidatorController();

@@ -51,9 +51,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,6 +76,16 @@ public class ValidatorController{
 
     static boolean rejectLocal = StringUtils.isBlank(System.getProperty("rejectLocal")) ? true : Boolean.parseBoolean(System.getProperty("rejectLocal"));
     static boolean rejectRedirect = StringUtils.isBlank(System.getProperty("rejectRedirect")) ? true : Boolean.parseBoolean(System.getProperty("rejectRedirect"));
+
+    private int score=100; //评分机制
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
+    }
 
     public ResponseContext validateByUrl(RequestContext request , String url) {
 
@@ -306,6 +314,9 @@ public class ValidatorController{
                     output.addMessage(message);
                 }
                 System.out.println(result.getSwagger().getPaths().keySet().toString());
+                Set paths = result.getSwagger().getPaths().keySet();
+                evaluateToScore(paths);
+
             }
         } else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
             SwaggerParseResult result = null;
@@ -327,37 +338,8 @@ public class ValidatorController{
                 }
                 //System.out.println("no message!");
                 Set paths = result.getOpenAPI().getPaths().keySet();
-                for (String p : result.getOpenAPI().getPaths().keySet()){
-                    if(!(p.indexOf("_") < 0)){
-                        System.out.println(p+"has _");
-                    }
-                    if(p!=p.toLowerCase()){
-                        System.out.println(p+"need to be lowercase");
-                    }
-                    Pattern pattern1 = Pattern.compile("v(ers?|ersion)?[0-9.]*");
-                    Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
-                    if(m1.find()){
-                        System.out.println("version shouldn't in paths "+p);
-                    }
-                    Pattern pattern2 = Pattern.compile("api?");
-                    Matcher m2 = pattern2.matcher(p); // 获取 matcher 对象
-                    if(m2.find()){
-                        System.out.println("paths:"+p+" shouldn't include api");
-                    }
-                    String crudnames[]={"del", "delete", "remove", "drop", "post", "create", "new", "push", "put", "update", "get", "read"};
-                    boolean isCrudy = false;
-                    for(int i=0; i< crudnames.length; i++){
-                        // notice it should start with the CRUD name
-                        if (p.toLowerCase().indexOf(crudnames[i]) >=0) {
-                            isCrudy = true;
-                            break;
-                        }
-                    }
-                    if(isCrudy){
-                        System.out.println(p+" shouldn't has CRUD in paths");
-                    }
+                evaluateToScore(paths);
 
-                }
                 //System.out.println(paths);
             }
         }
@@ -374,6 +356,47 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    private void evaluateToScore(Set paths) {
+        for (Iterator it = paths.iterator(); it.hasNext(); ) {
+            String p = (String) it.next();
+            //evaluateToScore()
+            if(!(p.indexOf("_") < 0)){
+                System.out.println(p+" has _");
+                this.score=this.score-20>0?this.score-20:0;
+            }
+            if(p!=p.toLowerCase()){
+                System.out.println(p+"need to be lowercase");
+                this.score=this.score-20>0?this.score-20:0;
+            }
+            Pattern pattern1 = Pattern.compile("v(ers?|ersion)?[0-9.]*");
+            Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
+            if(m1.find()){
+                System.out.println("version shouldn't in paths "+p);
+                this.score=this.score-5>0?this.score-5:0;
+            }
+            Pattern pattern2 = Pattern.compile("api?");
+            Matcher m2 = pattern2.matcher(p); // 获取 matcher 对象
+            if(m2.find()){
+                System.out.println("paths:"+p+" shouldn't include api");
+                this.score=this.score-10>0?this.score-10:0;
+            }
+            String crudnames[]={"del", "delete", "remove", "drop", "post", "create", "new", "push", "put", "update", "get", "read"};
+            boolean isCrudy = false;
+            for(int i=0; i< crudnames.length; i++){
+                // notice it should start with the CRUD name
+                if (p.toLowerCase().indexOf(crudnames[i]) >=0) {
+                    isCrudy = true;
+                    break;
+                }
+            }
+            if(isCrudy){
+                System.out.println(p+" shouldn't has CRUD in paths");
+                this.score=this.score-20>0?this.score-20:0;
+            }
+
+        }
     }
 
 

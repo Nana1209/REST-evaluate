@@ -155,13 +155,15 @@ public class ValidatorTest {
         ValidatorController validator = new ValidatorController();
         ResponseContext response = validator.validateByUrl(new RequestContext(), url);
 
+        System.out.println("score:"+validator.getScore());
+
         Assert.assertEquals(IMAGE, response.getContentType().getType());
         Assert.assertEquals(PNG, response.getContentType().getSubtype());
         InputStream entity = (InputStream)response.getEntity();
         InputStream valid = this.getClass().getClassLoader().getResourceAsStream(VALID_IMAGE);
 
         Assert.assertTrue( validateEquals(entity,valid) == true);
-        System.out.println("success");
+        System.out.println("success!score:"+validator.getScore());
 
     }
 

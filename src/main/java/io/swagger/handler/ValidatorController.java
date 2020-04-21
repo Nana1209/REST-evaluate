@@ -370,12 +370,13 @@ public class ValidatorController{
                 System.out.println(p+"need to be lowercase");
                 this.score=this.score-20>0?this.score-20:0;
             }
-            Pattern pattern1 = Pattern.compile("v(ers?|ersion)?[0-9.]*");
+            Pattern pattern1 = Pattern.compile("v(ers?|ersion)?[0-9.]+");
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
             if(m1.find()){
                 System.out.println("version shouldn't in paths "+p);
                 this.score=this.score-5>0?this.score-5:0;
             }
+
             Pattern pattern2 = Pattern.compile("api?");
             Matcher m2 = pattern2.matcher(p); // 获取 matcher 对象
             if(m2.find()){
@@ -396,7 +397,33 @@ public class ValidatorController{
                 this.score=this.score-20>0?this.score-20:0;
             }
 
+            //建议嵌套深度一般不超过3层
+            int hierarchyNum=substringCount(p,"/")-substringCount(p,"/{");
+            if(hierarchyNum>3){
+                this.score=this.score-5>0?this.score-5:0;
+            }
+
+            //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
+            if(p.endsWith("/")){
+                this.score=this.score-20>0?this.score-20:0;
+            }
+
         }
+    }
+
+    public int substringCount(String s, String subs) {
+        //String src = "Little monkey like to eat bananas, eat more into the big monkey, and finally become fat monkey";
+        //String dest = "monkey";
+        int count = 0;
+        int index = 0;
+
+        while ((index = s.indexOf(subs)) != -1){
+            s = s.substring(index + subs.length());
+            //System.out.println(src);
+            count++;
+        }
+        //System.out.print(count);
+        return count;
     }
 
 

@@ -156,7 +156,6 @@ public class ValidatorTest {
         ResponseContext response = validator.validateByUrl(new RequestContext(), url);
 
         System.out.println("score:"+validator.getScore());
-        System.out.println(validator.substringCount("/pets/color","/"));
 
         Assert.assertEquals(IMAGE, response.getContentType().getType());
         Assert.assertEquals(PNG, response.getContentType().getSubtype());

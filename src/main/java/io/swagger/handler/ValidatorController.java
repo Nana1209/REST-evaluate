@@ -9,10 +9,13 @@ import com.github.fge.jsonschema.core.report.ProcessingMessage;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
 import io.swagger.parser.SwaggerParser;
+import io.swagger.v3.oas.annotations.security.SecuritySchemes;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -78,6 +81,7 @@ public class ValidatorController{
     static boolean rejectRedirect = StringUtils.isBlank(System.getProperty("rejectRedirect")) ? true : Boolean.parseBoolean(System.getProperty("rejectRedirect"));
 
     private int score=100; //评分机制
+    private Map<String,String> evaluations=new HashMap<String, String>();
 
     public int getScore() {
         return score;
@@ -317,6 +321,14 @@ public class ValidatorController{
                 Set paths = result.getSwagger().getPaths().keySet();
                 evaluateToScore(paths);
 
+                //System.out.println(result.getSwagger().getSecurity());
+                Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions();
+                for (String key : securityDefinitions.keySet()) {
+                    evaluations.put("securityType",securityDefinitions.get(key).getType());
+                    System.out.println("securityType ：" + securityDefinitions.get(key).getType());
+                }
+                //System.out.println(result.getSwagger().getSecurityDefinitions().get("Key2").getType());
+
             }
         } else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
             SwaggerParseResult result = null;
@@ -339,6 +351,15 @@ public class ValidatorController{
                 //System.out.println("no message!");
                 Set paths = result.getOpenAPI().getPaths().keySet();
                 evaluateToScore(paths);
+
+                //System.out.println(result.getOpenAPI().getSecurity());
+                //获取API security方案类型（apiKey，OAuth，http等）
+                Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
+                for (String key : securitySchemes.keySet()) {
+                    evaluations.put("securityType",securitySchemes.get(key).getType().toString());
+                    System.out.println("securityType ：" + securitySchemes.get(key).getType().toString());
+                }
+                System.out.println(result);
 
                 //System.out.println(paths);
             }
@@ -394,6 +415,21 @@ public class ValidatorController{
             }
             if(isCrudy){
                 System.out.println(p+" shouldn't has CRUD in paths");
+                this.score=this.score-20>0?this.score-20:0;
+            }
+
+            //文件扩展名不应该包含在API的URL命名中
+            String suffix[]={".html", ".jpg", ".png", ".gif", ".json", ".js", ".txt", ".xml", ".java", ".jsp", ".php", ".asp"};
+            boolean isSuffix = false;
+            for(int i=0; i< suffix.length; i++){
+                // notice it should start with the CRUD name
+                if (p.toLowerCase().indexOf(suffix[i]) >=0) {
+                    isSuffix = true;
+                    break;
+                }
+            }
+            if(isSuffix){
+                System.out.println(p+" shouldn't has suffix in paths");
                 this.score=this.score-20>0?this.score-20:0;
             }
 

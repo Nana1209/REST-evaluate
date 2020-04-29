@@ -48,7 +48,7 @@ paths:
           description: 200 response
           schema:
             $ref: '#/definitions/Empty'
-  /account:
+  /account/:
     options:
       consumes:
         - application/json

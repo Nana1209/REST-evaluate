@@ -115,6 +115,15 @@ public class ValidatorTest {
                         .withBody(pathFile
                                 .getBytes(StandardCharsets.UTF_8))));
 
+        pathFile = FileUtils.readFileToString(new File("src/test/resources/swagger2_petstore.yaml"));
+
+        WireMock.stubFor(get(urlPathMatching("/swagger2_petstore/yaml"))
+                .willReturn(aResponse()
+                        .withStatus(HttpURLConnection.HTTP_OK)
+                        .withHeader("Content-type", "application/yaml")
+                        .withBody(pathFile
+                                .getBytes(StandardCharsets.UTF_8))));
+
     }
 
     @AfterClass
@@ -147,7 +156,8 @@ public class ValidatorTest {
     public void testValidateValid30SpecByUrl() throws Exception {
         //String url = "http://localhost:${dynamicPort}/valid/yaml";
         //String url = "http://localhost:${dynamicPort}/invalid/yaml";
-        String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
+        //String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
+        String url = "http://localhost:${dynamicPort}/swagger2_petstore/yaml";
         //String url = "http://localhost:${dynamicPort}/valid/json";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
         //url="https://opensource.box.com/box-openapi/openapi.json";

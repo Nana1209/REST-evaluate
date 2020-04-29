@@ -10,6 +10,7 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.models.parameters.Parameter;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
@@ -321,15 +322,49 @@ public class ValidatorController{
                 Set paths = result.getSwagger().getPaths().keySet();
                 evaluateToScore(paths);
 
+                //安全解决方案
                 //System.out.println(result.getSwagger().getSecurity());
-                Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions();
-                for (String key : securityDefinitions.keySet()) {
-                    evaluations.put("securityType",securityDefinitions.get(key).getType());
-                    System.out.println("securityType ：" + securityDefinitions.get(key).getType());
+                Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
+                if(securityDefinitions!=null){
+                    for (String key : securityDefinitions.keySet()) {
+                        evaluations.put("securityType",securityDefinitions.get(key).getType());
+                        System.out.println("securityType ：" + securityDefinitions.get(key).getType());
+                    }
                 }
-                //System.out.println(result.getSwagger().getSecurityDefinitions().get("Key2").getType());
 
-            }
+
+                //属性研究,swagger没有解析出属性
+                /*Map<String, Parameter> parameters = result.getSwagger().getParameters();
+                if (parameters==null){
+                    System.out.println("no parameters");
+                }else{
+                    for(String key:parameters.keySet()){
+                        System.out.println(key+":"+parameters.get(key).toString());
+                    }
+                }
+                System.out.println(result.getSwagger().getPaths().keySet());
+                for (String p : result.getSwagger().getPaths().keySet() ) {
+                    //System.out.println("p:"+p);
+                    //System.out.println(p+"'"+result.getSwagger().getPaths().get(p));
+                    List<Parameter> parameterList = result.getSwagger().getPaths().get(p).getParameters()==null?null:result.getSwagger().getPaths().get(p).getParameters();
+                    if(parameterList!=null){
+                        for(Parameter para :parameterList){
+                            System.out.println(para.getName()+": "+para.getIn());
+                        }
+                    }
+
+
+                }*/
+                JsonNode paths_jsonnode = spec.findValue("paths");
+                //System.out.println(paths_jsonnode.toString());
+                List<JsonNode> pathParameters = paths_jsonnode.findValues("parameters");
+                //System.out.println(pathParameters.toString());
+                for(JsonNode pathparameter : pathParameters){
+
+                }
+
+
+            }//if result!=null
         } else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
             SwaggerParseResult result = null;
             try {
@@ -351,6 +386,7 @@ public class ValidatorController{
                 //System.out.println("no message!");
                 Set paths = result.getOpenAPI().getPaths().keySet();
                 evaluateToScore(paths);
+
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
@@ -383,6 +419,9 @@ public class ValidatorController{
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             String p = (String) it.next();
             //evaluateToScore()
+
+
+
             if(!(p.indexOf("_") < 0)){
                 System.out.println(p+" has _");
                 this.score=this.score-20>0?this.score-20:0;
@@ -422,7 +461,6 @@ public class ValidatorController{
             String suffix[]={".html", ".jpg", ".png", ".gif", ".json", ".js", ".txt", ".xml", ".java", ".jsp", ".php", ".asp"};
             boolean isSuffix = false;
             for(int i=0; i< suffix.length; i++){
-                // notice it should start with the CRUD name
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {
                     isSuffix = true;
                     break;
@@ -436,11 +474,13 @@ public class ValidatorController{
             //建议嵌套深度一般不超过3层
             int hierarchyNum=substringCount(p,"/")-substringCount(p,"/{");
             if(hierarchyNum>3){
+                System.out.println(p+": 嵌套深度建议不超过3层");
                 this.score=this.score-5>0?this.score-5:0;
             }
 
             //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
             if(p.endsWith("/")){
+                System.out.println(p+" :尾斜杠不包含在URL中");
                 this.score=this.score-20>0?this.score-20:0;
             }
 

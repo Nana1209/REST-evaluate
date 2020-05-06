@@ -9,13 +9,14 @@ import com.github.fge.jsonschema.core.report.ProcessingMessage;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.swagger.models.Path;
 import io.swagger.models.auth.SecuritySchemeDefinition;
-import io.swagger.models.parameters.Parameter;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
 import io.swagger.parser.SwaggerParser;
-import io.swagger.v3.oas.annotations.security.SecuritySchemes;
+import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.parser.util.SwaggerDeserializationResult;
@@ -24,6 +25,7 @@ import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import io.swagger.models.SchemaValidationError;
 import io.swagger.models.ValidationResponse;
+import io.swagger.v3.parser.util.OpenAPIDeserializer;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.http.HttpEntity;
@@ -333,35 +335,26 @@ public class ValidatorController{
                 }
 
 
-                //属性研究,swagger没有解析出属性
-                /*Map<String, Parameter> parameters = result.getSwagger().getParameters();
-                if (parameters==null){
-                    System.out.println("no parameters");
-                }else{
-                    for(String key:parameters.keySet()){
-                        System.out.println(key+":"+parameters.get(key).toString());
-                    }
-                }
-                System.out.println(result.getSwagger().getPaths().keySet());
-                for (String p : result.getSwagger().getPaths().keySet() ) {
-                    //System.out.println("p:"+p);
-                    //System.out.println(p+"'"+result.getSwagger().getPaths().get(p));
-                    List<Parameter> parameterList = result.getSwagger().getPaths().get(p).getParameters()==null?null:result.getSwagger().getPaths().get(p).getParameters();
-                    if(parameterList!=null){
-                        for(Parameter para :parameterList){
-                            System.out.println(para.getName()+": "+para.getIn());
+                //属性研究,swagger解析出属性:path-> operation -> parameter
+                for(String pathName : result.getSwagger().getPaths().keySet()){
+                    Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();
+                    if (parametersInSwagger==null){
+                        List<io.swagger.models.Operation> operations=getAllOperationsInAPath(result.getSwagger().getPath(pathName));
+                        for(io.swagger.models.Operation operation : operations){
+                            List<io.swagger.models.parameters.Parameter> parasInOprlevel = operation.getParameters();
+                            if(parasInOprlevel!=null){
+                                for(io.swagger.models.parameters.Parameter parameter:parasInOprlevel){
+                                    //TODO
+                                }
+                            }
                         }
+
                     }
 
-
-                }*/
-                JsonNode paths_jsonnode = spec.findValue("paths");
-                //System.out.println(paths_jsonnode.toString());
-                List<JsonNode> pathParameters = paths_jsonnode.findValues("parameters");
-                //System.out.println(pathParameters.toString());
-                for(JsonNode pathparameter : pathParameters){
-
                 }
+
+
+
 
 
             }//if result!=null
@@ -391,13 +384,57 @@ public class ValidatorController{
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
                 Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
-                for (String key : securitySchemes.keySet()) {
-                    evaluations.put("securityType",securitySchemes.get(key).getType().toString());
-                    System.out.println("securityType ：" + securitySchemes.get(key).getType().toString());
+                if(securitySchemes!=null){
+                    for (String key : securitySchemes.keySet()) {
+                        evaluations.put("securityType",securitySchemes.get(key).getType().toString());
+                        System.out.println("securityType ：" + securitySchemes.get(key).getType().toString());
+                    }
                 }
-                System.out.println(result);
 
-                //System.out.println(paths);
+                //System.out.println(result);
+
+                /*openAPI完全按照说明文档进行解析，大部分属性信息在路径中
+                Map<String, Parameter> parameters = result.getOpenAPI().getComponents().getParameters();
+                if(parameters!=null){
+                    System.out.println(parameters.toString());
+                }*/
+
+                for(String pathName : result.getOpenAPI().getPaths().keySet()){
+                    //path-》operation-》parameters
+                    //List<Parameter> pathParas = result.getOpenAPI().getPaths().get(pathName).getParameters();
+                    List<Parameter> parasInPathlevel = result.getOpenAPI().getPaths().get(pathName).getParameters();
+
+                    if(parasInPathlevel==null){
+                        OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
+                        List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
+                        for(Operation operation:operationsInAPath){
+                            List<Parameter> parasInOprlevel=operation.getParameters();
+                            if(parasInOprlevel!=null){
+                                System.out.println(parasInOprlevel.toString());
+                                for(Parameter parameter: parasInOprlevel){
+                                    //TODO
+                                }
+                            }
+                        }
+                    }
+                    /*System.out.println(pathParas);
+                    List<String> parasInPath = extractMessageByRegular(pathName);
+
+                    for(String paraInPath:parasInPath){
+                        boolean hasDescribed=false;
+                        //检查路径中出现的属性(/book/{id})是否都有对应描述
+                        for(Parameter pathPara : pathParas){
+                            if(pathPara.getName().equals(paraInPath)){
+                                hasDescribed=true;
+                            }
+                        }
+                        if(hasDescribed==false){
+                            System.out.println(paraInPath+"没有对应描述");
+                        }
+                    }*/
+
+                }
+
             }
         }
         // do actual JSON schema validation
@@ -413,6 +450,24 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    public List<io.swagger.models.Operation> getAllOperationsInAPath(Path pathObj) {
+        List<io.swagger.models.Operation> operations = new ArrayList();
+        addToOperationsList(operations, pathObj.getGet());
+        addToOperationsList(operations, pathObj.getPut());
+        addToOperationsList(operations, pathObj.getPost());
+        addToOperationsList(operations, pathObj.getPatch());
+        addToOperationsList(operations, pathObj.getDelete());
+        addToOperationsList(operations, pathObj.getOptions());
+        addToOperationsList(operations, pathObj.getHead());
+        return operations;
+    }
+
+    private void addToOperationsList(List<io.swagger.models.Operation> operationsList, io.swagger.models.Operation operation) {
+        if (operation != null) {
+            operationsList.add(operation);
+        }
     }
 
     private void evaluateToScore(Set paths) {
@@ -437,9 +492,7 @@ public class ValidatorController{
                 this.score=this.score-5>0?this.score-5:0;
             }
 
-            Pattern pattern2 = Pattern.compile("api?");
-            Matcher m2 = pattern2.matcher(p); // 获取 matcher 对象
-            if(m2.find()){
+            if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("paths:"+p+" shouldn't include api");
                 this.score=this.score-10>0?this.score-10:0;
             }
@@ -471,20 +524,34 @@ public class ValidatorController{
                 this.score=this.score-20>0?this.score-20:0;
             }
 
-            //建议嵌套深度一般不超过3层
-            int hierarchyNum=substringCount(p,"/")-substringCount(p,"/{");
-            if(hierarchyNum>3){
-                System.out.println(p+": 嵌套深度建议不超过3层");
-                this.score=this.score-5>0?this.score-5:0;
-            }
+
 
             //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
-            if(p.endsWith("/")){
+            if(p.endsWith("/") && p.length()>1){
                 System.out.println(p+" :尾斜杠不包含在URL中");
                 this.score=this.score-20>0?this.score-20:0;
+            }else{
+                //建议嵌套深度一般不超过3层
+                int hierarchyNum=substringCount(p,"/")-substringCount(p,"/{");
+                if(hierarchyNum>3){
+                    System.out.println(p+": 嵌套深度建议不超过3层");
+                    this.score=this.score-5>0?this.score-5:0;
+                }
             }
 
         }
+    }
+
+    //正则表达式提取字符串{}内字符串
+    public static List<String> extractMessageByRegular(String msg){
+
+        List<String> list=new ArrayList<String>();
+        Pattern p = Pattern.compile("(\\{[^\\}]*\\})");
+        Matcher m = p.matcher(msg);
+        while(m.find()){
+            list.add(m.group().substring(1, m.group().length()-1));
+        }
+        return list;
     }
 
     public int substringCount(String s, String subs) {

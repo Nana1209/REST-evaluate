@@ -563,7 +563,7 @@ public class ValidatorController{
                 this.score=this.score-20>0?this.score-20:0;
             }else{
                 //建议嵌套深度一般不超过3层
-                int hierarchyNum=substringCount(p,"/")-substringCount(p,"/{");
+                int hierarchyNum=substringCount(p,"/");
                 if(hierarchyNum>3){
                     System.out.println(p+": 嵌套深度建议不超过3层");
                     this.score=this.score-5>0?this.score-5:0;

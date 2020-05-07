@@ -85,6 +85,16 @@ public class ValidatorController{
 
     private int score=100; //评分机制
     private Map<String,String> evaluations=new HashMap<String, String>();
+    private boolean hasPagePara = false;//是否有分页相关属性
+    public boolean isHasPagePara() {
+        return hasPagePara;
+    }
+
+    public void setHasPagePara(boolean hasPagePara) {
+        this.hasPagePara = hasPagePara;
+    }
+
+
 
     public int getScore() {
         return score;
@@ -344,7 +354,11 @@ public class ValidatorController{
                             List<io.swagger.models.parameters.Parameter> parasInOprlevel = operation.getParameters();
                             if(parasInOprlevel!=null){
                                 for(io.swagger.models.parameters.Parameter parameter:parasInOprlevel){
-                                    //TODO
+                                    //检查是否使用分页参数（查询参数方式）
+                                    if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
+                                        setHasPagePara(true);
+                                        System.out.println(parameter.getName()+" is page parameter. ");
+                                    }
                                 }
                             }
                         }
@@ -407,12 +421,17 @@ public class ValidatorController{
                     if(parasInPathlevel==null){
                         OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
                         List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
+
                         for(Operation operation:operationsInAPath){
                             List<Parameter> parasInOprlevel=operation.getParameters();
                             if(parasInOprlevel!=null){
-                                System.out.println(parasInOprlevel.toString());
+                                //System.out.println(parasInOprlevel.toString());
                                 for(Parameter parameter: parasInOprlevel){
-                                    //TODO
+                                    //检查是否使用分页参数（查询参数方式）
+                                    if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
+                                        setHasPagePara(true);
+                                        System.out.println(parameter.getName()+" is page parameter. ");
+                                    }
                                 }
                             }
                         }
@@ -450,6 +469,18 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    public boolean isPagePara(String name) {
+        String pageNames[]={"limit", "page", "range"};
+        boolean result = false;
+        for(int i=0; i< pageNames.length; i++){
+            if (name.indexOf(pageNames[i]) >=0) {
+                result = true;
+                break;
+            }
+        }
+        return result;
     }
 
     public List<io.swagger.models.Operation> getAllOperationsInAPath(Path pathObj) {

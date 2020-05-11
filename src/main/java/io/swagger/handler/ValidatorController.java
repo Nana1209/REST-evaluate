@@ -85,6 +85,13 @@ public class ValidatorController{
 
     private int score=100; //评分机制
     private Map<String,String> evaluations=new HashMap<String, String>();
+
+    public int[] getPathEvaData() {
+        return pathEvaData;
+    }
+
+    private int pathEvaData[] =new int[10];//记录实现规范的path数
+    private Map<String,Integer> pathEvaResult=new HashMap<>();
     private boolean hasPagePara = false;//是否有分页相关属性
     public boolean isHasPagePara() {
         return hasPagePara;
@@ -332,7 +339,7 @@ public class ValidatorController{
                 }
                 System.out.println(result.getSwagger().getPaths().keySet().toString());
                 Set paths = result.getSwagger().getPaths().keySet();
-                evaluateToScore(paths);
+                pathEvaluate(paths);
 
                 //安全解决方案
                 //System.out.println(result.getSwagger().getSecurity());
@@ -392,7 +399,7 @@ public class ValidatorController{
                 }
                 //System.out.println("no message!");
                 Set paths = result.getOpenAPI().getPaths().keySet();
-                evaluateToScore(paths);
+                pathEvaluate(paths);
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
@@ -501,7 +508,7 @@ public class ValidatorController{
         }
     }
 
-    private void evaluateToScore(Set paths) {
+    private void pathEvaluate(Set paths) {
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             String p = (String) it.next();
             //evaluateToScore()
@@ -510,23 +517,34 @@ public class ValidatorController{
 
             if(!(p.indexOf("_") < 0)){
                 System.out.println(p+" has _");
-                this.score=this.score-20>0?this.score-20:0;
+                //this.score=this.score-20>0?this.score-20:0;
+            }else {
+                this.pathEvaData[0]++;//Integer是Object子类，是对象，可以为null。int是基本数据类型，必须初始化，默认为0
             }
+
             if(p!=p.toLowerCase()){
                 System.out.println(p+"need to be lowercase");
-                this.score=this.score-20>0?this.score-20:0;
+                //this.score=this.score-20>0?this.score-20:0;
+            }else {
+                this.pathEvaData[1]++;
             }
+
             Pattern pattern1 = Pattern.compile("v(ers?|ersion)?[0-9.]+");
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
             if(m1.find()){
                 System.out.println("version shouldn't in paths "+p);
-                this.score=this.score-5>0?this.score-5:0;
+                //this.score=this.score-5>0?this.score-5:0;
+            }else {
+                this.pathEvaData[2]++;
             }
 
             if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("paths:"+p+" shouldn't include api");
-                this.score=this.score-10>0?this.score-10:0;
+                //this.score=this.score-10>0?this.score-10:0;
+            }else {
+                this.pathEvaData[3]++;
             }
+
             String crudnames[]={"del", "delete", "remove", "drop", "post", "create", "new", "push", "put", "update", "get", "read"};
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
@@ -538,7 +556,9 @@ public class ValidatorController{
             }
             if(isCrudy){
                 System.out.println(p+" shouldn't has CRUD in paths");
-                this.score=this.score-20>0?this.score-20:0;
+                //this.score=this.score-20>0?this.score-20:0;
+            }else{
+                this.pathEvaData[4]++;
             }
 
             //文件扩展名不应该包含在API的URL命名中
@@ -552,7 +572,9 @@ public class ValidatorController{
             }
             if(isSuffix){
                 System.out.println(p+" shouldn't has suffix in paths");
-                this.score=this.score-20>0?this.score-20:0;
+                //this.score=this.score-20>0?this.score-20:0;
+            }else {
+                this.pathEvaData[5]++;
             }
 
 
@@ -560,13 +582,16 @@ public class ValidatorController{
             //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
             if(p.endsWith("/") && p.length()>1){
                 System.out.println(p+" :尾斜杠不包含在URL中");
-                this.score=this.score-20>0?this.score-20:0;
+                //this.score=this.score-20>0?this.score-20:0;
             }else{
+                this.pathEvaData[6]++;
                 //建议嵌套深度一般不超过3层
                 int hierarchyNum=substringCount(p,"/");
                 if(hierarchyNum>3){
                     System.out.println(p+": 嵌套深度建议不超过3层");
-                    this.score=this.score-5>0?this.score-5:0;
+                    //this.score=this.score-5>0?this.score-5:0;
+                }else {
+                    this.pathEvaData[7]++;
                 }
             }
 

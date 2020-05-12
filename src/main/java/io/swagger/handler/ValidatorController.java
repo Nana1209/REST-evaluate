@@ -85,18 +85,25 @@ public class ValidatorController{
 
     private int score=100; //评分机制
     private Map<String,String> evaluations=new HashMap<String, String>();
-
-    public int[] getPathEvaData() {
-        return pathEvaData;
-    }
-
-    private int pathEvaData[] =new int[10];//记录实现规范的path数
+    private int pathEvaData[] =new int[10];//记录实现各规范的path数
+    private float avgHierarchy;//路径平均层级数
     private Map<String,Integer> pathEvaResult=new HashMap<>();
     private boolean hasPagePara = false;//是否有分页相关属性
+
+    public float getAvgHierarchy() {
+        return avgHierarchy;
+    }
+
+    public void setAvgHierarchy(float avgHierarchy) {
+        this.avgHierarchy = avgHierarchy;
+    }
+
     public boolean isHasPagePara() {
         return hasPagePara;
     }
-
+    public int[] getPathEvaData() {
+        return pathEvaData;
+    }
     public void setHasPagePara(boolean hasPagePara) {
         this.hasPagePara = hasPagePara;
     }
@@ -587,15 +594,18 @@ public class ValidatorController{
                 this.pathEvaData[6]++;
                 //建议嵌套深度一般不超过3层
                 int hierarchyNum=substringCount(p,"/");
+                this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+                this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
                 if(hierarchyNum>3){
                     System.out.println(p+": 嵌套深度建议不超过3层");
                     //this.score=this.score-5>0?this.score-5:0;
                 }else {
-                    this.pathEvaData[7]++;
+
                 }
             }
 
         }
+        setAvgHierarchy((float)this.pathEvaData[7]/(float)paths.size());
     }
 
     //正则表达式提取字符串{}内字符串

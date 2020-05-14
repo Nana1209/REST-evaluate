@@ -83,12 +83,21 @@ public class ValidatorController{
     static boolean rejectLocal = StringUtils.isBlank(System.getProperty("rejectLocal")) ? true : Boolean.parseBoolean(System.getProperty("rejectLocal"));
     static boolean rejectRedirect = StringUtils.isBlank(System.getProperty("rejectRedirect")) ? true : Boolean.parseBoolean(System.getProperty("rejectRedirect"));
 
+    private float pathNum;//路径数
     private int score=100; //评分机制
     private Map<String,String> evaluations=new HashMap<String, String>();
-    private int pathEvaData[] =new int[10];//记录实现各规范的path数
+    private float pathEvaData[] =new float[10];//记录实现各规范的path数
     private float avgHierarchy;//路径平均层级数
-    private Map<String,Integer> pathEvaResult=new HashMap<>();
+    private Map<String,Float> pathEvaResult=new HashMap<>();
     private boolean hasPagePara = false;//是否有分页相关属性
+
+    public float getPathNum() {
+        return pathNum;
+    }
+
+    public void setPathNum(int pathNum) {
+        this.pathNum = pathNum;
+    }
 
     public float getAvgHierarchy() {
         return avgHierarchy;
@@ -101,7 +110,7 @@ public class ValidatorController{
     public boolean isHasPagePara() {
         return hasPagePara;
     }
-    public int[] getPathEvaData() {
+    public float[] getPathEvaData() {
         return pathEvaData;
     }
     public void setHasPagePara(boolean hasPagePara) {
@@ -372,8 +381,10 @@ public class ValidatorController{
                                     if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
                                         setHasPagePara(true);
                                         System.out.println(parameter.getName()+" is page parameter. ");
+
                                     }
                                 }
+                                evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
                             }
                         }
 
@@ -516,6 +527,8 @@ public class ValidatorController{
     }
 
     private void pathEvaluate(Set paths) {
+        setPathNum(paths.size());//提取路径数
+        evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             String p = (String) it.next();
             //evaluateToScore()
@@ -605,7 +618,18 @@ public class ValidatorController{
             }
 
         }
-        setAvgHierarchy((float)this.pathEvaData[7]/(float)paths.size());
+        setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
+        evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
+        evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
+        evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
+        evaluations.put("lowcaseRate",Float.toString(pathEvaData[1]/getPathNum()));//小写实现率
+        evaluations.put("noVersionRate",Float.toString(pathEvaData[2]/getPathNum()));//不出现版本信息实现率
+        evaluations.put("noapiRate",Float.toString(pathEvaData[3]/getPathNum()));//不出现"api"实现率
+        evaluations.put("noCRUDRate",Float.toString(pathEvaData[4]/getPathNum()));//不出现动词实现率
+        evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
+        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
+
+
     }
 
     //正则表达式提取字符串{}内字符串

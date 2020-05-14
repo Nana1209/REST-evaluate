@@ -167,8 +167,8 @@ public class ValidatorTest {
         //String url = "http://localhost:${dynamicPort}/invalid/yaml";
         //String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
         //String url = "http://localhost:${dynamicPort}/swagger2_petstore/yaml";
-        String url = "http://localhost:${dynamicPort}/validswagger/yaml";
-        //String url = "http://localhost:${dynamicPort}/oas3_petstore_expanted/yaml";
+        //String url = "http://localhost:${dynamicPort}/validswagger/yaml";
+        String url = "http://localhost:${dynamicPort}/oas3_petstore_expanted/yaml";
 
         //String url = "http://localhost:${dynamicPort}/valid/json";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
@@ -178,6 +178,9 @@ public class ValidatorTest {
         ResponseContext response = validator.validateByUrl(new RequestContext(), url);
 
         System.out.println("score:"+validator.getScore());
+        System.out.println(validator.evaluations.toString());
+
+        validator.resultToFile("oas3_petstore_expanted");
 
         Assert.assertEquals(IMAGE, response.getContentType().getType());
         Assert.assertEquals(PNG, response.getContentType().getSubtype());

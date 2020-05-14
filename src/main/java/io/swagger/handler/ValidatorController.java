@@ -46,10 +46,7 @@ import org.slf4j.LoggerFactory;
 
 
 import javax.ws.rs.core.Response;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.security.KeyManagementException;
@@ -84,12 +81,14 @@ public class ValidatorController{
     static boolean rejectRedirect = StringUtils.isBlank(System.getProperty("rejectRedirect")) ? true : Boolean.parseBoolean(System.getProperty("rejectRedirect"));
 
     private float pathNum;//路径数
+    private int endpointNum;//端点数
     private int score=100; //评分机制
-    private Map<String,String> evaluations=new HashMap<String, String>();
+    public Map<String,String> evaluations=new HashMap<String, String>();
     private float pathEvaData[] =new float[10];//记录实现各规范的path数
     private float avgHierarchy;//路径平均层级数
     private Map<String,Float> pathEvaResult=new HashMap<>();
     private boolean hasPagePara = false;//是否有分页相关属性
+    private String fileName;
 
     public float getPathNum() {
         return pathNum;
@@ -128,6 +127,8 @@ public class ValidatorController{
     }
 
     public ResponseContext validateByUrl(RequestContext request , String url) {
+
+        this.fileName=url;
 
         if(url == null) {
             return new ResponseContext()
@@ -373,6 +374,7 @@ public class ValidatorController{
                     Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();
                     if (parametersInSwagger==null){
                         List<io.swagger.models.Operation> operations=getAllOperationsInAPath(result.getSwagger().getPath(pathName));
+                        this.endpointNum+=operations.size();//统计端点数
                         for(io.swagger.models.Operation operation : operations){
                             List<io.swagger.models.parameters.Parameter> parasInOprlevel = operation.getParameters();
                             if(parasInOprlevel!=null){
@@ -446,7 +448,7 @@ public class ValidatorController{
                     if(parasInPathlevel==null){
                         OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
                         List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
-
+                        this.endpointNum+=operationsInAPath.size();//统计端点数
                         for(Operation operation:operationsInAPath){
                             List<Parameter> parasInOprlevel=operation.getParameters();
                             if(parasInOprlevel!=null){
@@ -458,6 +460,7 @@ public class ValidatorController{
                                         System.out.println(parameter.getName()+" is page parameter. ");
                                     }
                                 }
+                                evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
                             }
                         }
                     }
@@ -481,6 +484,7 @@ public class ValidatorController{
 
             }
         }
+        evaluations.put("endpointNum",String.valueOf(this.endpointNum));//将端点数填入评估结果
         // do actual JSON schema validation
         JsonSchema schema = getSchema(isVersion2);
         ProcessingReport report = schema.validate(spec);
@@ -850,5 +854,32 @@ public class ValidatorController{
         }
         return null;
     }
+
+    public boolean resultToFile(String fileName){
+        Boolean bool = false;
+        String filenameTemp = "result/"+fileName+".json";//文件路径+名称+文件类型
+        File file = new File(filenameTemp);
+        try {
+            //如果文件不存在，则创建新的文件
+            if(!file.exists()){
+                file.createNewFile();
+
+                System.out.println("success create file,the file is "+filenameTemp);
+                //创建文件成功后，写入内容到文件里
+                ObjectMapper mapper = new ObjectMapper();
+                try {
+                    mapper.writeValue(file, this.evaluations);
+                    bool = true;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return bool;
+    }
+
 
 }

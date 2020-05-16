@@ -176,9 +176,9 @@ public class ValidatorTest {
         //url="https://opensource.box.com/box-openapi/openapi.json";
 
         ValidatorController validator = new ValidatorController();
-        String file=validator.readFile("src/test/resources/oas3_petstore_expanted.yaml");
-        ResponseContext response = validator.validateByString(new RequestContext(), file);
-        //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
+        //String file=validator.readFile("src/test/resources/oas3_petstore_expanted.yaml");
+        //ResponseContext response = validator.validateByString(new RequestContext(), file);
+        ResponseContext response = validator.validateByUrl(new RequestContext(), url);
 
         System.out.println("score:"+validator.getScore());
         System.out.println(validator.evaluations.toString());
@@ -192,6 +192,36 @@ public class ValidatorTest {
 
         Assert.assertTrue( validateEquals(entity,valid) == true);
         System.out.println("success!score:"+validator.getScore());
+
+    }
+
+    @Test
+    public void testValidateValidAll() throws Exception {
+        File file = new File("src/test/resources/");
+        File[] tempList = file.listFiles();
+        for(File f : tempList){
+            ValidatorController validator = new ValidatorController();
+            String path=f.getPath();
+            String name=f.getName();
+            String content=validator.readFile(path);
+            ResponseContext response = validator.validateByString(new RequestContext(), content);
+            //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
+
+            System.out.println("score:"+validator.getScore());
+            System.out.println(validator.evaluations.toString());
+
+            validator.resultToFile(name);
+
+            Assert.assertEquals(IMAGE, response.getContentType().getType());
+            Assert.assertEquals(PNG, response.getContentType().getSubtype());
+            InputStream entity = (InputStream)response.getEntity();
+            InputStream valid = this.getClass().getClassLoader().getResourceAsStream(VALID_IMAGE);
+
+            //Assert.assertTrue( validateEquals(entity,valid) == true);
+            System.out.println("success!score:"+validator.getScore());
+        }
+
+
 
     }
 

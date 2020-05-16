@@ -168,6 +168,7 @@ public class ValidatorTest {
         //String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
         //String url = "http://localhost:${dynamicPort}/swagger2_petstore/yaml";
         //String url = "http://localhost:${dynamicPort}/validswagger/yaml";
+
         String url = "http://localhost:${dynamicPort}/oas3_petstore_expanted/yaml";
 
         //String url = "http://localhost:${dynamicPort}/valid/json";
@@ -175,7 +176,9 @@ public class ValidatorTest {
         //url="https://opensource.box.com/box-openapi/openapi.json";
 
         ValidatorController validator = new ValidatorController();
-        ResponseContext response = validator.validateByUrl(new RequestContext(), url);
+        String file=validator.readFile("src/test/resources/oas3_petstore_expanted.yaml");
+        ResponseContext response = validator.validateByString(new RequestContext(), file);
+        //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
 
         System.out.println("score:"+validator.getScore());
         System.out.println(validator.evaluations.toString());

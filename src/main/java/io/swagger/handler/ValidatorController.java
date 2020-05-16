@@ -148,6 +148,51 @@ public class ValidatorController{
         return processValidationResponse(validationResponse);
     }
 
+    /**
+    *@Description: 直接检测说明文档（String）
+    *@Param: [request, content]
+    *@return: io.swagger.oas.inflector.models.ResponseContext
+    *@Author: zhouxinyu
+    *@date: 2020/5/16
+    */
+    public ResponseContext validateByString(RequestContext request, String content){
+        if(content == null) {
+            return new ResponseContext()
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity( "No specification supplied.  Try again?" );
+        }
+
+        ValidationResponse validationResponse = null;
+        try {
+            validationResponse = debugByContent(request, content);
+        }catch (Exception e){
+            return new ResponseContext().status(Response.Status.INTERNAL_SERVER_ERROR).entity( "Failed to get content" );
+        }
+
+        System.out.println("message:"+validationResponse.getMessages());
+
+        return processValidationResponse(validationResponse);
+    }
+
+    public static void readToBuffer(StringBuffer buffer, String filePath) throws IOException {
+        InputStream is = new FileInputStream(filePath);
+        String line; // 用来保存每行读取的内容
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        line = reader.readLine(); // 读取第一行
+        while (line != null) { // 如果 line 为空说明读完了
+            buffer.append(line); // 将读到的内容添加到 buffer 中
+            buffer.append("\n"); // 添加换行符
+            line = reader.readLine(); // 读取下一行
+        }
+        reader.close();
+        is.close();
+    }
+    public static String readFile(String filePath) throws IOException {
+        StringBuffer sb = new StringBuffer();
+        readToBuffer(sb, filePath);
+        return sb.toString();
+    }
+
     public ResponseContext validateByContent(RequestContext request, JsonNode inputSpec) {
         if(inputSpec == null) {
             return new ResponseContext()
@@ -530,6 +575,13 @@ public class ValidatorController{
         }
     }
 
+    /**
+    *@Description: 路径（命名）验证
+    *@Param: [paths]路径名集合
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/5/16
+    */
     private void pathEvaluate(Set paths) {
         setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
@@ -648,6 +700,13 @@ public class ValidatorController{
         return list;
     }
 
+    /**
+    *@Description: 计算字符串中子串数
+    *@Param: [s, subs]
+    *@return: int
+    *@Author: zhouxinyu
+    *@date: 2020/5/16
+    */
     public int substringCount(String s, String subs) {
         //String src = "Little monkey like to eat bananas, eat more into the big monkey, and finally become fat monkey";
         //String dest = "monkey";

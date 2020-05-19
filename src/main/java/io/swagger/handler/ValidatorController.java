@@ -10,6 +10,7 @@ import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.swagger.models.Path;
+import io.swagger.models.Scheme;
 import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
@@ -28,6 +29,7 @@ import io.swagger.models.ValidationResponse;
 import io.swagger.v3.parser.util.OpenAPIDeserializer;
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
@@ -400,6 +402,7 @@ public class ValidatorController{
                     output.addMessage(message);
                 }
                 System.out.println(result.getSwagger().getPaths().keySet().toString());
+                //路径（命名）检测
                 Set paths = result.getSwagger().getPaths().keySet();
                 pathEvaluate(paths);
 
@@ -438,6 +441,22 @@ public class ValidatorController{
                     }
 
                 }
+                //动态检测，提取url
+                List<Scheme> schemes = result.getSwagger().getSchemes();
+                if(schemes==null){
+                    schemes.add(Scheme.HTTP);
+                }
+                String host=result.getSwagger().getHost()==null?"":result.getSwagger().getHost();
+                String basepath=result.getSwagger().getBasePath()==null || result.getSwagger().getBasePath().equals("/")?"":result.getSwagger().getBasePath();
+                for(Scheme scheme:schemes){
+                    for (Iterator it = paths.iterator(); it.hasNext(); ) {
+                        String path = (String) it.next();
+                        String url=scheme.toValue()+"://"+host+basepath+path;
+                        System.out.println(url);
+                        Header[] headers=getUrlHeaders(url,false,false);
+                    }
+                }
+
 
 
 
@@ -722,6 +741,54 @@ public class ValidatorController{
         return count;
     }
 
+    /**
+    *@Description: 获取指定url的响应头内容
+    *@Param: [urlString, rejectLocal, rejectRedirect]
+    *@return: org.apache.http.Header[]
+    *@Author: zhouxinyu
+    *@date: 2020/5/18
+    */
+    public Header[] getUrlHeaders(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {
+        URL url = new URL(urlString);
+        if(rejectLocal) {
+            InetAddress inetAddress = InetAddress.getByName(url.getHost());
+            if(inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
+                throw new IOException("Only accepts http/https protocol");
+            }
+        }
+        final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);
+
+        RequestConfig.Builder requestBuilder = RequestConfig.custom();
+        requestBuilder = requestBuilder
+                .setConnectTimeout(5000)
+                .setSocketTimeout(5000);
+
+        HttpGet getMethod = new HttpGet(urlString);
+        getMethod.setConfig(requestBuilder.build());
+        getMethod.setHeader("Accept", "application/json, */*");
+
+
+        if (httpClient != null) {
+            final CloseableHttpResponse response = httpClient.execute(getMethod);
+
+            try {
+
+                HttpEntity entity = response.getEntity();
+                StatusLine line = response.getStatusLine();
+                if(line.getStatusCode() > 299 || line.getStatusCode() < 200) {
+                    throw new IOException("failed to read swagger with code " + line.getStatusCode());
+                }
+                Header[] headers=response.getAllHeaders();
+                //return EntityUtils.toString(entity, "UTF-8");
+                return  headers;
+            } finally {
+                response.close();
+                httpClient.close();
+            }
+        } else {
+            throw new IOException("CloseableHttpClient could not be initialized");
+        }
+    }
 
     private JsonSchema getSchema(boolean isVersion2) throws Exception {
         if (isVersion2) {
@@ -814,7 +881,7 @@ public class ValidatorController{
         return httpClient;
     }
 
-    private String getUrlContents(String urlString) throws IOException {
+    public String getUrlContents(String urlString) throws IOException {
         return getUrlContents(urlString, false, false);
     }
     private String getUrlContents(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {

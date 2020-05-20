@@ -16,9 +16,11 @@ import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
 import io.swagger.parser.SwaggerParser;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -454,6 +456,8 @@ public class ValidatorController{
                         String url=scheme.toValue()+"://"+host+basepath+path;
                         System.out.println(url);
                         Header[] headers=getUrlHeaders(url,false,false);
+                        headerEvaluate(url,headers);
+
                     }
                 }
 
@@ -488,13 +492,23 @@ public class ValidatorController{
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
-                Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
-                if(securitySchemes!=null){
-                    for (String key : securitySchemes.keySet()) {
-                        evaluations.put("securityType",securitySchemes.get(key).getType().toString());
-                        System.out.println("securityType ：" + securitySchemes.get(key).getType().toString());
+                Components component = result.getOpenAPI().getComponents();
+                if (component!=null){
+                    Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
+                    if(securitySchemes!=null){
+                        for (String key : securitySchemes.keySet()) {
+                            evaluations.put("securityType",securitySchemes.get(key).getType().toString());
+                            System.out.println("securityType ：" + securitySchemes.get(key).getType().toString());
+                        }
+                    }else {
+                        evaluations.put("securityType","null");
                     }
+
+                }else{
+                    evaluations.put("securityType","null");
                 }
+
+
 
                 //System.out.println(result);
 
@@ -545,6 +559,19 @@ public class ValidatorController{
                     }*/
 
                 }
+                //动态检测，获取URL
+                List<Server> servers = result.getOpenAPI().getServers();
+                for(Server server:servers){
+                    String serverURL=server.getUrl();
+                    for (Iterator it = paths.iterator(); it.hasNext(); ) {
+                        String path = (String) it.next();
+                        String url = serverURL + path;
+                        Header[] headers=getUrlHeaders(url,false,false);
+                        headerEvaluate(url,headers);
+                    }
+
+
+                }
 
             }
         }
@@ -562,6 +589,39 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    /**
+    *@Description: 头文件检测，检测结果加入evaluations
+    *@Param: [headers]
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/5/20
+    */
+    private void headerEvaluate(String url,Header[] headers) {
+        boolean hasEtag=false;
+        boolean hasCacheControl=false;
+        boolean hasContentType=false;
+        String contentType="";
+        for(Header header:headers){
+            if(header.getName().equals("etag")){
+                System.out.println(url+" response has Etag");
+                hasEtag=true;
+            }
+            if(header.getName().equals("cache-control")){
+                System.out.println(url+" response has cache-control");
+                hasCacheControl=true;
+            }
+            if(header.getName().equals("content-type")){
+                System.out.println(url+" response has content-type");
+                //evaluations.put("content-type",header.getValue());
+                contentType=header.getValue();
+                hasContentType=true;
+            }
+        }
+        evaluations.put("hasEtag",String.valueOf(hasEtag));
+        evaluations.put("hasCacheControl",String.valueOf(hasCacheControl));
+        evaluations.put("hasContentType",hasContentType==true?contentType:"false");
     }
 
     public boolean isPagePara(String name) {

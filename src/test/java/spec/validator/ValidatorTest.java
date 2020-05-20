@@ -247,11 +247,14 @@ public class ValidatorTest {
     @Test
     public void functionTest() throws Exception {
         ValidatorController validator = new ValidatorController();
-        Header[] headers=validator.getUrlHeaders("https://api.github.com/emojis",false,false);
-        String contents=validator.getUrlContents("https://api.github.com/emojis");
-        System.out.println(headers.toString()+" "+contents);
+        //Header[] headers=validator.getUrlHeaders("https://api.github.com/emojis",false,false);
+        //String contents=validator.getUrlContents("https://api.github.com/emojis");
+        //System.out.println(headers.toString()+" "+contents);
+        //String content=validator.readFile("src/test/resources/oas3_bikewise.yaml");
         String content=validator.readFile("src/test/resources/swagger2-github.yaml");
+
         ResponseContext response = validator.validateByString(new RequestContext(), content);
+        Assert.assertEquals(IMAGE, response.getContentType().getType());
     }
 
     @Test

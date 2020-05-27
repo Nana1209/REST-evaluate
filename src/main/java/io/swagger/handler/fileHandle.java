@@ -13,7 +13,7 @@ public class fileHandle {
         String fileName = "openapi.yaml";
 
         File imagFile = findFiles(baseDIR, fileName);
-        System.out.println(imagFile.getPath());
+        //System.out.println(imagFile.getPath());
         return ;
     }
 

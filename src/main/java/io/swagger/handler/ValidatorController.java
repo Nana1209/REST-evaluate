@@ -599,14 +599,25 @@ public class ValidatorController{
     *@date: 2020/5/20
     */
     private void headerEvaluate(String url,Header[] headers) {
+        boolean hasCacheScheme=false;
         boolean hasEtag=false;
         boolean hasCacheControl=false;
         boolean hasContentType=false;
+        boolean hasLastModified=false;
+        boolean hasExpires=false;
         String contentType="";
         for(Header header:headers){
             if(header.getName().equals("etag")){
                 System.out.println(url+" response has Etag");
                 hasEtag=true;
+            }
+            if(header.getName().equals("last-modified")){
+                System.out.println(url+" response has last-modified");
+                hasLastModified=true;
+            }
+            if(header.getName().equals("expires")){
+                System.out.println(url+" response has expires");
+                hasExpires=true;
             }
             if(header.getName().equals("cache-control")){
                 System.out.println(url+" response has cache-control");
@@ -619,16 +630,27 @@ public class ValidatorController{
                 hasContentType=true;
             }
         }
+        hasCacheScheme=hasCacheControl || hasEtag || hasExpires || hasLastModified;
         evaluations.put("hasEtag",String.valueOf(hasEtag));
+        evaluations.put("hasLastModified",String.valueOf(hasLastModified));
+        evaluations.put("hasExpires",String.valueOf(hasExpires));
         evaluations.put("hasCacheControl",String.valueOf(hasCacheControl));
+        evaluations.put("hasCacheScheme",String.valueOf(hasCacheScheme));
         evaluations.put("hasContentType",hasContentType==true?contentType:"false");
     }
 
+    /**
+    *@Description: 是否有页面过滤机制
+    *@Param: [name]
+    *@return: boolean
+    *@Author: zhouxinyu
+    *@date: 2020/5/27
+    */
     public boolean isPagePara(String name) {
-        String pageNames[]={"limit", "page", "range"};
+        String pageNames[]={"limit", "page", "range","pagesize"};
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
-            if (name.indexOf(pageNames[i]) >=0) {
+            if (name.toLowerCase().indexOf(pageNames[i]) >=0) {
                 result = true;
                 break;
             }

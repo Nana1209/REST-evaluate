@@ -580,11 +580,14 @@ public class ValidatorController{
                         String serverURL = server.getUrl();
                         if(serverURL.contains("{")){
                             ServerVariables serverVaris = server.getVariables();
-                            List<String> varsInURL = extractMessageByRegular(serverURL);
+                            List<String> varsInURL = extractMessageByRegular(serverURL);//找到路径中出现的参数
                             for(String varInURL:varsInURL){
                                 ServerVariable serverVar = serverVaris.get(varInURL);
-                                serverVar.getEnum()
+                                List<String> varValues = serverVar.getEnum();//提取对应的参数枚举值
+                                String varValue=varValues.get(0);
+                                serverURL=serverURL.replace("{"+varInURL+"}",varValue);//将{参数}替换为枚举值第一个值
                             }
+                            System.out.println(serverURL);
 
                             /*for(Map.Entry<String, ServerVariable> entry : serverVaris.entrySet()) {
                                 //System.out.println("key:" + entry.getKey() + "   value:" + entry.getValue());

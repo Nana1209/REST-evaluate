@@ -198,13 +198,14 @@ public class ValidatorTest {
 
     @Test
     public void testValidateValidAll() throws Exception {
-        File file = new File("src/test/resources/");
+        File file = new File("E:\\test\\openapi");
         File[] tempList = file.listFiles();
         for(File f : tempList){
             ValidatorController validator = new ValidatorController();
             String path=f.getPath();
             String name=f.getName();
             String content=validator.readFile(path);
+            System.out.println(name+" start!");
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
 
@@ -219,7 +220,8 @@ public class ValidatorTest {
             InputStream valid = this.getClass().getClassLoader().getResourceAsStream(VALID_IMAGE);
 
             //Assert.assertTrue( validateEquals(entity,valid) == true);
-            System.out.println("success!score:"+validator.getScore());
+            //System.out.println("success!score:"+validator.getScore());
+            System.out.println(name+" end!");
         }
 
 
@@ -251,7 +253,7 @@ public class ValidatorTest {
         //String contents=validator.getUrlContents("https://api.github.com/emojis");
         //System.out.println(headers.toString()+" "+contents);
         //String content=validator.readFile("src/test/resources/oas3_bikewise.yaml");
-        String content=validator.readFile("src/test/resources/swagger2-github.yaml");
+        String content=validator.readFile("E:\\test\\openapi\\amazonaws.com-apigatewayv2-2018-11-29-openapi.yaml");
 
         ResponseContext response = validator.validateByString(new RequestContext(), content);
         Assert.assertEquals(IMAGE, response.getContentType().getType());

@@ -21,6 +21,8 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.servers.ServerVariable;
+import io.swagger.v3.oas.models.servers.ServerVariables;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -512,11 +514,20 @@ public class ValidatorController{
 
                 //System.out.println(result);
 
-                /*openAPI完全按照说明文档进行解析，大部分属性信息在路径中
-                Map<String, Parameter> parameters = result.getOpenAPI().getComponents().getParameters();
-                if(parameters!=null){
-                    System.out.println(parameters.toString());
-                }*/
+                //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
+                if (component!=null) {
+                    Map<String, Parameter> parametersInComponent = result.getOpenAPI().getComponents().getParameters();
+                    if (parametersInComponent != null) {
+                        for (String paraName : parametersInComponent.keySet()) {
+                            //检查是否使用分页参数（查询参数方式）
+                            if (isPagePara(paraName) && parametersInComponent.get(paraName).getIn().equals("query")) {
+                                setHasPagePara(true);
+                                System.out.println(paraName + " is page parameter. ");
+                            }
+                        }
+                        evaluations.put("hasPageParameter", String.valueOf(isHasPagePara()));
+                    }
+                }
 
                 for(String pathName : result.getOpenAPI().getPaths().keySet()){
                     //path-》operation-》parameters
@@ -560,18 +571,42 @@ public class ValidatorController{
 
                 }
                 //动态检测，获取URL
+                /*错误太多，跳过*/
                 List<Server> servers = result.getOpenAPI().getServers();
-                for(Server server:servers){
-                    String serverURL=server.getUrl();
-                    for (Iterator it = paths.iterator(); it.hasNext(); ) {
-                        String path = (String) it.next();
-                        String url = serverURL + path;
-                        Header[] headers=getUrlHeaders(url,false,false);
-                        headerEvaluate(url,headers);
+                if(servers.size()==1 && servers.get(0).getUrl()=="/"){
+
+                }else {
+                    for (Server server : servers) {
+                        String serverURL = server.getUrl();
+                        if(serverURL.contains("{")){
+                            ServerVariables serverVaris = server.getVariables();
+                            List<String> varsInURL = extractMessageByRegular(serverURL);
+                            for(String varInURL:varsInURL){
+                                ServerVariable serverVar = serverVaris.get(varInURL);
+                                serverVar.getEnum()
+                            }
+
+                            /*for(Map.Entry<String, ServerVariable> entry : serverVaris.entrySet()) {
+                                //System.out.println("key:" + entry.getKey() + "   value:" + entry.getValue());
+                            }*/
+
+                        }
+
+                        for (Iterator it = paths.iterator(); it.hasNext(); ) {
+                            String path = (String) it.next();
+                            String url = serverURL + path;
+                            Header[] headers = getUrlHeaders(url, false, false);
+                            if (headers != null) {
+                                headerEvaluate(url, headers);
+                            }
+
+                        }
+
+
                     }
-
-
                 }
+
+
 
             }
         }
@@ -647,6 +682,7 @@ public class ValidatorController{
     *@date: 2020/5/27
     */
     public boolean isPagePara(String name) {
+        if(name==null) return  false;
         String pageNames[]={"limit", "page", "range","pagesize"};
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
@@ -831,44 +867,52 @@ public class ValidatorController{
     *@date: 2020/5/18
     */
     public Header[] getUrlHeaders(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {
-        URL url = new URL(urlString);
-        if(rejectLocal) {
-            InetAddress inetAddress = InetAddress.getByName(url.getHost());
-            if(inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
-                throw new IOException("Only accepts http/https protocol");
-            }
-        }
-        final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);
-
-        RequestConfig.Builder requestBuilder = RequestConfig.custom();
-        requestBuilder = requestBuilder
-                .setConnectTimeout(5000)
-                .setSocketTimeout(5000);
-
-        HttpGet getMethod = new HttpGet(urlString);
-        getMethod.setConfig(requestBuilder.build());
-        getMethod.setHeader("Accept", "application/json, */*");
+        if(urlString.contains("{")){
+            return  null;
+        }else {
+            URL url = new URL(urlString);
 
 
-        if (httpClient != null) {
-            final CloseableHttpResponse response = httpClient.execute(getMethod);
-
-            try {
-
-                HttpEntity entity = response.getEntity();
-                StatusLine line = response.getStatusLine();
-                if(line.getStatusCode() > 299 || line.getStatusCode() < 200) {
-                    throw new IOException("failed to read swagger with code " + line.getStatusCode());
+            if (rejectLocal) {
+                InetAddress inetAddress = InetAddress.getByName(url.getHost());
+                if (inetAddress.isAnyLocalAddress() || inetAddress.isLoopbackAddress() || inetAddress.isLinkLocalAddress()) {
+                    throw new IOException("Only accepts http/https protocol");
                 }
-                Header[] headers=response.getAllHeaders();
-                //return EntityUtils.toString(entity, "UTF-8");
-                return  headers;
-            } finally {
-                response.close();
-                httpClient.close();
             }
-        } else {
-            throw new IOException("CloseableHttpClient could not be initialized");
+            final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);
+
+            RequestConfig.Builder requestBuilder = RequestConfig.custom();
+            requestBuilder = requestBuilder
+                    .setConnectTimeout(5000)
+                    .setSocketTimeout(5000);
+
+
+            HttpGet getMethod = new HttpGet(urlString);
+            getMethod.setConfig(requestBuilder.build());
+            getMethod.setHeader("Accept", "application/json, */*");
+
+
+            if (httpClient != null) {
+                final CloseableHttpResponse response = httpClient.execute(getMethod);
+
+                try {
+
+                    HttpEntity entity = response.getEntity();
+                    StatusLine line = response.getStatusLine();
+                    if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {
+                        return null;
+                        //throw new IOException("failed to read swagger with code " + line.getStatusCode());
+                    }
+                    Header[] headers = response.getAllHeaders();
+                    //return EntityUtils.toString(entity, "UTF-8");
+                    return headers;
+                } finally {
+                    response.close();
+                    httpClient.close();
+                }
+            } else {
+                throw new IOException("CloseableHttpClient could not be initialized");
+            }
         }
     }
 
@@ -1065,7 +1109,7 @@ public class ValidatorController{
 
     public boolean resultToFile(String fileName){
         Boolean bool = false;
-        String filenameTemp = "result/"+fileName+".json";//文件路径+名称+文件类型
+        String filenameTemp = "E:\\test\\result\\"+fileName+".json";//文件路径+名称+文件类型
         File file = new File(filenameTemp);
         try {
             //如果文件不存在，则创建新的文件

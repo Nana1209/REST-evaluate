@@ -92,9 +92,18 @@ public class ValidatorController{
     public Map<String,String> evaluations=new HashMap<String, String>();
     private float pathEvaData[] =new float[10];//记录实现各规范的path数
     private float avgHierarchy;//路径平均层级数
+    private List<String> hierarchies=new ArrayList<>();
     private Map<String,Float> pathEvaResult=new HashMap<>();
     private boolean hasPagePara = false;//是否有分页相关属性
     private String fileName;
+
+    public int getEndpointNum() {
+        return endpointNum;
+    }
+
+    public void setEndpointNum(int endpointNum) {
+        this.endpointNum = endpointNum;
+    }
 
     public float getPathNum() {
         return pathNum;
@@ -802,6 +811,7 @@ public class ValidatorController{
                 this.pathEvaData[6]++;
                 //建议嵌套深度一般不超过3层
                 int hierarchyNum=substringCount(p,"/");
+                this.hierarchies.add(Integer.toString(hierarchyNum));
                 this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
                 this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
                 if(hierarchyNum>3){

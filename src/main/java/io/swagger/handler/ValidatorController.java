@@ -533,11 +533,12 @@ public class ValidatorController{
                     //path-》operation-》parameters
                     //List<Parameter> pathParas = result.getOpenAPI().getPaths().get(pathName).getParameters();
                     List<Parameter> parasInPathlevel = result.getOpenAPI().getPaths().get(pathName).getParameters();
-
+                    OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
+                    List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
+                    this.endpointNum+=operationsInAPath.size();//统计端点数
                     if(parasInPathlevel==null){
-                        OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
-                        List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
-                        this.endpointNum+=operationsInAPath.size();//统计端点数
+
+
                         for(Operation operation:operationsInAPath){
                             List<Parameter> parasInOprlevel=operation.getParameters();
                             if(parasInOprlevel!=null){
@@ -571,7 +572,7 @@ public class ValidatorController{
 
                 }
                 //动态检测，获取URL
-                /*错误太多，跳过*/
+                /*错误太多，跳过
                 List<Server> servers = result.getOpenAPI().getServers();
                 if(servers.size()==1 && servers.get(0).getUrl()=="/"){
 
@@ -589,9 +590,7 @@ public class ValidatorController{
                             }
                             System.out.println(serverURL);
 
-                            /*for(Map.Entry<String, ServerVariable> entry : serverVaris.entrySet()) {
-                                //System.out.println("key:" + entry.getKey() + "   value:" + entry.getValue());
-                            }*/
+
 
                         }
 
@@ -607,7 +606,7 @@ public class ValidatorController{
 
 
                     }
-                }
+                }*/
 
 
 
@@ -1110,9 +1109,16 @@ public class ValidatorController{
         return null;
     }
 
+    /**
+    *@Description: 将结果写进文件
+    *@Param: [fileName] 生成的文件名
+    *@return: boolean
+    *@Author: zhouxinyu
+    *@date: 2020/6/20
+    */
     public boolean resultToFile(String fileName){
         Boolean bool = false;
-        String filenameTemp = "E:\\test\\result\\"+fileName+".json";//文件路径+名称+文件类型
+        String filenameTemp = "E:\\test\\resultOpenAPI\\"+fileName+".json";//文件路径+名称+文件类型
         File file = new File(filenameTemp);
         try {
             //如果文件不存在，则创建新的文件
@@ -1135,6 +1141,8 @@ public class ValidatorController{
 
         return bool;
     }
+
+
 
 
 }

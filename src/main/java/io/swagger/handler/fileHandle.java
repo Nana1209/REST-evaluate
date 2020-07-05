@@ -12,6 +12,9 @@ import java.util.LinkedList;
 import java.util.List;
 public class fileHandle {
     private List<List<String>> basicInfos=new ArrayList<>();//name,path,endpoint
+    private List<List<String>> hierarchys=new ArrayList<>();//name,hierarchy..
+    private List<List<String>> validations=new ArrayList<>();//name,no_,lowcase,nosuffix,noCRUD,noAPI,noversion,noend/
+    private List<List<String>> categories=new ArrayList<>();//name,category
 
     public static void main(String[] args) throws Exception {
         //    在此目录中找文件
@@ -22,7 +25,7 @@ public class fileHandle {
         //File imagFile = findFiles(baseDIR, fileName);
         //System.out.println(imagFile.getPath());
         fileHandle test=new fileHandle();
-        test.validateFiles("E:\\test\\openapi");
+        test.validateFiles("E:\\test\\openapi-versionClear");
         return ;
     }
 
@@ -102,20 +105,52 @@ public class fileHandle {
             System.out.println(name+" start!");
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
+            /*基本信息（路径、端点）*/
             List<String> basicInfo=new ArrayList<>();
             basicInfo.add(name);
             basicInfo.add(Float.toString(validator.getPathNum()));
             basicInfo.add(Float.toString(validator.getEndpointNum()));
             basicInfos.add(basicInfo);
 
-            System.out.println(validator.evaluations.toString());
+            /*层级信息*/
+            List<String> hierarchyInfo=new ArrayList<>();
+            hierarchyInfo.add(name);
+            hierarchyInfo.addAll(validator.getHierarchies());
+            hierarchys.add(hierarchyInfo);
+            //System.out.println(validator.evaluations.toString());
+
+            /*命名验证结果*/
+            List<String> validation=new ArrayList<>();
+            validation.add(name);
+            validation.add(validator.evaluations.get("noUnderscoreRate"));
+            validation.add(validator.evaluations.get("lowcaseRate"));
+            validation.add(validator.evaluations.get("noSuffixRate"));
+            validation.add(validator.evaluations.get("noCRUDRate"));
+            validation.add(validator.evaluations.get("noapiRate"));
+            validation.add(validator.evaluations.get("noVersionRate"));
+            validation.add(validator.evaluations.get("noEndSlashRate"));
+            validations.add(validation);
 
             //validator.resultToFile(name);
+
+            List<String> cate=new ArrayList<>();
+            if(validator.getCategory()!=null){
+                cate.add(name);
+                cate.add(validator.getCategory());
+                categories.add(cate);
+            }
 
             System.out.println(name+" end!");
 
         }
-        createCSVFile(basicInfos,"result","basicInfo-openAPI");
+        //基本信息（路径、端点）
+        createCSVFile(basicInfos,"result","basicInfo-openAPIv");
+        //层级信息
+        createCSVFile(hierarchys,"result","hierarchy-openAPIv");
+        //命名验证结果
+        createCSVFile(validations,"result","validationRate-openAPIv");
+        //类别信息x-apisguru-categories
+        createCSVFile(categories,"result","category-openAPIv");
 
 
     }

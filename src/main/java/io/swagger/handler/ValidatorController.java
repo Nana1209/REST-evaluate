@@ -92,10 +92,54 @@ public class ValidatorController{
     public Map<String,String> evaluations=new HashMap<String, String>();
     private float pathEvaData[] =new float[10];//记录实现各规范的path数
     private float avgHierarchy;//路径平均层级数
-    private List<String> hierarchies=new ArrayList<>();
+    private List<String> hierarchies=new ArrayList<>();//所有路径层级数统计
     private Map<String,Float> pathEvaResult=new HashMap<>();
     private boolean hasPagePara = false;//是否有分页相关属性
     private String fileName;
+    private String category=null;//类别信息
+    private int opGet;//get操作数
+    private int opPost;//post操作数
+    private int opDelete;//delete操作数
+    private int opPut;//put操作数
+    private int opHead;//head操作数
+    private int opOptions;
+    private int opPatch;
+
+    public int getOpGet() {
+        return opGet;
+    }
+
+    public int getOpPost() {
+        return opPost;
+    }
+
+    public int getOpDelete() {
+        return opDelete;
+    }
+
+    public int getOpPut() {
+        return opPut;
+    }
+
+    public int getOpHead() {
+        return opHead;
+    }
+
+    public int getOpOptions() {
+        return opOptions;
+    }
+
+    public int getOpPatch() {
+        return opPatch;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public List<String> getHierarchies() {
+        return hierarchies;
+    }
 
     public int getEndpointNum() {
         return endpointNum;
@@ -414,13 +458,13 @@ public class ValidatorController{
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                 }
-                System.out.println(result.getSwagger().getPaths().keySet().toString());
+
                 //路径（命名）检测
-                Set paths = result.getSwagger().getPaths().keySet();
-                pathEvaluate(paths);
+                /*Set paths = result.getSwagger().getPaths().keySet();
+                pathEvaluate(paths);*/
 
                 //安全解决方案
-                //System.out.println(result.getSwagger().getSecurity());
+                /*//System.out.println(result.getSwagger().getSecurity());
                 Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
                 if(securityDefinitions!=null){
                     for (String key : securityDefinitions.keySet()) {
@@ -428,14 +472,36 @@ public class ValidatorController{
                         System.out.println("securityType ：" + securityDefinitions.get(key).getType());
                     }
                 }
+*/
+
+                //基本信息统计
+                setPathNum(result.getSwagger().getPaths().keySet().size());//提取路径数
+                for(String pathName : result.getSwagger().getPaths().keySet()) {
+                    Path path = result.getSwagger().getPath(pathName);
+                    List<io.swagger.models.Operation> operations = getAllOperationsInAPath(result.getSwagger().getPath(pathName));
+                    this.endpointNum += operations.size();//统计端点数
+                    if (path.getGet() != null) {
+                        this.opGet++;
+                    }
+                    this.opPost = path.getPost() != null ? this.opPost+1 : this.opPost;
+                    this.opDelete = path.getDelete() != null ? this.opDelete+1 : this.opDelete;
+                    this.opPut = path.getPut() != null ? this.opPut+1 : this.opPut;
+                    this.opHead = path.getHead() != null ? this.opHead+1 : this.opHead;
+                    this.opPatch = path.getPatch() != null ? this.opPatch+1 : this.opPatch;
+                    this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
+                }
+
 
 
                 //属性研究,swagger解析出属性:path-> operation -> parameter
-                for(String pathName : result.getSwagger().getPaths().keySet()){
+                /*for(String pathName : result.getSwagger().getPaths().keySet()){
                     Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();
+                    Path path = result.getSwagger().getPath(pathName);
+                    List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
+
                     if (parametersInSwagger==null){
-                        List<io.swagger.models.Operation> operations=getAllOperationsInAPath(result.getSwagger().getPath(pathName));
-                        this.endpointNum+=operations.size();//统计端点数
+
+
                         for(io.swagger.models.Operation operation : operations){
                             List<io.swagger.models.parameters.Parameter> parasInOprlevel = operation.getParameters();
                             if(parasInOprlevel!=null){
@@ -451,10 +517,27 @@ public class ValidatorController{
                             }
                         }
 
+                    }else{
+                        for(String key:parametersInSwagger.keySet()){
+                            //检查是否使用分页参数（查询参数方式）
+                            Parameter parameter = (Parameter) parametersInSwagger.get(key);
+                            if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
+                                setHasPagePara(true);
+                                System.out.println(parameter.getName()+" is page parameter. ");
+
+                            }
+                        }
+                        evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
                     }
 
-                }
+                }*/
+
+                //类别信息获取
+                //categorySet(result);
+
                 //动态检测，提取url
+                /*
+
                 List<Scheme> schemes = result.getSwagger().getSchemes();
                 if(schemes==null){
                     schemes.add(Scheme.HTTP);
@@ -470,7 +553,7 @@ public class ValidatorController{
                         headerEvaluate(url,headers);
 
                     }
-                }
+                }*/
 
 
 
@@ -617,8 +700,8 @@ public class ValidatorController{
                     }
                 }*/
 
-
-
+                categorySet(result);
+                
             }
         }
         evaluations.put("endpointNum",String.valueOf(this.endpointNum));//将端点数填入评估结果
@@ -635,6 +718,42 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    /**
+    *@Description: 获取API类别信息 2.0规范
+    *@Param: [result]
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/7/5
+    */
+    private void categorySet(SwaggerDeserializationResult result) {
+        Map<String, Object> extension = result.getSwagger().getInfo().getVendorExtensions();
+        if(extension!=null){
+            String cateInfo = extension.get("x-apisguru-categories").toString();
+            if(cateInfo!=null){
+                this.category=cateInfo;
+            }
+        }
+        return;
+    }
+
+    /**
+    *@Description: 获取API类别信息 3.0规范
+    *@Param: [result]
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/7/5
+    */
+    private void categorySet(SwaggerParseResult result) {
+        Map<String, Object> extension = result.getOpenAPI().getInfo().getExtensions();
+        if(extension!=null){
+            String cateInfo = extension.get("x-apisguru-categories").toString();
+            if(cateInfo!=null){
+                this.category=cateInfo;
+            }
+        }
+        return;
     }
 
     /**

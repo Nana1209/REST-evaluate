@@ -18,6 +18,7 @@ import io.swagger.oas.inflector.models.ResponseContext;
 import io.swagger.parser.SwaggerParser;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
@@ -104,6 +105,12 @@ public class ValidatorController{
     private int opHead;//head操作数
     private int opOptions;
     private int opPatch;
+
+    public int getOpTrace() {
+        return opTrace;
+    }
+
+    private int opTrace;//3.0规范特有
 
     public int getOpGet() {
         return opGet;
@@ -440,7 +447,8 @@ public class ValidatorController{
             pm.setMessage(INVALID_VERSION);
             output.addValidationMessage(new SchemaValidationError(pm.asJson()));
             return output;
-        } else if (version != null && (version.startsWith("\"2") || version.startsWith("2"))) {
+        }
+        else if (version != null && (version.startsWith("\"2") || version.startsWith("2"))) {
             isVersion2 = true;
             SwaggerDeserializationResult result = null;
             try {
@@ -475,23 +483,7 @@ public class ValidatorController{
 */
 
                 //基本信息统计
-                setPathNum(result.getSwagger().getPaths().keySet().size());//提取路径数
-                for(String pathName : result.getSwagger().getPaths().keySet()) {
-                    Path path = result.getSwagger().getPath(pathName);
-                    List<io.swagger.models.Operation> operations = getAllOperationsInAPath(result.getSwagger().getPath(pathName));
-                    this.endpointNum += operations.size();//统计端点数
-                    if (path.getGet() != null) {
-                        this.opGet++;
-                    }
-                    this.opPost = path.getPost() != null ? this.opPost+1 : this.opPost;
-                    this.opDelete = path.getDelete() != null ? this.opDelete+1 : this.opDelete;
-                    this.opPut = path.getPut() != null ? this.opPut+1 : this.opPut;
-                    this.opHead = path.getHead() != null ? this.opHead+1 : this.opHead;
-                    this.opPatch = path.getPatch() != null ? this.opPatch+1 : this.opPatch;
-                    this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
-                }
-
-
+                basicInfoGet(result);
 
                 //属性研究,swagger解析出属性:path-> operation -> parameter
                 /*for(String pathName : result.getSwagger().getPaths().keySet()){
@@ -555,13 +547,9 @@ public class ValidatorController{
                     }
                 }*/
 
-
-
-
-
-
             }//if result!=null
-        } else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
+        }
+        else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
             SwaggerParseResult result = null;
             try {
                 result = readOpenApi(content);
@@ -579,14 +567,17 @@ public class ValidatorController{
                     output.addMessage(message);
                     System.out.println(message);
                 }
-                //System.out.println("no message!");
-                Set paths = result.getOpenAPI().getPaths().keySet();
-                pathEvaluate(paths);
+
+                basicInfoGet(result);
+
+                //路径命名验证
+               /* Set paths = result.getOpenAPI().getPaths().keySet();
+                pathEvaluate(paths);*/
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
-                Components component = result.getOpenAPI().getComponents();
+               /* Components component = result.getOpenAPI().getComponents();
                 if (component!=null){
                     Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
                     if(securitySchemes!=null){
@@ -600,14 +591,11 @@ public class ValidatorController{
 
                 }else{
                     evaluations.put("securityType","null");
-                }
+                }*/
 
-
-
-                //System.out.println(result);
-
+                //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
-                if (component!=null) {
+                /*if (component!=null) {
                     Map<String, Parameter> parametersInComponent = result.getOpenAPI().getComponents().getParameters();
                     if (parametersInComponent != null) {
                         for (String paraName : parametersInComponent.keySet()) {
@@ -646,23 +634,9 @@ public class ValidatorController{
                             }
                         }
                     }
-                    /*System.out.println(pathParas);
-                    List<String> parasInPath = extractMessageByRegular(pathName);
 
-                    for(String paraInPath:parasInPath){
-                        boolean hasDescribed=false;
-                        //检查路径中出现的属性(/book/{id})是否都有对应描述
-                        for(Parameter pathPara : pathParas){
-                            if(pathPara.getName().equals(paraInPath)){
-                                hasDescribed=true;
-                            }
-                        }
-                        if(hasDescribed==false){
-                            System.out.println(paraInPath+"没有对应描述");
-                        }
-                    }*/
 
-                }
+                }*/
                 //动态检测，获取URL
                 /*错误太多，跳过
                 List<Server> servers = result.getOpenAPI().getServers();
@@ -700,7 +674,8 @@ public class ValidatorController{
                     }
                 }*/
 
-                categorySet(result);
+                //类别信息提取
+                //categorySet(result);
                 
             }
         }
@@ -718,6 +693,59 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    /**
+    *@Description: 规范3.0中提取基本信息（路径数，端点数，操作数（get，post，delete，put，，，）
+    *@Param: [result]
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/7/7
+    */
+    private void basicInfoGet(SwaggerParseResult result) {
+        setPathNum(result.getOpenAPI().getPaths().keySet().size());//提取路径数
+
+        for(String pathName : result.getOpenAPI().getPaths().keySet()){
+            OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
+            List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
+            this.endpointNum+=operationsInAPath.size();//统计端点数
+            PathItem path = result.getOpenAPI().getPaths().get(pathName);
+            if (path.getGet() != null) {
+                this.opGet++;
+            }
+            this.opPost = path.getPost() != null ? this.opPost+1 : this.opPost;
+            this.opDelete = path.getDelete() != null ? this.opDelete+1 : this.opDelete;
+            this.opPut = path.getPut() != null ? this.opPut+1 : this.opPut;
+            this.opHead = path.getHead() != null ? this.opHead+1 : this.opHead;
+            this.opPatch = path.getPatch() != null ? this.opPatch+1 : this.opPatch;
+            this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
+            this.opTrace = path.getTrace() != null ? this.opTrace+1 : this.opTrace;
+        }
+    }
+
+    /**
+    *@Description: 规范2.0中提取基本信息（路径数，端点数，操作数（get，post，delete，put，，，）
+    *@Param: [result]
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/7/7
+    */
+    private void basicInfoGet(SwaggerDeserializationResult result) {
+        setPathNum(result.getSwagger().getPaths().keySet().size());//提取路径数
+        for(String pathName : result.getSwagger().getPaths().keySet()) {
+            Path path = result.getSwagger().getPath(pathName);
+            List<io.swagger.models.Operation> operations = getAllOperationsInAPath(result.getSwagger().getPath(pathName));
+            this.endpointNum += operations.size();//统计端点数
+            if (path.getGet() != null) {
+                this.opGet++;
+            }
+            this.opPost = path.getPost() != null ? this.opPost+1 : this.opPost;
+            this.opDelete = path.getDelete() != null ? this.opDelete+1 : this.opDelete;
+            this.opPut = path.getPut() != null ? this.opPut+1 : this.opPut;
+            this.opHead = path.getHead() != null ? this.opHead+1 : this.opHead;
+            this.opPatch = path.getPatch() != null ? this.opPatch+1 : this.opPatch;
+            this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
+        }
     }
 
     /**

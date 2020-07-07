@@ -25,7 +25,7 @@ public class fileHandle {
         //File imagFile = findFiles(baseDIR, fileName);
         //System.out.println(imagFile.getPath());
         fileHandle test=new fileHandle();
-        test.validateFiles("E:\\test\\swagger-versionClear");
+        test.validateFiles("E:\\test\\openapi-versionClear");
         return ;
     }
 
@@ -116,6 +116,8 @@ public class fileHandle {
             basicInfo.add(Float.toString(validator.getOpPut()));
             basicInfo.add(Float.toString(validator.getOpHead()));
             basicInfo.add(Float.toString(validator.getOpPatch()));
+            basicInfo.add(Float.toString(validator.getOpOptions()));
+            basicInfo.add(Float.toString(validator.getOpTrace()));
             System.out.println(basicInfo.toString());
             basicInfos.add(basicInfo);
 
@@ -152,7 +154,7 @@ public class fileHandle {
 
         }
         //基本信息（路径、端点）
-        createCSVFile(basicInfos,"result","basicInfo-openAPIv2.0");
+        createCSVFile(basicInfos,"result","basicInfo-openAPIv3.0");
         //层级信息
         //createCSVFile(hierarchys,"result","hierarchy-openAPIv2.0");
         //命名验证结果

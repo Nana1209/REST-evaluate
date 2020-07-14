@@ -468,8 +468,8 @@ public class ValidatorController{
                 }
 
                 //路径（命名）检测
-                /*Set paths = result.getSwagger().getPaths().keySet();
-                pathEvaluate(paths);*/
+                Set paths = result.getSwagger().getPaths().keySet();
+                pathEvaluate(paths);
 
                 //安全解决方案
                 /*//System.out.println(result.getSwagger().getSecurity());
@@ -483,7 +483,7 @@ public class ValidatorController{
 */
 
                 //基本信息统计
-                basicInfoGet(result);
+                //basicInfoGet(result);
 
                 //属性研究,swagger解析出属性:path-> operation -> parameter
                 /*for(String pathName : result.getSwagger().getPaths().keySet()){
@@ -568,11 +568,12 @@ public class ValidatorController{
                     System.out.println(message);
                 }
 
-                basicInfoGet(result);
+                //基本信息获取
+                //basicInfoGet(result);
 
                 //路径命名验证
-               /* Set paths = result.getOpenAPI().getPaths().keySet();
-                pathEvaluate(paths);*/
+                Set paths = result.getOpenAPI().getPaths().keySet();
+                pathEvaluate(paths);
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
@@ -951,22 +952,29 @@ public class ValidatorController{
 
 
             //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
+            int hierarchyNum=0;
             if(p.endsWith("/") && p.length()>1){
                 System.out.println(p+" :尾斜杠不包含在URL中");
                 //this.score=this.score-20>0?this.score-20:0;
-            }else{
-                this.pathEvaData[6]++;
-                //建议嵌套深度一般不超过3层
-                int hierarchyNum=substringCount(p,"/");
+                hierarchyNum=substringCount(p,"/")-1;
                 this.hierarchies.add(Integer.toString(hierarchyNum));
                 this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
                 this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
-                if(hierarchyNum>3){
-                    System.out.println(p+": 嵌套深度建议不超过3层");
-                    //this.score=this.score-5>0?this.score-5:0;
-                }else {
 
-                }
+            }else{
+                this.pathEvaData[6]++;
+                //建议嵌套深度一般不超过3层
+                hierarchyNum=substringCount(p,"/");
+                this.hierarchies.add(Integer.toString(hierarchyNum));
+                this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+                this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+
+            }
+            if(hierarchyNum>3){
+                System.out.println(p+": 嵌套深度建议不超过3层");
+                //this.score=this.score-5>0?this.score-5:0;
+            }else {
+
             }
 
         }

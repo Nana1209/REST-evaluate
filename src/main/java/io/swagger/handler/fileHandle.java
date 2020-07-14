@@ -122,10 +122,12 @@ public class fileHandle {
             basicInfos.add(basicInfo);
 
             /*层级信息*/
-            /*List<String> hierarchyInfo=new ArrayList<>();
+            List<String> hierarchyInfo=new ArrayList<>();
             hierarchyInfo.add(name);
+            hierarchyInfo.add(Float.toString(validator.getAvgHierarchy()));//平均层级数
+            hierarchyInfo.add(Float.toString(validator.getPathEvaData()[8]));//最大层级数
             hierarchyInfo.addAll(validator.getHierarchies());
-            hierarchys.add(hierarchyInfo);*/
+            hierarchys.add(hierarchyInfo);
             //System.out.println(validator.evaluations.toString());
 
             /*命名验证结果*/
@@ -154,9 +156,9 @@ public class fileHandle {
 
         }
         //基本信息（路径、端点）
-        createCSVFile(basicInfos,"result","basicInfo-openAPIv3.0");
+        //createCSVFile(basicInfos,"result","basicInfo-openAPIv3.0");
         //层级信息
-        //createCSVFile(hierarchys,"result","hierarchy-openAPIv2.0");
+        createCSVFile(hierarchys,"result","hierarchy-openAPIv2.0");
         //命名验证结果
         //createCSVFile(validations,"result","validationRate-openAPIv2.0");
         //类别信息x-apisguru-categories

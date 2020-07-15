@@ -105,6 +105,11 @@ public class ValidatorController{
     private int opHead;//head操作数
     private int opOptions;
     private int opPatch;
+    private  List<String> security=new ArrayList<>();//支持的安全方案
+
+    public List<String> getSecurity() {
+        return security;
+    }
 
     public int getOpTrace() {
         return opTrace;
@@ -468,19 +473,19 @@ public class ValidatorController{
                 }
 
                 //路径（命名）检测
-                Set paths = result.getSwagger().getPaths().keySet();
-                pathEvaluate(paths);
+                /*Set paths = result.getSwagger().getPaths().keySet();
+                pathEvaluate(paths);*/
 
                 //安全解决方案
-                /*//System.out.println(result.getSwagger().getSecurity());
+                //System.out.println(result.getSwagger().getSecurity());
                 Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
                 if(securityDefinitions!=null){
                     for (String key : securityDefinitions.keySet()) {
+                        this.security.add(securityDefinitions.get(key).getType());
                         evaluations.put("securityType",securityDefinitions.get(key).getType());
                         System.out.println("securityType ：" + securityDefinitions.get(key).getType());
                     }
                 }
-*/
 
                 //基本信息统计
                 //basicInfoGet(result);
@@ -572,17 +577,18 @@ public class ValidatorController{
                 //basicInfoGet(result);
 
                 //路径命名验证
-                Set paths = result.getOpenAPI().getPaths().keySet();
-                pathEvaluate(paths);
+                /*Set paths = result.getOpenAPI().getPaths().keySet();
+                pathEvaluate(paths);*/
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
-               /* Components component = result.getOpenAPI().getComponents();
+                Components component = result.getOpenAPI().getComponents();
                 if (component!=null){
                     Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
                     if(securitySchemes!=null){
                         for (String key : securitySchemes.keySet()) {
+                            this.security.add(securitySchemes.get(key).getType().toString());
                             evaluations.put("securityType",securitySchemes.get(key).getType().toString());
                             System.out.println("securityType ：" + securitySchemes.get(key).getType().toString());
                         }
@@ -592,7 +598,7 @@ public class ValidatorController{
 
                 }else{
                     evaluations.put("securityType","null");
-                }*/
+                }
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
@@ -885,6 +891,7 @@ public class ValidatorController{
             String p = (String) it.next();
             //evaluateToScore()
 
+/*
 
 
             if(!(p.indexOf("_") < 0)){
@@ -949,6 +956,7 @@ public class ValidatorController{
                 this.pathEvaData[5]++;
             }
 
+*/
 
 
             //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中

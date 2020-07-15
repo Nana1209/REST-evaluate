@@ -15,6 +15,7 @@ public class fileHandle {
     private List<List<String>> hierarchys=new ArrayList<>();//name,hierarchy..
     private List<List<String>> validations=new ArrayList<>();//name,no_,lowcase,nosuffix,noCRUD,noAPI,noversion,noend/
     private List<List<String>> categories=new ArrayList<>();//name,category
+    private List<List<String>> securities=new ArrayList<>();//name,securityScheme
 
     public static void main(String[] args) throws Exception {
         //    在此目录中找文件
@@ -25,7 +26,7 @@ public class fileHandle {
         //File imagFile = findFiles(baseDIR, fileName);
         //System.out.println(imagFile.getPath());
         fileHandle test=new fileHandle();
-        test.validateFiles("E:\\test\\openapi-versionClear");
+        test.validateFiles("E:\\test\\swagger-versionClear-pathClear");
         return ;
     }
 
@@ -106,7 +107,7 @@ public class fileHandle {
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
             /*基本信息（路径、端点、get，post，delete，put，head，patch）*/
-            List<String> basicInfo=new ArrayList<>();
+           /* List<String> basicInfo=new ArrayList<>();
             basicInfo.add(name);
             basicInfo.add(Float.toString(validator.getPathNum()));
             basicInfo.add(Float.toString(validator.getEndpointNum()));
@@ -119,15 +120,15 @@ public class fileHandle {
             basicInfo.add(Float.toString(validator.getOpOptions()));
             basicInfo.add(Float.toString(validator.getOpTrace()));
             System.out.println(basicInfo.toString());
-            basicInfos.add(basicInfo);
+            basicInfos.add(basicInfo);*/
 
             /*层级信息*/
-            List<String> hierarchyInfo=new ArrayList<>();
+            /*List<String> hierarchyInfo=new ArrayList<>();
             hierarchyInfo.add(name);
             hierarchyInfo.add(Float.toString(validator.getAvgHierarchy()));//平均层级数
             hierarchyInfo.add(Float.toString(validator.getPathEvaData()[8]));//最大层级数
             hierarchyInfo.addAll(validator.getHierarchies());
-            hierarchys.add(hierarchyInfo);
+            hierarchys.add(hierarchyInfo);*/
             //System.out.println(validator.evaluations.toString());
 
             /*命名验证结果*/
@@ -152,13 +153,19 @@ public class fileHandle {
                 categories.add(cate);
             }*/
 
+            /*安全方案信息*/
+            List<String> secu=new ArrayList<>();
+            secu.add(name);
+            secu.addAll(validator.getSecurity());
+            securities.add(secu);
+
             System.out.println(name+" end!");
 
         }
         //基本信息（路径、端点）
         //createCSVFile(basicInfos,"result","basicInfo-openAPIv3.0");
         //层级信息
-        createCSVFile(hierarchys,"result","hierarchy-openAPIv2.0");
+        createCSVFile(securities,"result","security-v2.0");
         //命名验证结果
         //createCSVFile(validations,"result","validationRate-openAPIv2.0");
         //类别信息x-apisguru-categories

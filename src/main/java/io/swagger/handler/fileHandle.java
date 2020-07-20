@@ -16,6 +16,9 @@ public class fileHandle {
     private List<List<String>> validations=new ArrayList<>();//name,no_,lowcase,nosuffix,noCRUD,noAPI,noversion,noend/
     private List<List<String>> categories=new ArrayList<>();//name,category
     private List<List<String>> securities=new ArrayList<>();//name,securityScheme
+    private List<List<String>> CRUDs=new ArrayList<>();//name,CRUD..
+    private List<List<String>> suffixs=new ArrayList<>();//name,suffix..
+    private List<List<String>> paths=new ArrayList<>();//name,path..
 
     public static void main(String[] args) throws Exception {
         //    在此目录中找文件
@@ -26,7 +29,7 @@ public class fileHandle {
         //File imagFile = findFiles(baseDIR, fileName);
         //System.out.println(imagFile.getPath());
         fileHandle test=new fileHandle();
-        test.validateFiles("E:\\test\\swagger-versionClear-pathClear");
+        test.validateFiles("E:\\test\\all-clear");
         return ;
     }
 
@@ -97,8 +100,9 @@ public class fileHandle {
     public void validateFiles(String pathName) throws Exception {
         //File file = new File("E:\\test\\openapi");
         File file = new File(pathName);
-        File[] tempList = file.listFiles();
-        for(File f : tempList){
+        //File[] tempList = file.listFiles();
+        ArrayList<File> fileList = getListFiles(pathName);
+        for(File f : fileList){
             ValidatorController validator = new ValidatorController();
             String path=f.getPath();
             String name=f.getName();
@@ -107,7 +111,7 @@ public class fileHandle {
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
             /*基本信息（路径、端点、get，post，delete，put，head，patch）*/
-           /* List<String> basicInfo=new ArrayList<>();
+            /*List<String> basicInfo=new ArrayList<>();
             basicInfo.add(name);
             basicInfo.add(Float.toString(validator.getPathNum()));
             basicInfo.add(Float.toString(validator.getEndpointNum()));
@@ -132,7 +136,7 @@ public class fileHandle {
             //System.out.println(validator.evaluations.toString());
 
             /*命名验证结果*/
-            /*List<String> validation=new ArrayList<>();
+           /* List<String> validation=new ArrayList<>();
             validation.add(name);
             validation.add(validator.evaluations.get("noUnderscoreRate"));
             validation.add(validator.evaluations.get("lowcaseRate"));
@@ -142,6 +146,21 @@ public class fileHandle {
             validation.add(validator.evaluations.get("noVersionRate"));
             validation.add(validator.evaluations.get("noEndSlashRate"));
             validations.add(validation);*/
+
+            List<String> crudtemp=new ArrayList<>();
+            crudtemp.add(name);
+            crudtemp.addAll(validator.getCRUDlist());
+            CRUDs.add(crudtemp);
+
+            List<String> pathtemp=new ArrayList<>();
+            pathtemp.add(name);
+            pathtemp.addAll(validator.getPathlist());
+            paths.add(pathtemp);
+
+           /* List<String> suffixtemp=new ArrayList<>();
+            suffixtemp.add(name);
+            suffixtemp.addAll(validator.getSuffixlist());
+            suffixs.add(suffixtemp);*/
 
             //validator.resultToFile(name);
 
@@ -154,22 +173,29 @@ public class fileHandle {
             }*/
 
             /*安全方案信息*/
-            List<String> secu=new ArrayList<>();
+            /*List<String> secu=new ArrayList<>();
             secu.add(name);
             secu.addAll(validator.getSecurity());
             securities.add(secu);
 
-            System.out.println(name+" end!");
+            System.out.println(name+" end!");*/
 
         }
         //基本信息（路径、端点）
-        //createCSVFile(basicInfos,"result","basicInfo-openAPIv3.0");
+        //createCSVFile(basicInfos,"result","pathValidate-all");
         //层级信息
-        createCSVFile(securities,"result","security-v2.0");
+        //createCSVFile(securities,"result","security-v2.0");
         //命名验证结果
         //createCSVFile(validations,"result","validationRate-openAPIv2.0");
         //类别信息x-apisguru-categories
         //createCSVFile(categories,"result","category-openAPIv2.0");
+        //CRUD统计
+        createCSVFile(CRUDs,"result","CRUD-all");
+        //路径统计
+        createCSVFile(paths,"result","path-all");
+        //后缀统计
+        //createCSVFile(suffixs,"result","suffix-all");
+
 
 
     }
@@ -239,5 +265,26 @@ public class fileHandle {
                 result = result.replace(strQuota[i], "");
         }
         return result;
+    }
+
+    public static ArrayList<File> getListFiles(Object obj) {
+        File directory = null;
+        if (obj instanceof File) {
+            directory = (File) obj;
+        } else {
+            directory = new File(obj.toString());
+        }
+        ArrayList<File> files = new ArrayList<File>();
+        if (directory.isFile()) {
+            files.add(directory);
+            return files;
+        } else if (directory.isDirectory()) {
+            File[] fileArr = directory.listFiles();
+            for (int i = 0; i < fileArr.length; i++) {
+                File fileOne = fileArr[i];
+                files.addAll(getListFiles(fileOne));
+            }
+        }
+        return files;
     }
 }

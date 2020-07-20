@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 
 
 import javax.ws.rs.core.Response;
+import java.awt.peer.ChoicePeer;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
@@ -106,6 +107,21 @@ public class ValidatorController{
     private int opOptions;
     private int opPatch;
     private  List<String> security=new ArrayList<>();//支持的安全方案
+    private  List<String> CRUDlist=new ArrayList<>();//出现的动词列表
+    private List<String> suffixlist=new ArrayList<>();//出现的后缀列表
+    private List<String> pathlist=new ArrayList<>();;
+
+    public List<String> getPathlist() {
+        return pathlist;
+    }
+
+    public List<String> getCRUDlist() {
+        return CRUDlist;
+    }
+
+    public List<String> getSuffixlist() {
+        return suffixlist;
+    }
 
     public List<String> getSecurity() {
         return security;
@@ -214,7 +230,7 @@ public class ValidatorController{
             return new ResponseContext().status(Response.Status.INTERNAL_SERVER_ERROR).entity( "Failed to process URL" );
         }
 
-        System.out.println("message:"+validationResponse.getMessages());
+        //System.out.println("message:"+validationResponse.getMessages());
 
         return processValidationResponse(validationResponse);
     }
@@ -240,7 +256,7 @@ public class ValidatorController{
             return new ResponseContext().status(Response.Status.INTERNAL_SERVER_ERROR).entity( "Failed to get content" );
         }
 
-        System.out.println("message:"+validationResponse.getMessages());
+       // System.out.println("message:"+validationResponse.getMessages());
 
         return processValidationResponse(validationResponse);
     }
@@ -473,11 +489,11 @@ public class ValidatorController{
                 }
 
                 //路径（命名）检测
-                /*Set paths = result.getSwagger().getPaths().keySet();
-                pathEvaluate(paths);*/
+                Set paths = result.getSwagger().getPaths().keySet();
+                pathEvaluate(paths);
 
                 //安全解决方案
-                //System.out.println(result.getSwagger().getSecurity());
+                /*System.out.println(result.getSwagger().getSecurity());
                 Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
                 if(securityDefinitions!=null){
                     for (String key : securityDefinitions.keySet()) {
@@ -485,7 +501,7 @@ public class ValidatorController{
                         evaluations.put("securityType",securityDefinitions.get(key).getType());
                         System.out.println("securityType ：" + securityDefinitions.get(key).getType());
                     }
-                }
+                }*/
 
                 //基本信息统计
                 //basicInfoGet(result);
@@ -577,13 +593,13 @@ public class ValidatorController{
                 //basicInfoGet(result);
 
                 //路径命名验证
-                /*Set paths = result.getOpenAPI().getPaths().keySet();
-                pathEvaluate(paths);*/
+                Set paths = result.getOpenAPI().getPaths().keySet();
+                pathEvaluate(paths);
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
-                Components component = result.getOpenAPI().getComponents();
+                /*Components component = result.getOpenAPI().getComponents();
                 if (component!=null){
                     Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
                     if(securitySchemes!=null){
@@ -598,7 +614,7 @@ public class ValidatorController{
 
                 }else{
                     evaluations.put("securityType","null");
-                }
+                }*/
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
@@ -891,18 +907,17 @@ public class ValidatorController{
             String p = (String) it.next();
             //evaluateToScore()
 
+
 /*
-
-
             if(!(p.indexOf("_") < 0)){
-                System.out.println(p+" has _");
+                //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
             }else {
                 this.pathEvaData[0]++;//Integer是Object子类，是对象，可以为null。int是基本数据类型，必须初始化，默认为0
             }
 
             if(p!=p.toLowerCase()){
-                System.out.println(p+"need to be lowercase");
+                //System.out.println(p+"need to be lowercase");
                 //this.score=this.score-20>0?this.score-20:0;
             }else {
                 this.pathEvaData[1]++;
@@ -918,51 +933,53 @@ public class ValidatorController{
             }
 
             if(p.toLowerCase().indexOf("api")>=0){
-                System.out.println("paths:"+p+" shouldn't include api");
+                System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
             }else {
                 this.pathEvaData[3]++;
-            }
+            }*/
 
-            String crudnames[]={"del", "delete", "remove", "drop", "post", "create", "new", "push", "put", "update", "get", "read"};
+            this.pathlist.add(p);
+            String crudnames[]={"get",  "create","add","update","put","post", "remove","delete", "new",  "set","push", "read","drop"    };//根据统计结果排序
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name
                 if (p.toLowerCase().indexOf(crudnames[i]) >=0) {
                     isCrudy = true;
+                    this.CRUDlist.add(crudnames[i]);
                     break;
                 }
             }
             if(isCrudy){
-                System.out.println(p+" shouldn't has CRUD in paths");
+                System.out.println("CRUD shouldn't in path "+p);
                 //this.score=this.score-20>0?this.score-20:0;
             }else{
                 this.pathEvaData[4]++;
             }
-
+/*
             //文件扩展名不应该包含在API的URL命名中
             String suffix[]={".html", ".jpg", ".png", ".gif", ".json", ".js", ".txt", ".xml", ".java", ".jsp", ".php", ".asp"};
             boolean isSuffix = false;
             for(int i=0; i< suffix.length; i++){
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {
                     isSuffix = true;
+                    this.suffixlist.add(suffix[i]);
                     break;
                 }
             }
             if(isSuffix){
-                System.out.println(p+" shouldn't has suffix in paths");
+                System.out.println("suffix shouldn't in path "+p);
                 //this.score=this.score-20>0?this.score-20:0;
             }else {
                 this.pathEvaData[5]++;
             }
 
-*/
 
 
             //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
             int hierarchyNum=0;
             if(p.endsWith("/") && p.length()>1){
-                System.out.println(p+" :尾斜杠不包含在URL中");
+                //System.out.println(p+" :尾斜杠不包含在URL中");
                 //this.score=this.score-20>0?this.score-20:0;
                 hierarchyNum=substringCount(p,"/")-1;
                 this.hierarchies.add(Integer.toString(hierarchyNum));
@@ -979,14 +996,14 @@ public class ValidatorController{
 
             }
             if(hierarchyNum>3){
-                System.out.println(p+": 嵌套深度建议不超过3层");
+                //System.out.println(p+": 嵌套深度建议不超过3层");
                 //this.score=this.score-5>0?this.score-5:0;
             }else {
 
-            }
+            }*/
 
         }
-        setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
+        /*setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
         evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
@@ -995,7 +1012,7 @@ public class ValidatorController{
         evaluations.put("noapiRate",Float.toString(pathEvaData[3]/getPathNum()));//不出现"api"实现率
         evaluations.put("noCRUDRate",Float.toString(pathEvaData[4]/getPathNum()));//不出现动词实现率
         evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
-        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
+        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率*/
 
 
     }

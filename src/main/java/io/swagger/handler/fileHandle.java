@@ -10,6 +10,9 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class fileHandle {
     private List<List<String>> basicInfos=new ArrayList<>();//name,path,endpoint
     private List<List<String>> hierarchys=new ArrayList<>();//name,hierarchy..
@@ -21,6 +24,8 @@ public class fileHandle {
     private List<List<String>> paths=new ArrayList<>();//name,path..
 
     public static void main(String[] args) throws Exception {
+
+
         //    在此目录中找文件
         //String baseDIR = "D:\\REST API\\openapi-directory-master\\APIs";
         //    找扩展名为txt的文件
@@ -31,6 +36,25 @@ public class fileHandle {
         fileHandle test=new fileHandle();
         test.validateFiles("E:\\test\\all-clear");
         return ;
+    }
+
+    /**
+    *@Description: 检索并删除字符串中的指定字符串列表
+    *@Param: [p, delList]
+    *@return: java.lang.String
+    *@Author: zhouxinyu
+    *@date: 2020/7/21
+    */
+    public static String delListFromString(String p, String[] delList) {
+        String result=p;
+        for(int i=0;i<delList.length;i++){
+            int start=result.indexOf(delList[i]);
+            if(start>=0){
+                String temp=result.substring(0,start)+result.substring(start+delList[i].length());
+                result=temp;
+            }
+        }
+        return result;
     }
 
     /**
@@ -136,7 +160,7 @@ public class fileHandle {
             //System.out.println(validator.evaluations.toString());
 
             /*命名验证结果*/
-           /* List<String> validation=new ArrayList<>();
+            List<String> validation=new ArrayList<>();
             validation.add(name);
             validation.add(validator.evaluations.get("noUnderscoreRate"));
             validation.add(validator.evaluations.get("lowcaseRate"));
@@ -145,17 +169,17 @@ public class fileHandle {
             validation.add(validator.evaluations.get("noapiRate"));
             validation.add(validator.evaluations.get("noVersionRate"));
             validation.add(validator.evaluations.get("noEndSlashRate"));
-            validations.add(validation);*/
+            validations.add(validation);
 
             List<String> crudtemp=new ArrayList<>();
             crudtemp.add(name);
             crudtemp.addAll(validator.getCRUDlist());
             CRUDs.add(crudtemp);
 
-            List<String> pathtemp=new ArrayList<>();
+            /*List<String> pathtemp=new ArrayList<>();
             pathtemp.add(name);
             pathtemp.addAll(validator.getPathlist());
-            paths.add(pathtemp);
+            paths.add(pathtemp);*/
 
            /* List<String> suffixtemp=new ArrayList<>();
             suffixtemp.add(name);
@@ -186,13 +210,13 @@ public class fileHandle {
         //层级信息
         //createCSVFile(securities,"result","security-v2.0");
         //命名验证结果
-        //createCSVFile(validations,"result","validationRate-openAPIv2.0");
+        createCSVFile(validations,"result","validationRate-openAPIv2.0");
         //类别信息x-apisguru-categories
         //createCSVFile(categories,"result","category-openAPIv2.0");
         //CRUD统计
         createCSVFile(CRUDs,"result","CRUD-all");
         //路径统计
-        createCSVFile(paths,"result","path-all");
+        //createCSVFile(paths,"result","path-all");
         //后缀统计
         //createCSVFile(suffixs,"result","suffix-all");
 

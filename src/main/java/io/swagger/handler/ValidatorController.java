@@ -908,7 +908,6 @@ public class ValidatorController{
             //evaluateToScore()
 
 
-/*
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
@@ -937,18 +936,46 @@ public class ValidatorController{
                 //this.score=this.score-10>0?this.score-10:0;
             }else {
                 this.pathEvaData[3]++;
-            }*/
+            }
 
-            this.pathlist.add(p);
-            String crudnames[]={"get",  "create","add","update","put","post", "remove","delete", "new",  "set","push", "read","drop"    };//根据统计结果排序
+            //this.pathlist.add(p);
+            Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
+            Matcher m = pp.matcher(p);
+            String pathclear = "";//去除属性{}之后的路径
+            int endtemp=0;
+            while(m.find()){
+                pathclear+=p.substring(endtemp,m.start());
+                endtemp=m.end();
+            }
+            pathclear+=p.substring(endtemp);
+            pathclear=pathclear.toLowerCase();
+            String crudnames[]={"get",  "create","add","update","put","post", "remove","delete", "new",  "set","push", "read","drop" ,"modify"   };//根据统计结果排序
+            String delList[][]={
+                    {"target","budget","widget","gadget"},
+                    {},
+                    {"address","addon","addition"},
+                    {"updates"},
+                    {"compute","output","input","reputation","dispute"},
+                    {"postal","posts","postgresql"},
+                    {},
+                    {"deleted"},
+                    {"news","renewal"},
+                    {"setting","setup","asset","settle","setlist","sets","dataset","preset"},
+                    {},
+                    {"thread","readme","spread","readouts","reader"},
+                    {"dropped"},{}};
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name
-                if (p.toLowerCase().indexOf(crudnames[i]) >=0) {
+                String temp=fileHandle.delListFromString(pathclear,delList[i]);
+                if (temp.indexOf(crudnames[i]) >=0) {
                     isCrudy = true;
                     this.CRUDlist.add(crudnames[i]);
                     break;
                 }
+
+
+
             }
             if(isCrudy){
                 System.out.println("CRUD shouldn't in path "+p);
@@ -956,9 +983,8 @@ public class ValidatorController{
             }else{
                 this.pathEvaData[4]++;
             }
-/*
             //文件扩展名不应该包含在API的URL命名中
-            String suffix[]={".html", ".jpg", ".png", ".gif", ".json", ".js", ".txt", ".xml", ".java", ".jsp", ".php", ".asp"};
+            String suffix[]={ ".json", ".html", ".js",".php",".xml",".gif",".jpg", ".txt",".png",    ".java", ".jsp",  ".asp"};
             boolean isSuffix = false;
             for(int i=0; i< suffix.length; i++){
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {
@@ -1000,10 +1026,10 @@ public class ValidatorController{
                 //this.score=this.score-5>0?this.score-5:0;
             }else {
 
-            }*/
+            }
 
         }
-        /*setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
+        setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
         evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
@@ -1012,7 +1038,7 @@ public class ValidatorController{
         evaluations.put("noapiRate",Float.toString(pathEvaData[3]/getPathNum()));//不出现"api"实现率
         evaluations.put("noCRUDRate",Float.toString(pathEvaData[4]/getPathNum()));//不出现动词实现率
         evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
-        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率*/
+        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
 
 
     }

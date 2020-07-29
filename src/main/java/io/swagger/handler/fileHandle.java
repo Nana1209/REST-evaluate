@@ -160,7 +160,7 @@ public class fileHandle {
             //System.out.println(validator.evaluations.toString());
 
             /*命名验证结果*/
-            List<String> validation=new ArrayList<>();
+            /*List<String> validation=new ArrayList<>();
             validation.add(name);
             validation.add(validator.evaluations.get("noUnderscoreRate"));
             validation.add(validator.evaluations.get("lowcaseRate"));
@@ -169,17 +169,17 @@ public class fileHandle {
             validation.add(validator.evaluations.get("noapiRate"));
             validation.add(validator.evaluations.get("noVersionRate"));
             validation.add(validator.evaluations.get("noEndSlashRate"));
-            validations.add(validation);
+            validations.add(validation);*/
 
-            List<String> crudtemp=new ArrayList<>();
+            /*List<String> crudtemp=new ArrayList<>();
             crudtemp.add(name);
             crudtemp.addAll(validator.getCRUDlist());
-            CRUDs.add(crudtemp);
+            CRUDs.add(crudtemp);*/
 
-            /*List<String> pathtemp=new ArrayList<>();
+            List<String> pathtemp=new ArrayList<>();
             pathtemp.add(name);
             pathtemp.addAll(validator.getPathlist());
-            paths.add(pathtemp);*/
+            paths.add(pathtemp);
 
            /* List<String> suffixtemp=new ArrayList<>();
             suffixtemp.add(name);
@@ -210,13 +210,13 @@ public class fileHandle {
         //层级信息
         //createCSVFile(securities,"result","security-v2.0");
         //命名验证结果
-        createCSVFile(validations,"result","validationRate-openAPIv2.0");
+        //createCSVFile(validations,"result","validationRate-openAPIv2.0");
         //类别信息x-apisguru-categories
         //createCSVFile(categories,"result","category-openAPIv2.0");
         //CRUD统计
-        createCSVFile(CRUDs,"result","CRUD-all");
+        //createCSVFile(CRUDs,"result","CRUD-all");
         //路径统计
-        //createCSVFile(paths,"result","path-all");
+        createCSVFile(paths,"D:\\REST API\\result","path-all");
         //后缀统计
         //createCSVFile(suffixs,"result","suffix-all");
 

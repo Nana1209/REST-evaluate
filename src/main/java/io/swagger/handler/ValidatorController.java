@@ -490,7 +490,8 @@ public class ValidatorController{
 
                 //路径（命名）检测
                 Set paths = result.getSwagger().getPaths().keySet();
-                pathEvaluate(paths);
+                pathlist= new ArrayList<>(paths);
+                //pathEvaluate(paths);
 
                 //安全解决方案
                 /*System.out.println(result.getSwagger().getSecurity());
@@ -507,7 +508,7 @@ public class ValidatorController{
                 //basicInfoGet(result);
 
                 //属性研究,swagger解析出属性:path-> operation -> parameter
-                /*for(String pathName : result.getSwagger().getPaths().keySet()){
+                for(String pathName : result.getSwagger().getPaths().keySet()){
                     Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();
                     Path path = result.getSwagger().getPath(pathName);
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
@@ -543,7 +544,7 @@ public class ValidatorController{
                         evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
                     }
 
-                }*/
+                }
 
                 //类别信息获取
                 //categorySet(result);
@@ -594,13 +595,14 @@ public class ValidatorController{
 
                 //路径命名验证
                 Set paths = result.getOpenAPI().getPaths().keySet();
-                pathEvaluate(paths);
+                pathlist= new ArrayList<>(paths);
+                //pathEvaluate(paths);
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
-                /*Components component = result.getOpenAPI().getComponents();
-                if (component!=null){
+                Components component = result.getOpenAPI().getComponents();
+                /*if (component!=null){
                     Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
                     if(securitySchemes!=null){
                         for (String key : securitySchemes.keySet()) {
@@ -618,7 +620,7 @@ public class ValidatorController{
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
-                /*if (component!=null) {
+                if (component!=null) {
                     Map<String, Parameter> parametersInComponent = result.getOpenAPI().getComponents().getParameters();
                     if (parametersInComponent != null) {
                         for (String paraName : parametersInComponent.keySet()) {
@@ -659,7 +661,7 @@ public class ValidatorController{
                     }
 
 
-                }*/
+                }
                 //动态检测，获取URL
                 /*错误太多，跳过
                 List<Server> servers = result.getOpenAPI().getServers();
@@ -864,7 +866,7 @@ public class ValidatorController{
     */
     public boolean isPagePara(String name) {
         if(name==null) return  false;
-        String pageNames[]={"limit", "page", "range","pagesize"};
+        String pageNames[]={"limit", "page", "range","pagesize","pagestartindex"};
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
             if (name.toLowerCase().indexOf(pageNames[i]) >=0) {

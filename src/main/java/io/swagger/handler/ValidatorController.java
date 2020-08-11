@@ -1,5 +1,6 @@
 package io.swagger.handler;
 
+import static io.swagger.models.global.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -603,13 +604,13 @@ public class ValidatorController{
                 //路径命名验证
                 Set paths = result.getOpenAPI().getPaths().keySet();
                 //pathlist= new ArrayList<>(paths);
-                //pathEvaluate(paths);
+                pathEvaluate(paths);
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
-                Components component = result.getOpenAPI().getComponents();
-                /*if (component!=null){
+                /*Components component = result.getOpenAPI().getComponents();
+                if (component!=null){
                     Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
                     if(securitySchemes!=null){
                         for (String key : securitySchemes.keySet()) {
@@ -627,7 +628,7 @@ public class ValidatorController{
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
-                if (component!=null) {
+                /*if (component!=null) {
                     Map<String, Parameter> parametersInComponent = result.getOpenAPI().getComponents().getParameters();
                     if (parametersInComponent != null) {
                         for (String paraName : parametersInComponent.keySet()) {
@@ -644,7 +645,7 @@ public class ValidatorController{
 
                 for(String pathName : result.getOpenAPI().getPaths().keySet()){
                     //path-》operation-》parameters
-                    //List<Parameter> pathParas = result.getOpenAPI().getPaths().get(pathName).getParameters();
+
                     List<Parameter> parasInPathlevel = result.getOpenAPI().getPaths().get(pathName).getParameters();
                     OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
                     List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
@@ -655,7 +656,6 @@ public class ValidatorController{
                         for(Operation operation:operationsInAPath){
                             List<Parameter> parasInOprlevel=operation.getParameters();
                             if(parasInOprlevel!=null){
-                                //System.out.println(parasInOprlevel.toString());
                                 for(Parameter parameter: parasInOprlevel){
                                     //检查是否使用分页参数（查询参数方式）
                                     if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
@@ -670,7 +670,7 @@ public class ValidatorController{
                     }
 
 
-                }
+                }*/
                 //动态检测，获取URL
                 /*错误太多，跳过
                 List<Server> servers = result.getOpenAPI().getServers();
@@ -875,7 +875,7 @@ public class ValidatorController{
     */
     public boolean isPagePara(String name) {
         if(name==null) return  false;
-        String pageNames[]={"limit", "offset","page", "range","pagesize","pagestartindex","before","after"};
+        String pageNames[]=PAGEPARANAMES;
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
             if (name.toLowerCase().indexOf(pageNames[i]) >=0) {
@@ -933,7 +933,7 @@ public class ValidatorController{
                 this.pathEvaData[1]++;
             }
 
-            Pattern pattern1 = Pattern.compile("v(ers?|ersion)?[0-9.]+");
+            Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
             if(m1.find()){
                 System.out.println("version shouldn't in paths "+p);
@@ -960,8 +960,9 @@ public class ValidatorController{
             }
             pathclear+=p.substring(endtemp);
             pathclear=pathclear.toLowerCase();
-            String crudnames[]={"get",  "create","add","update","put","post", "remove","delete", "new",  "set","push", "read","drop" ,"modify"   };//根据统计结果排序
-            String delList[][]={
+            //String crudnames[]={"get",  "create","add","update","put","post", "remove","delete", "new",  "set","push", "read","drop" ,"modify"   };//根据统计结果排序
+            String crudnames[]=CRUDNAMES;
+            /*String delList[][]={
                     {"target","budget","widget","gadget"},
                     {},
                     {"address","addon","addition"},
@@ -974,7 +975,8 @@ public class ValidatorController{
                     {"setting","setup","asset","settle","setlist","sets","dataset","preset"},
                     {},
                     {"thread","readme","spread","readouts","reader"},
-                    {"dropped"},{}};
+                    {"dropped"},{}};*/
+            String delList[][]=DELLIST;
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name
@@ -995,7 +997,8 @@ public class ValidatorController{
                 this.pathEvaData[4]++;
             }
             //文件扩展名不应该包含在API的URL命名中
-            String suffix[]={ ".json", ".html", ".js",".php",".xml",".gif",".jpg", ".txt",".png",    ".java", ".jsp",  ".asp"};
+            //String suffix[]={ ".json", ".html", ".js",".php",".xml",".gif",".jpg", ".txt",".png",    ".java", ".jsp",  ".asp"};
+            String suffix[]=SUFFIX_NAMES;
             boolean isSuffix = false;
             for(int i=0; i< suffix.length; i++){
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {

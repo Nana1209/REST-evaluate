@@ -253,10 +253,11 @@ public class ValidatorTest {
         //String contents=validator.getUrlContents("https://api.github.com/emojis");
         //System.out.println(headers.toString()+" "+contents);
         //String content=validator.readFile("src/test/resources/oas3_bikewise.yaml");
-        String content=validator.readFile("E:\\test\\swagger-versionClear-pathClear\\stoplight.io-api-v1-swagger.yaml");
+        String content=validator.readFile("E:\\test\\openapi-versionClear-pathClear\\googleapis.com-chat-v1-openapi.yaml");
 
         ResponseContext response = validator.validateByString(new RequestContext(), content);
         Assert.assertEquals(IMAGE, response.getContentType().getType());
+
     }
 
     @Test

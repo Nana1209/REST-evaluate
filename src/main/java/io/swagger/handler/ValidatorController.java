@@ -109,7 +109,12 @@ public class ValidatorController{
     private  List<String> security=new ArrayList<>();//支持的安全方案
     private  List<String> CRUDlist=new ArrayList<>();//出现的动词列表
     private List<String> suffixlist=new ArrayList<>();//出现的后缀列表
-    private List<String> pathlist=new ArrayList<>();;
+    private List<String> pathlist=new ArrayList<>();//路径
+    private List<String> querypara=new ArrayList<>();//过滤、限制、分页查询参数
+
+    public List<String> getQuerypara() {
+        return querypara;
+    }
 
     public List<String> getPathlist() {
         return pathlist;
@@ -522,6 +527,7 @@ public class ValidatorController{
                                 for(io.swagger.models.parameters.Parameter parameter:parasInOprlevel){
                                     //检查是否使用分页参数（查询参数方式）
                                     if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
+                                        this.querypara.add(parameter.getName());
                                         setHasPagePara(true);
                                         System.out.println(parameter.getName()+" is page parameter. ");
 
@@ -536,6 +542,7 @@ public class ValidatorController{
                             //检查是否使用分页参数（查询参数方式）
                             Parameter parameter = (Parameter) parametersInSwagger.get(key);
                             if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
+                                this.querypara.add(parameter.getName());
                                 setHasPagePara(true);
                                 System.out.println(parameter.getName()+" is page parameter. ");
 
@@ -595,7 +602,7 @@ public class ValidatorController{
 
                 //路径命名验证
                 Set paths = result.getOpenAPI().getPaths().keySet();
-                pathlist= new ArrayList<>(paths);
+                //pathlist= new ArrayList<>(paths);
                 //pathEvaluate(paths);
 
 
@@ -626,6 +633,7 @@ public class ValidatorController{
                         for (String paraName : parametersInComponent.keySet()) {
                             //检查是否使用分页参数（查询参数方式）
                             if (isPagePara(paraName) && parametersInComponent.get(paraName).getIn().equals("query")) {
+                                this.querypara.add(paraName);
                                 setHasPagePara(true);
                                 System.out.println(paraName + " is page parameter. ");
                             }
@@ -651,6 +659,7 @@ public class ValidatorController{
                                 for(Parameter parameter: parasInOprlevel){
                                     //检查是否使用分页参数（查询参数方式）
                                     if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
+                                        this.querypara.add(parameter.getName());
                                         setHasPagePara(true);
                                         System.out.println(parameter.getName()+" is page parameter. ");
                                     }
@@ -866,7 +875,7 @@ public class ValidatorController{
     */
     public boolean isPagePara(String name) {
         if(name==null) return  false;
-        String pageNames[]={"limit", "page", "range","pagesize","pagestartindex"};
+        String pageNames[]={"limit", "offset","page", "range","pagesize","pagestartindex","before","after"};
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
             if (name.toLowerCase().indexOf(pageNames[i]) >=0) {

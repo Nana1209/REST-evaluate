@@ -22,6 +22,7 @@ public class fileHandle {
     private List<List<String>> CRUDs=new ArrayList<>();//name,CRUD..
     private List<List<String>> suffixs=new ArrayList<>();//name,suffix..
     private List<List<String>> paths=new ArrayList<>();//name,path..
+    private List<List<String>> paras=new ArrayList<>();//name,paraName..
 
     public static void main(String[] args) throws Exception {
 
@@ -176,10 +177,15 @@ public class fileHandle {
             crudtemp.addAll(validator.getCRUDlist());
             CRUDs.add(crudtemp);*/
 
-            List<String> pathtemp=new ArrayList<>();
+            /*List<String> pathtemp=new ArrayList<>();
             pathtemp.add(name);
             pathtemp.addAll(validator.getPathlist());
-            paths.add(pathtemp);
+            paths.add(pathtemp);*/
+
+            List<String> paratemp=new ArrayList<>();
+            paratemp.add(name);
+            paratemp.addAll(validator.getQuerypara());
+            paras.add(paratemp);
 
            /* List<String> suffixtemp=new ArrayList<>();
             suffixtemp.add(name);
@@ -216,9 +222,11 @@ public class fileHandle {
         //CRUD统计
         //createCSVFile(CRUDs,"result","CRUD-all");
         //路径统计
-        createCSVFile(paths,"D:\\REST API\\result","path-all");
+        //createCSVFile(paths,"D:\\REST API\\result","path-all");
         //后缀统计
         //createCSVFile(suffixs,"result","suffix-all");
+        //查询参数统计
+        createCSVFile(paras,"D:\\REST API\\result","queryPara-all");
 
 
 

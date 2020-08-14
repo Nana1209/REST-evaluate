@@ -10,21 +10,15 @@ import com.github.fge.jsonschema.core.report.ProcessingMessage;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
+import io.swagger.models.HttpMethod;
 import io.swagger.models.Path;
-import io.swagger.models.Scheme;
-import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
 import io.swagger.parser.SwaggerParser;
-import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
-import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.servers.Server;
-import io.swagger.v3.oas.models.servers.ServerVariable;
-import io.swagger.v3.oas.models.servers.ServerVariables;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -112,6 +106,11 @@ public class ValidatorController{
     private List<String> suffixlist=new ArrayList<>();//出现的后缀列表
     private List<String> pathlist=new ArrayList<>();//路径
     private List<String> querypara=new ArrayList<>();//过滤、限制、分页查询参数
+    private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
+
+    public List<List<String>> getCRUDPathOperations() {
+        return CRUDPathOperations;
+    }
 
     public List<String> getQuerypara() {
         return querypara;
@@ -497,7 +496,7 @@ public class ValidatorController{
                 //路径（命名）检测
                 Set paths = result.getSwagger().getPaths().keySet();
                 pathlist= new ArrayList<>(paths);
-                //pathEvaluate(paths);
+                pathEvaluate(paths,result);
 
                 //安全解决方案
                 /*System.out.println(result.getSwagger().getSecurity());
@@ -514,7 +513,7 @@ public class ValidatorController{
                 //basicInfoGet(result);
 
                 //属性研究,swagger解析出属性:path-> operation -> parameter
-                for(String pathName : result.getSwagger().getPaths().keySet()){
+                /*for(String pathName : result.getSwagger().getPaths().keySet()){
                     Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();
                     Path path = result.getSwagger().getPath(pathName);
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
@@ -552,7 +551,7 @@ public class ValidatorController{
                         evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
                     }
 
-                }
+                }*/
 
                 //类别信息获取
                 //categorySet(result);
@@ -604,7 +603,7 @@ public class ValidatorController{
                 //路径命名验证
                 Set paths = result.getOpenAPI().getPaths().keySet();
                 //pathlist= new ArrayList<>(paths);
-                pathEvaluate(paths);
+                pathEvaluate(paths,result);
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
@@ -905,20 +904,20 @@ public class ValidatorController{
     }
 
     /**
-    *@Description: 路径（命名）验证
-    *@Param: [paths]路径名集合
+    *@Description: 路径（命名）验证,v2.0
+    *@Param: [paths, result]
     *@return: void
     *@Author: zhouxinyu
-    *@date: 2020/5/16
+    *@date: 2020/8/12
     */
-    private void pathEvaluate(Set paths) {
+    private void pathEvaluate(Set paths, SwaggerDeserializationResult result) {
         setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             String p = (String) it.next();
             //evaluateToScore()
 
-
+/*
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
@@ -947,7 +946,7 @@ public class ValidatorController{
                 //this.score=this.score-10>0?this.score-10:0;
             }else {
                 this.pathEvaData[3]++;
-            }
+            }*/
 
             //this.pathlist.add(p);
             Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
@@ -960,22 +959,8 @@ public class ValidatorController{
             }
             pathclear+=p.substring(endtemp);
             pathclear=pathclear.toLowerCase();
-            //String crudnames[]={"get",  "create","add","update","put","post", "remove","delete", "new",  "set","push", "read","drop" ,"modify"   };//根据统计结果排序
             String crudnames[]=CRUDNAMES;
-            /*String delList[][]={
-                    {"target","budget","widget","gadget"},
-                    {},
-                    {"address","addon","addition"},
-                    {"updates"},
-                    {"compute","output","input","reputation","dispute"},
-                    {"postal","posts","postgresql"},
-                    {},
-                    {"deleted"},
-                    {"news","renewal"},
-                    {"setting","setup","asset","settle","setlist","sets","dataset","preset"},
-                    {},
-                    {"thread","readme","spread","readouts","reader"},
-                    {"dropped"},{}};*/
+
             String delList[][]=DELLIST;
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
@@ -984,6 +969,7 @@ public class ValidatorController{
                 if (temp.indexOf(crudnames[i]) >=0) {
                     isCrudy = true;
                     this.CRUDlist.add(crudnames[i]);
+                    CRUDPathOperation(p,crudnames[i], result);
                     break;
                 }
 
@@ -993,11 +979,11 @@ public class ValidatorController{
             if(isCrudy){
                 System.out.println("CRUD shouldn't in path "+p);
                 //this.score=this.score-20>0?this.score-20:0;
+
             }else{
                 this.pathEvaData[4]++;
             }
-            //文件扩展名不应该包含在API的URL命名中
-            //String suffix[]={ ".json", ".html", ".js",".php",".xml",".gif",".jpg", ".txt",".png",    ".java", ".jsp",  ".asp"};
+            /*//文件扩展名不应该包含在API的URL命名中
             String suffix[]=SUFFIX_NAMES;
             boolean isSuffix = false;
             for(int i=0; i< suffix.length; i++){
@@ -1040,7 +1026,7 @@ public class ValidatorController{
                 //this.score=this.score-5>0?this.score-5:0;
             }else {
 
-            }
+            }*/
 
         }
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
@@ -1055,6 +1041,181 @@ public class ValidatorController{
         evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
 
 
+    }
+    /**
+    *@Description: 路径（命名）验证,v3.0
+    *@Param: [paths]路径名集合
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/5/16
+    */
+    private void pathEvaluate(Set paths, SwaggerParseResult result) {
+        setPathNum(paths.size());//提取路径数
+        evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
+        for (Iterator it = paths.iterator(); it.hasNext(); ) {
+            String p = (String) it.next();
+            //evaluateToScore()
+
+
+            /*if(!(p.indexOf("_") < 0)){
+                //System.out.println(p+" has _");
+                //this.score=this.score-20>0?this.score-20:0;
+            }else {
+                this.pathEvaData[0]++;//Integer是Object子类，是对象，可以为null。int是基本数据类型，必须初始化，默认为0
+            }
+
+            if(p!=p.toLowerCase()){
+                //System.out.println(p+"need to be lowercase");
+                //this.score=this.score-20>0?this.score-20:0;
+            }else {
+                this.pathEvaData[1]++;
+            }
+
+            Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
+            Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
+            if(m1.find()){
+                System.out.println("version shouldn't in paths "+p);
+                //this.score=this.score-5>0?this.score-5:0;
+            }else {
+                this.pathEvaData[2]++;
+            }
+
+            if(p.toLowerCase().indexOf("api")>=0){
+                System.out.println("api shouldn't in path "+p);
+                //this.score=this.score-10>0?this.score-10:0;
+            }else {
+                this.pathEvaData[3]++;
+            }*/
+
+            //this.pathlist.add(p);
+            Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
+            Matcher m = pp.matcher(p);
+            String pathclear = "";//去除属性{}之后的路径
+            int endtemp=0;
+            while(m.find()){
+                pathclear+=p.substring(endtemp,m.start());
+                endtemp=m.end();
+            }
+            pathclear+=p.substring(endtemp);
+            pathclear=pathclear.toLowerCase();
+            String crudnames[]=CRUDNAMES;
+            String delList[][]=DELLIST;
+            boolean isCrudy = false;
+            for(int i=0; i< crudnames.length; i++){
+                // notice it should start with the CRUD name
+                String temp=fileHandle.delListFromString(pathclear,delList[i]);
+                if (temp.indexOf(crudnames[i]) >=0) {
+                    isCrudy = true;
+                    this.CRUDlist.add(crudnames[i]);
+                    CRUDPathOperation(p,crudnames[i],result);
+                    break;
+                }
+
+
+
+            }
+            if(isCrudy){
+                System.out.println("CRUD shouldn't in path "+p);
+                //this.score=this.score-20>0?this.score-20:0;
+
+            }else{
+                this.pathEvaData[4]++;
+            }
+            //文件扩展名不应该包含在API的URL命名中
+            /*String suffix[]=SUFFIX_NAMES;
+            boolean isSuffix = false;
+            for(int i=0; i< suffix.length; i++){
+                if (p.toLowerCase().indexOf(suffix[i]) >=0) {
+                    isSuffix = true;
+                    this.suffixlist.add(suffix[i]);
+                    break;
+                }
+            }
+            if(isSuffix){
+                System.out.println("suffix shouldn't in path "+p);
+                //this.score=this.score-20>0?this.score-20:0;
+            }else {
+                this.pathEvaData[5]++;
+            }
+
+
+
+            //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
+            int hierarchyNum=0;
+            if(p.endsWith("/") && p.length()>1){
+                //System.out.println(p+" :尾斜杠不包含在URL中");
+                //this.score=this.score-20>0?this.score-20:0;
+                hierarchyNum=substringCount(p,"/")-1;
+                this.hierarchies.add(Integer.toString(hierarchyNum));
+                this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+                this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+
+            }else{
+                this.pathEvaData[6]++;
+                //建议嵌套深度一般不超过3层
+                hierarchyNum=substringCount(p,"/");
+                this.hierarchies.add(Integer.toString(hierarchyNum));
+                this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+                this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+
+            }
+            if(hierarchyNum>3){
+                //System.out.println(p+": 嵌套深度建议不超过3层");
+                //this.score=this.score-5>0?this.score-5:0;
+            }else {
+
+            }*/
+
+        }
+        setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
+        evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
+        evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
+        evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
+        evaluations.put("lowcaseRate",Float.toString(pathEvaData[1]/getPathNum()));//小写实现率
+        evaluations.put("noVersionRate",Float.toString(pathEvaData[2]/getPathNum()));//不出现版本信息实现率
+        evaluations.put("noapiRate",Float.toString(pathEvaData[3]/getPathNum()));//不出现"api"实现率
+        evaluations.put("noCRUDRate",Float.toString(pathEvaData[4]/getPathNum()));//不出现动词实现率
+        evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
+        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
+
+
+    }
+
+    /**
+    *@Description: 路径中出现的动词以及所使用的操作 v3.0
+    *@Param: [p, crudname, result]
+    *@return: void
+    *@Author: zhouxinyu
+    *@date: 2020/8/12
+    */
+    private void CRUDPathOperation(String p, String crudname, SwaggerParseResult result) {
+        List<String> pathOP=new ArrayList<>();
+        pathOP.add(p);
+        pathOP.add(crudname);
+        PathItem path =result.getOpenAPI().getPaths().get(p);
+        for(PathItem.HttpMethod op : path.readOperationsMap().keySet()){
+            pathOP.add(op.name());
+        }
+        CRUDPathOperations.add(pathOP);
+    }
+
+    /**
+    *@Description: 路径中出现的动词以及所使用的操作 v2.0
+    *@Param:
+    *@return:
+    *@Author: zhouxinyu
+    *@date: 2020/8/12
+    */
+    private void CRUDPathOperation(String p, String crudname, SwaggerDeserializationResult result) {
+        List<String> pathOP=new ArrayList<>();
+        pathOP.add(p);
+        pathOP.add(crudname);
+        Path path=result.getSwagger().getPaths().get(p);
+
+        for(HttpMethod op : path.getOperationMap().keySet()){
+            pathOP.add(op.name());
+        }
+        CRUDPathOperations.add(pathOP);
     }
 
     //正则表达式提取字符串{}内字符串

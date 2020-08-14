@@ -198,7 +198,7 @@ public class ValidatorTest {
 
     @Test
     public void testValidateValidAll() throws Exception {
-        File file = new File("E:\\test\\openapi");
+        /*File file = new File("E:\\test\\openapi");
         File[] tempList = file.listFiles();
         for(File f : tempList){
             ValidatorController validator = new ValidatorController();
@@ -222,7 +222,7 @@ public class ValidatorTest {
             //Assert.assertTrue( validateEquals(entity,valid) == true);
             //System.out.println("success!score:"+validator.getScore());
             System.out.println(name+" end!");
-        }
+        }*/
 
 
 
@@ -253,7 +253,7 @@ public class ValidatorTest {
         //String contents=validator.getUrlContents("https://api.github.com/emojis");
         //System.out.println(headers.toString()+" "+contents);
         //String content=validator.readFile("src/test/resources/oas3_bikewise.yaml");
-        String content=validator.readFile("E:\\test\\openapi-versionClear-pathClear\\googleapis.com-chat-v1-openapi.yaml");
+        String content=validator.readFile("E:\\test\\openapi-versionClear-pathClear\\amazonaws.com-chime-2018-05-01-openapi.yaml");
 
         ResponseContext response = validator.validateByString(new RequestContext(), content);
         Assert.assertEquals(IMAGE, response.getContentType().getType());

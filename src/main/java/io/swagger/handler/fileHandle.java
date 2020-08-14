@@ -23,6 +23,7 @@ public class fileHandle {
     private List<List<String>> suffixs=new ArrayList<>();//name,suffix..
     private List<List<String>> paths=new ArrayList<>();//name,path..
     private List<List<String>> paras=new ArrayList<>();//name,paraName..
+    private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
 
     public static void main(String[] args) throws Exception {
 
@@ -34,8 +35,8 @@ public class fileHandle {
 
         //File imagFile = findFiles(baseDIR, fileName);
         //System.out.println(imagFile.getPath());
-        fileHandle test=new fileHandle();
-        test.validateFiles("E:\\test\\all-clear");
+        /*fileHandle test=new fileHandle();
+        test.validateFiles("E:\\test\\all-clear");*/
         return ;
     }
 
@@ -182,10 +183,11 @@ public class fileHandle {
             pathtemp.addAll(validator.getPathlist());
             paths.add(pathtemp);*/
 
+            /*//功能性查询参数统计
             List<String> paratemp=new ArrayList<>();
             paratemp.add(name);
             paratemp.addAll(validator.getQuerypara());
-            paras.add(paratemp);
+            paras.add(paratemp);*/
 
            /* List<String> suffixtemp=new ArrayList<>();
             suffixtemp.add(name);
@@ -210,6 +212,18 @@ public class fileHandle {
 
             System.out.println(name+" end!");*/
 
+            if(validator.getCRUDPathOperations()!=null){
+
+
+                for (List<String> op : validator.getCRUDPathOperations()){
+                    List<String> ops=new ArrayList<>();
+                    ops.add(name);
+                    ops.addAll(op);
+                    System.out.println(ops);
+                    CRUDPathOperations.add(ops);
+                }
+            }
+
         }
         //基本信息（路径、端点）
         //createCSVFile(basicInfos,"result","pathValidate-all");
@@ -226,7 +240,9 @@ public class fileHandle {
         //后缀统计
         //createCSVFile(suffixs,"result","suffix-all");
         //查询参数统计
-        createCSVFile(paras,"D:\\REST API\\result","queryPara-all");
+        //createCSVFile(paras,"D:\\REST API\\result","queryPara-all");
+        //出现动词的路径使用的操作
+        createCSVFile(CRUDPathOperations,"D:\\REST API\\result","CRUDPathOperations-allV2");
 
 
 

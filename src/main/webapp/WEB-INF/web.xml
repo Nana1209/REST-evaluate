@@ -15,9 +15,19 @@
         </init-param>
         <load-on-startup>1</load-on-startup>
     </servlet>
+
     <servlet-mapping>
         <servlet-name>swagger-inflector</servlet-name>
         <url-pattern>/validator/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ValidateServlet</servlet-name>
+        <servlet-class>com.rest.servlet.ValidateServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ValidateServlet</servlet-name>
+        <url-pattern>/restapi</url-pattern>
     </servlet-mapping>
     <filter>
         <filter-name>CORSFilter</filter-name>

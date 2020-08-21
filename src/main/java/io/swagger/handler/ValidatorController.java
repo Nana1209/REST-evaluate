@@ -12,13 +12,16 @@ import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.swagger.models.HttpMethod;
 import io.swagger.models.Path;
+import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
 import io.swagger.parser.SwaggerParser;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.parser.OpenAPIV3Parser;
@@ -499,7 +502,7 @@ public class ValidatorController{
                 pathEvaluate(paths,result);
 
                 //安全解决方案
-                /*System.out.println(result.getSwagger().getSecurity());
+                System.out.println(result.getSwagger().getSecurity());
                 Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
                 if(securityDefinitions!=null){
                     for (String key : securityDefinitions.keySet()) {
@@ -507,13 +510,13 @@ public class ValidatorController{
                         evaluations.put("securityType",securityDefinitions.get(key).getType());
                         System.out.println("securityType ：" + securityDefinitions.get(key).getType());
                     }
-                }*/
+                }
 
                 //基本信息统计
-                //basicInfoGet(result);
+                basicInfoGet(result);
 
                 //属性研究,swagger解析出属性:path-> operation -> parameter
-                /*for(String pathName : result.getSwagger().getPaths().keySet()){
+                for(String pathName : result.getSwagger().getPaths().keySet()){
                     Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();
                     Path path = result.getSwagger().getPath(pathName);
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
@@ -551,10 +554,10 @@ public class ValidatorController{
                         evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
                     }
 
-                }*/
+                }
 
                 //类别信息获取
-                //categorySet(result);
+                categorySet(result);
 
                 //动态检测，提取url
                 /*
@@ -598,17 +601,17 @@ public class ValidatorController{
                 }
 
                 //基本信息获取
-                //basicInfoGet(result);
+                basicInfoGet(result);
 
                 //路径命名验证
                 Set paths = result.getOpenAPI().getPaths().keySet();
-                //pathlist= new ArrayList<>(paths);
+                pathlist= new ArrayList<>(paths);
                 pathEvaluate(paths,result);
 
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
-                /*Components component = result.getOpenAPI().getComponents();
+                Components component = result.getOpenAPI().getComponents();
                 if (component!=null){
                     Map<String, SecurityScheme> securitySchemes = result.getOpenAPI().getComponents().getSecuritySchemes();
                     if(securitySchemes!=null){
@@ -623,11 +626,11 @@ public class ValidatorController{
 
                 }else{
                     evaluations.put("securityType","null");
-                }*/
+                }
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
-                /*if (component!=null) {
+                if (component!=null) {
                     Map<String, Parameter> parametersInComponent = result.getOpenAPI().getComponents().getParameters();
                     if (parametersInComponent != null) {
                         for (String paraName : parametersInComponent.keySet()) {
@@ -669,7 +672,7 @@ public class ValidatorController{
                     }
 
 
-                }*/
+                }
                 //动态检测，获取URL
                 /*错误太多，跳过
                 List<Server> servers = result.getOpenAPI().getServers();
@@ -917,7 +920,6 @@ public class ValidatorController{
             String p = (String) it.next();
             //evaluateToScore()
 
-/*
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
@@ -932,7 +934,8 @@ public class ValidatorController{
                 this.pathEvaData[1]++;
             }
 
-            Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
+            //Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
+            Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
             if(m1.find()){
                 System.out.println("version shouldn't in paths "+p);
@@ -946,7 +949,7 @@ public class ValidatorController{
                 //this.score=this.score-10>0?this.score-10:0;
             }else {
                 this.pathEvaData[3]++;
-            }*/
+            }
 
             //this.pathlist.add(p);
             Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
@@ -959,7 +962,8 @@ public class ValidatorController{
             }
             pathclear+=p.substring(endtemp);
             pathclear=pathclear.toLowerCase();
-            String crudnames[]=CRUDNAMES;
+            //String crudnames[]=CRUDNAMES;
+            String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
 
             String delList[][]=DELLIST;
             boolean isCrudy = false;
@@ -983,8 +987,9 @@ public class ValidatorController{
             }else{
                 this.pathEvaData[4]++;
             }
-            /*//文件扩展名不应该包含在API的URL命名中
-            String suffix[]=SUFFIX_NAMES;
+            //文件扩展名不应该包含在API的URL命名中
+            //String suffix[]=SUFFIX_NAMES;
+            String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",");
             boolean isSuffix = false;
             for(int i=0; i< suffix.length; i++){
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {
@@ -1026,7 +1031,7 @@ public class ValidatorController{
                 //this.score=this.score-5>0?this.score-5:0;
             }else {
 
-            }*/
+            }
 
         }
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
@@ -1057,7 +1062,7 @@ public class ValidatorController{
             //evaluateToScore()
 
 
-            /*if(!(p.indexOf("_") < 0)){
+            if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
             }else {
@@ -1071,7 +1076,8 @@ public class ValidatorController{
                 this.pathEvaData[1]++;
             }
 
-            Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
+            //Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
+            Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
             if(m1.find()){
                 System.out.println("version shouldn't in paths "+p);
@@ -1085,7 +1091,7 @@ public class ValidatorController{
                 //this.score=this.score-10>0?this.score-10:0;
             }else {
                 this.pathEvaData[3]++;
-            }*/
+            }
 
             //this.pathlist.add(p);
             Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
@@ -1098,7 +1104,9 @@ public class ValidatorController{
             }
             pathclear+=p.substring(endtemp);
             pathclear=pathclear.toLowerCase();
-            String crudnames[]=CRUDNAMES;
+            //String crudnames[]=CRUDNAMES;
+            String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
+
             String delList[][]=DELLIST;
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
@@ -1122,7 +1130,9 @@ public class ValidatorController{
                 this.pathEvaData[4]++;
             }
             //文件扩展名不应该包含在API的URL命名中
-            /*String suffix[]=SUFFIX_NAMES;
+            //String suffix[]=SUFFIX_NAMES;
+            String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",");
+
             boolean isSuffix = false;
             for(int i=0; i< suffix.length; i++){
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {
@@ -1164,7 +1174,7 @@ public class ValidatorController{
                 //this.score=this.score-5>0?this.score-5:0;
             }else {
 
-            }*/
+            }
 
         }
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数

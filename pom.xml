@@ -18,6 +18,14 @@
         <defaultGoal>install</defaultGoal>
         <directory>target</directory>
         <finalName>${project.artifactId}-${project.version}</finalName>
+        <!--resources>
+            <resource>
+                <directory>src/main</directory>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+            </resource>
+        </resources-->
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -117,7 +125,7 @@
                 <artifactId>jetty-maven-plugin</artifactId>
                 <version>${jetty-version}</version>
                 <configuration>
-                    <monitoredDirName>.</monitoredDirName>
+                    <!--monitoredDirName>.</monitoredDirName-->
                     <scanTargets>
                         <scanTarget>inflector.yaml</scanTarget>
                         <scanTarget>src/main/swagger/swagger.yaml</scanTarget>
@@ -126,14 +134,15 @@
                     <webApp>
                         <contextPath>/</contextPath>
                     </webApp>
-                    <webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory>
+                    <!--webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory-->
+                    <webAppSourceDirectory>src/main/</webAppSourceDirectory>
                     <httpConnector>
                         <port>8080</port>
                         <idleTimeout>60000</idleTimeout>
                     </httpConnector>
                 </configuration>
             </plugin>
-            <plugin>
+            <!--plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
                 <version>1.2.1</version>
@@ -177,7 +186,7 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin-->
 
         </plugins>
     </build>
@@ -232,6 +241,13 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
 
     </dependencies>
     <repositories>

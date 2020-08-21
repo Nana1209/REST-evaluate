@@ -26,7 +26,10 @@ public class fileHandle {
     private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
 
     public static void main(String[] args) throws Exception {
-
+        String ver=ConfigManager.getInstance().getValue("VERSIONPATH_REGEX");
+        System.out.println(ver);
+        String CRUD[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
+        System.out.println(CRUD[2]);
 
         //    在此目录中找文件
         //String baseDIR = "D:\\REST API\\openapi-directory-master\\APIs";

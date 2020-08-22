@@ -877,7 +877,8 @@ public class ValidatorController{
     */
     public boolean isPagePara(String name) {
         if(name==null) return  false;
-        String pageNames[]=PAGEPARANAMES;
+        //String pageNames[]=PAGEPARANAMES;
+        String pageNames[]=ConfigManager.getInstance().getValue("PAGEPARANAMES").split(",");
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
             if (name.toLowerCase().indexOf(pageNames[i]) >=0) {
@@ -965,7 +966,15 @@ public class ValidatorController{
             //String crudnames[]=CRUDNAMES;
             String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
 
-            String delList[][]=DELLIST;
+            String dellistString=ConfigManager.getInstance().getValue("DELLIST");
+            String str1[] = dellistString.split(";");
+            String delList[][]=new String[str1.length][];
+            for(int i = 0;i < str1.length;i++) {
+
+                String str2[] = str1[i].split(",");
+                delList[i] = str2;
+            }
+            //String delList[][]=DELLIST;
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name
@@ -1107,7 +1116,15 @@ public class ValidatorController{
             //String crudnames[]=CRUDNAMES;
             String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
 
-            String delList[][]=DELLIST;
+            String dellistString=ConfigManager.getInstance().getValue("DELLIST");
+            String str1[] = dellistString.split(";");
+            String delList[][]=new String[str1.length][];
+            for(int i = 0;i < str1.length;i++) {
+
+                String str2[] = str1[i].split(",");
+                delList[i] = str2;
+            }
+            //String delList[][]=DELLIST;
             boolean isCrudy = false;
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name

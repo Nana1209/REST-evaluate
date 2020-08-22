@@ -30,7 +30,16 @@ public class fileHandle {
         System.out.println(ver);
         String CRUD[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
         System.out.println(CRUD[2]);
+        String dellistString=ConfigManager.getInstance().getValue("DELLIST");
+        String str1[] = dellistString.split(";");
+        String delList[][]=new String[str1.length][];
+        for(int i = 0;i < str1.length;i++) {
 
+            String str2[] = str1[i].split(",");
+            delList[i] = str2;
+        }
+
+        System.out.println(delList[2][1]);
         //    在此目录中找文件
         //String baseDIR = "D:\\REST API\\openapi-directory-master\\APIs";
         //    找扩展名为txt的文件

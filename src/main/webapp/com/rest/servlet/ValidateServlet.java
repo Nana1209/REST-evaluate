@@ -2,6 +2,8 @@ package com.rest.servlet;
 
 import io.swagger.handler.ValidatorController;
 import io.swagger.oas.inflector.models.RequestContext;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
@@ -58,7 +60,15 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
     }
 
     protected void doGet(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException, IOException {
-        PrintWriter out = response.getWriter();
-        out.println("<h1>hello servlet</h1>");
+        JSONObject object = new JSONObject();
+        try {
+            object.put("name", "tom");
+            object.put("age", 15);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println(object);
+        response.getWriter().print(object);
     }
 }

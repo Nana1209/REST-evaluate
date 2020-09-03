@@ -95,6 +95,7 @@ public class ValidatorController{
     private List<String> hierarchies=new ArrayList<>();//所有路径层级数统计
 
     private Map<String,Object> validateResult=new HashMap<>();
+    private Map<String,Object> pathDetail=new HashMap<>();
 
     private boolean hasPagePara = false;//是否有分页相关属性
     private String fileName;
@@ -476,6 +477,7 @@ public class ValidatorController{
 
         // get the version, return deprecated if version 1.x
         String version = getVersion(spec);
+        validateResult.put("openapiVersion",version);
         if (version != null && (version.startsWith("\"1") || version.startsWith("1"))) {
             ProcessingMessage pm = new ProcessingMessage();
             pm.setLogLevel(LogLevel.ERROR);
@@ -917,7 +919,7 @@ public class ValidatorController{
     public boolean isPagePara(String name) {
         if(name==null) return  false;
         //String pageNames[]=PAGEPARANAMES;
-        String pageNames[]=ConfigManager.getInstance().getValue("PAGEPARANAMES").split(",");//配置文件获取功能性（页面过滤）查询属性检查列表
+        String pageNames[]=ConfigManager.getInstance().getValue("PAGEPARANAMES").split(",",-1);//配置文件获取功能性（页面过滤）查询属性检查列表
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
             if (name.toLowerCase().indexOf(pageNames[i]) >=0) {
@@ -957,21 +959,26 @@ public class ValidatorController{
         //setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
+            Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
             //evaluateToScore()
 
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("no_",false);
             }else {
                 this.pathEvaData[0]++;//Integer是Object子类，是对象，可以为null。int是基本数据类型，必须初始化，默认为0
+                pathResult.put("no_",true);
             }
 
             if(p!=p.toLowerCase()){
                 //System.out.println(p+"need to be lowercase");
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("lowercase",false);
             }else {
                 this.pathEvaData[1]++;
+                pathResult.put("lowercase",true);
             }
 
             //Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
@@ -980,15 +987,19 @@ public class ValidatorController{
             if(m1.find()){
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
+                pathResult.put("noVersion",false);
             }else {
                 this.pathEvaData[2]++;
+                pathResult.put("noVersion",true);
             }
 
             if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
+                pathResult.put("noapi",false);
             }else {
                 this.pathEvaData[3]++;
+                pathResult.put("noapi",true);
             }
 
             //this.pathlist.add(p);
@@ -1003,10 +1014,10 @@ public class ValidatorController{
             pathclear+=p.substring(endtemp);
             pathclear=pathclear.toLowerCase();
             //String crudnames[]=CRUDNAMES;
-            String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
+            String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",",-1);
 
             String dellistString=ConfigManager.getInstance().getValue("DELLIST");
-            String str1[] = dellistString.split(";");
+            String str1[] = dellistString.split(";",-1);
             String delList[][]=new String[str1.length][];
             for(int i = 0;i < str1.length;i++) {
 
@@ -1015,42 +1026,52 @@ public class ValidatorController{
             }
             //String delList[][]=DELLIST;
             boolean isCrudy = false;
+            List<String> verblist=new ArrayList<>();
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name
                 String temp=fileHandle.delListFromString(pathclear,delList[i]);
                 if (temp.indexOf(crudnames[i]) >=0) {
                     isCrudy = true;
-                    this.CRUDlist.add(crudnames[i]);
+                    verblist.add(crudnames[i]);
+
                     CRUDPathOperation(p,crudnames[i], result);
                     break;
                 }
-
-
-
             }
+            this.CRUDlist.addAll(verblist);
+            pathResult.put("CRUDlist",verblist);
             if(isCrudy){
                 System.out.println("CRUD shouldn't in path "+p);
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("noCRUD",false);
 
             }else{
                 this.pathEvaData[4]++;
+                pathResult.put("noCRUD",true);
             }
+
             //文件扩展名不应该包含在API的URL命名中
             //String suffix[]=SUFFIX_NAMES;
-            String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",");
+            String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",",-1);
             boolean isSuffix = false;
+            List<String> slist=new ArrayList<>();
             for(int i=0; i< suffix.length; i++){
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {
                     isSuffix = true;
-                    this.suffixlist.add(suffix[i]);
+                    slist.add(suffix[i]);
+
                     break;
                 }
             }
+            this.suffixlist.addAll(slist);
+            pathResult.put("suffixList",slist);
             if(isSuffix){
                 System.out.println("suffix shouldn't in path "+p);
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("noSuffix",false);
             }else {
                 this.pathEvaData[5]++;
+                pathResult.put("noSuffix",true);
             }
 
 
@@ -1064,8 +1085,10 @@ public class ValidatorController{
                 this.hierarchies.add(Integer.toString(hierarchyNum));
                 this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
                 this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+                pathResult.put("noend/",false);
 
             }else{
+                pathResult.put("noend/",true);
                 this.pathEvaData[6]++;
                 //建议嵌套深度一般不超过3层
                 hierarchyNum=substringCount(p,"/");
@@ -1074,12 +1097,14 @@ public class ValidatorController{
                 this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
 
             }
+            pathResult.put("hierarchies",hierarchyNum);
             if(hierarchyNum>3){
                 //System.out.println(p+": 嵌套深度建议不超过3层");
                 //this.score=this.score-5>0?this.score-5:0;
             }else {
 
             }
+            pathDetail.put(p,pathResult);
 
         }
         validateResult.put("pathEvaData",getPathEvaData());
@@ -1094,7 +1119,7 @@ public class ValidatorController{
         evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
         evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
 
-
+        validateResult.put("path",pathDetail);
     }
     /**
     *@Description: 路径（命名）验证,v3.0
@@ -1107,22 +1132,26 @@ public class ValidatorController{
         //setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
+            Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
             //evaluateToScore()
-
 
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("no_",false);
             }else {
                 this.pathEvaData[0]++;//Integer是Object子类，是对象，可以为null。int是基本数据类型，必须初始化，默认为0
+                pathResult.put("no_",true);
             }
 
             if(p!=p.toLowerCase()){
                 //System.out.println(p+"need to be lowercase");
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("lowercase",false);
             }else {
                 this.pathEvaData[1]++;
+                pathResult.put("lowercase",true);
             }
 
             //Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
@@ -1131,15 +1160,19 @@ public class ValidatorController{
             if(m1.find()){
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
+                pathResult.put("noVersion",false);
             }else {
                 this.pathEvaData[2]++;
+                pathResult.put("noVersion",true);
             }
 
             if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
+                pathResult.put("noapi",false);
             }else {
                 this.pathEvaData[3]++;
+                pathResult.put("noapi",true);
             }
 
             //this.pathlist.add(p);
@@ -1154,13 +1187,9 @@ public class ValidatorController{
             pathclear+=p.substring(endtemp);
             pathclear=pathclear.toLowerCase();
             //String crudnames[]=CRUDNAMES;
-            String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
+            String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",",-1);
 
             String dellistString=ConfigManager.getInstance().getValue("DELLIST");
-            /*limit 参数控制模式应用的次数，因此影响所得数组的长度。
-            1、如果 n 大于 0，代表分割字符串后数组的最大长度，则模式将被最多应用 n  - 1 次，数组的长度将不会大于 n ，而且数组的最后一项将包含所有超出最后匹配的定界符的输入。
-            2、如果 n 为非正，代表获取数组所有值，不会丢弃末尾空值，那么模式将被应用尽可能多的次数，而且数组可以是任何长度。
-            3、如果 n 为 0，那么模式将被应用尽可能多的次数，数组可以是任何长度，并且结尾空字符串将被丢弃。*/
             String str1[] = dellistString.split(";",-1);
             String delList[][]=new String[str1.length][];
             for(int i = 0;i < str1.length;i++) {
@@ -1170,43 +1199,52 @@ public class ValidatorController{
             }
             //String delList[][]=DELLIST;
             boolean isCrudy = false;
+            List<String> verblist=new ArrayList<>();
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name
                 String temp=fileHandle.delListFromString(pathclear,delList[i]);
                 if (temp.indexOf(crudnames[i]) >=0) {
                     isCrudy = true;
-                    this.CRUDlist.add(crudnames[i]);
-                    CRUDPathOperation(p,crudnames[i],result);
+                    verblist.add(crudnames[i]);
+
+                    CRUDPathOperation(p,crudnames[i], result);
                     break;
                 }
-
-
-
             }
+            this.CRUDlist.addAll(verblist);
+            pathResult.put("CRUDlist",verblist);
             if(isCrudy){
                 System.out.println("CRUD shouldn't in path "+p);
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("noCRUD",false);
 
             }else{
                 this.pathEvaData[4]++;
+                pathResult.put("noCRUD",true);
             }
+
             //文件扩展名不应该包含在API的URL命名中
             //String suffix[]=SUFFIX_NAMES;
-            String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",");
-
+            String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",",-1);
             boolean isSuffix = false;
+            List<String> slist=new ArrayList<>();
             for(int i=0; i< suffix.length; i++){
                 if (p.toLowerCase().indexOf(suffix[i]) >=0) {
                     isSuffix = true;
-                    this.suffixlist.add(suffix[i]);
+                    slist.add(suffix[i]);
+
                     break;
                 }
             }
+            this.suffixlist.addAll(slist);
+            pathResult.put("suffixList",slist);
             if(isSuffix){
                 System.out.println("suffix shouldn't in path "+p);
                 //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("noSuffix",false);
             }else {
                 this.pathEvaData[5]++;
+                pathResult.put("noSuffix",true);
             }
 
 
@@ -1220,8 +1258,10 @@ public class ValidatorController{
                 this.hierarchies.add(Integer.toString(hierarchyNum));
                 this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
                 this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+                pathResult.put("noend/",false);
 
             }else{
+                pathResult.put("noend/",true);
                 this.pathEvaData[6]++;
                 //建议嵌套深度一般不超过3层
                 hierarchyNum=substringCount(p,"/");
@@ -1230,13 +1270,14 @@ public class ValidatorController{
                 this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
 
             }
+            pathResult.put("hierarchies",hierarchyNum);
             if(hierarchyNum>3){
                 //System.out.println(p+": 嵌套深度建议不超过3层");
                 //this.score=this.score-5>0?this.score-5:0;
             }else {
 
             }
-
+            pathDetail.put(p,pathResult);
         }
         validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
@@ -1250,7 +1291,7 @@ public class ValidatorController{
         evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
         evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
 
-
+        validateResult.put("path",pathDetail);
     }
 
     /**

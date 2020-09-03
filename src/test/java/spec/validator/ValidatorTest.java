@@ -253,10 +253,11 @@ public class ValidatorTest {
         //String contents=validator.getUrlContents("https://api.github.com/emojis");
         //System.out.println(headers.toString()+" "+contents);
         //String content=validator.readFile("src/test/resources/oas3_bikewise.yaml");
-        String content=validator.readFile("E:\\test\\openapi-versionClear-pathClear\\amazonaws.com-chime-2018-05-01-openapi.yaml");
+        String content=validator.readFile("D:\\test\\category\\geodesystems.com-1.0.0-openapi.yaml");
 
         ResponseContext response = validator.validateByString(new RequestContext(), content);
-        Assert.assertEquals(IMAGE, response.getContentType().getType());
+        //Assert.assertEquals(IMAGE, response.getContentType().getType());
+        System.out.println(validator.getValidateResult());
 
     }
 

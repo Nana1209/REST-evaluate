@@ -93,7 +93,9 @@ public class ValidatorController{
     private float pathEvaData[] =new float[10];//记录实现各规范的path数
     private float avgHierarchy;//路径平均层级数
     private List<String> hierarchies=new ArrayList<>();//所有路径层级数统计
-    private Map<String,Float> pathEvaResult=new HashMap<>();
+
+    private Map<String,Object> validateResult=new HashMap<>();
+
     private boolean hasPagePara = false;//是否有分页相关属性
     private String fileName;
     private String category=null;//类别信息
@@ -110,6 +112,10 @@ public class ValidatorController{
     private List<String> pathlist=new ArrayList<>();//路径
     private List<String> querypara=new ArrayList<>();//过滤、限制、分页查询参数
     private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
+
+    public Map<String, Object> getValidateResult() {
+        return validateResult;
+    }
 
     public List<List<String>> getCRUDPathOperations() {
         return CRUDPathOperations;
@@ -511,6 +517,7 @@ public class ValidatorController{
                         System.out.println("securityType ：" + securityDefinitions.get(key).getType());
                     }
                 }
+                validateResult.put("securityList",getSecurity());
 
                 //基本信息统计
                 basicInfoGet(result);
@@ -555,9 +562,11 @@ public class ValidatorController{
                     }
 
                 }
+                validateResult.put("hasPagePara",isHasPagePara());
+                validateResult.put("pageParaList",getQuerypara());
 
                 //类别信息获取
-                categorySet(result);
+                setCategory(result);
 
                 //动态检测，提取url
                 /*
@@ -627,6 +636,7 @@ public class ValidatorController{
                 }else{
                     evaluations.put("securityType","null");
                 }
+                validateResult.put("securityList",getSecurity());
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
@@ -651,7 +661,7 @@ public class ValidatorController{
                     List<Parameter> parasInPathlevel = result.getOpenAPI().getPaths().get(pathName).getParameters();
                     OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
                     List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
-                    this.endpointNum+=operationsInAPath.size();//统计端点数
+                    //this.endpointNum+=operationsInAPath.size();//统计端点数
                     if(parasInPathlevel==null){
 
 
@@ -673,6 +683,12 @@ public class ValidatorController{
 
 
                 }
+                validateResult.put("hasPagePara",isHasPagePara());
+                validateResult.put("pageParaList",getQuerypara());
+
+                //类别信息获取
+                setCategory(result);
+
                 //动态检测，获取URL
                 /*错误太多，跳过
                 List<Server> servers = result.getOpenAPI().getServers();
@@ -740,6 +756,7 @@ public class ValidatorController{
     */
     private void basicInfoGet(SwaggerParseResult result) {
         setPathNum(result.getOpenAPI().getPaths().keySet().size());//提取路径数
+        validateResult.put("pathNum",getPathNum());
 
         for(String pathName : result.getOpenAPI().getPaths().keySet()){
             OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
@@ -757,6 +774,16 @@ public class ValidatorController{
             this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
             this.opTrace = path.getTrace() != null ? this.opTrace+1 : this.opTrace;
         }
+        validateResult.put("endpointNum",this.getPathNum());
+        validateResult.put("opGET",this.getOpGet());
+        validateResult.put("opPOST",this.getOpPost());
+        validateResult.put("opDELETE",getOpDelete());
+        validateResult.put("opPUT",getOpPut());
+        validateResult.put("opHEAD",getOpHead());
+        validateResult.put("opPATCH",getOpPatch());
+        validateResult.put("opOPTIONS",getOpOptions());
+        validateResult.put("opTRACE",getOpTrace());
+
     }
 
     /**
@@ -768,6 +795,7 @@ public class ValidatorController{
     */
     private void basicInfoGet(SwaggerDeserializationResult result) {
         setPathNum(result.getSwagger().getPaths().keySet().size());//提取路径数
+        validateResult.put("pathNum",getPathNum());
         for(String pathName : result.getSwagger().getPaths().keySet()) {
             Path path = result.getSwagger().getPath(pathName);
             List<io.swagger.models.Operation> operations = getAllOperationsInAPath(result.getSwagger().getPath(pathName));
@@ -782,6 +810,15 @@ public class ValidatorController{
             this.opPatch = path.getPatch() != null ? this.opPatch+1 : this.opPatch;
             this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
         }
+        validateResult.put("endpointNum",this.getPathNum());
+        validateResult.put("opGET",this.getOpGet());
+        validateResult.put("opPOST",this.getOpPost());
+        validateResult.put("opDELETE",getOpDelete());
+        validateResult.put("opPUT",getOpPut());
+        validateResult.put("opHEAD",getOpHead());
+        validateResult.put("opPATCH",getOpPatch());
+        validateResult.put("opOPTIONS",getOpOptions());
+        validateResult.put("opTRACE",getOpTrace());
     }
 
     /**
@@ -791,7 +828,7 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/7/5
     */
-    private void categorySet(SwaggerDeserializationResult result) {
+    private void setCategory(SwaggerDeserializationResult result) {
         Map<String, Object> extension = result.getSwagger().getInfo().getVendorExtensions();
         if(extension!=null){
             String cateInfo = extension.get("x-apisguru-categories").toString();
@@ -799,6 +836,7 @@ public class ValidatorController{
                 this.category=cateInfo;
             }
         }
+        validateResult.put("category",getCategory());
         return;
     }
 
@@ -809,7 +847,7 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/7/5
     */
-    private void categorySet(SwaggerParseResult result) {
+    private void setCategory(SwaggerParseResult result) {
         Map<String, Object> extension = result.getOpenAPI().getInfo().getExtensions();
         if(extension!=null){
             String cateInfo = extension.get("x-apisguru-categories").toString();
@@ -817,6 +855,7 @@ public class ValidatorController{
                 this.category=cateInfo;
             }
         }
+        validateResult.put("category",getCategory());
         return;
     }
 
@@ -878,7 +917,7 @@ public class ValidatorController{
     public boolean isPagePara(String name) {
         if(name==null) return  false;
         //String pageNames[]=PAGEPARANAMES;
-        String pageNames[]=ConfigManager.getInstance().getValue("PAGEPARANAMES").split(",");
+        String pageNames[]=ConfigManager.getInstance().getValue("PAGEPARANAMES").split(",");//配置文件获取功能性（页面过滤）查询属性检查列表
         boolean result = false;
         for(int i=0; i< pageNames.length; i++){
             if (name.toLowerCase().indexOf(pageNames[i]) >=0) {
@@ -915,7 +954,7 @@ public class ValidatorController{
     *@date: 2020/8/12
     */
     private void pathEvaluate(Set paths, SwaggerDeserializationResult result) {
-        setPathNum(paths.size());//提取路径数
+        //setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             String p = (String) it.next();
@@ -1043,6 +1082,7 @@ public class ValidatorController{
             }
 
         }
+        validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
@@ -1064,7 +1104,7 @@ public class ValidatorController{
     *@date: 2020/5/16
     */
     private void pathEvaluate(Set paths, SwaggerParseResult result) {
-        setPathNum(paths.size());//提取路径数
+        //setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             String p = (String) it.next();
@@ -1117,7 +1157,11 @@ public class ValidatorController{
             String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
 
             String dellistString=ConfigManager.getInstance().getValue("DELLIST");
-            String str1[] = dellistString.split(";");
+            /*limit 参数控制模式应用的次数，因此影响所得数组的长度。
+            1、如果 n 大于 0，代表分割字符串后数组的最大长度，则模式将被最多应用 n  - 1 次，数组的长度将不会大于 n ，而且数组的最后一项将包含所有超出最后匹配的定界符的输入。
+            2、如果 n 为非正，代表获取数组所有值，不会丢弃末尾空值，那么模式将被应用尽可能多的次数，而且数组可以是任何长度。
+            3、如果 n 为 0，那么模式将被应用尽可能多的次数，数组可以是任何长度，并且结尾空字符串将被丢弃。*/
+            String str1[] = dellistString.split(";",-1);
             String delList[][]=new String[str1.length][];
             for(int i = 0;i < str1.length;i++) {
 
@@ -1194,6 +1238,7 @@ public class ValidatorController{
             }
 
         }
+        validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数

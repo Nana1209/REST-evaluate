@@ -7275,7 +7275,7 @@
         function pie() {
             var option = {
                 title: {
-                    text: '测试用例运行结果',
+                    text: 'HTTP方法使用情况',
                     subtext: '',
                     x: 'center'
                 },
@@ -7286,7 +7286,7 @@
                 legend: {
                     orient: 'vertical',
                     left: 'left',
-                    data: ['失败', '跳过', '成功']
+                    data: ['GET', 'POST', 'other']
                 },
                 series: [
                     {
@@ -7295,9 +7295,9 @@
                         radius: '55%',
                         center: ['50%', '60%'],
                         data: [
-                            {value: resultData["testFail"], name: '失败'},
-                            {value: resultData["testSkip"], name: '跳过'},
-                            {value: resultData["testPass"], name: '成功'}
+                            {value: resultData["testFail"], name: 'GET'},
+                            {value: resultData["testSkip"], name: 'POST'},
+                            {value: resultData["testPass"], name: 'other'}
                         ],
                         itemStyle: {
                             emphasis: {
@@ -7314,6 +7314,40 @@
         }
 
         pie();
+        function bar() {
+            var option = {
+                title: {
+                    text: '规范实现率',
+                    subtext: '',
+                    x: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: ['规范实现率']
+                },
+                xAxis:{
+                    data:["no_","lowercase","noVersion","noapi","noCRUD","noSuffix","noend/"]
+                },
+                yAxis:{},
+                series: [
+                    {
+                        name: '实现率',
+                        type: 'bar',
+
+                        data: [1,0.7,1,1,1,0.8,1,1]
+
+                    }
+                ]
+            };
+            var chart = echarts.init(document.getElementById("echarts-map-chart2"));
+            chart.setOption(option);
+        }
+        bar();
     });
 
 </script>

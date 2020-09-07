@@ -831,13 +831,16 @@ public class ValidatorController{
     *@date: 2020/7/5
     */
     private void setCategory(SwaggerDeserializationResult result) {
-        Map<String, Object> extension = result.getSwagger().getInfo().getVendorExtensions();
-        if(extension!=null){
-            String cateInfo = extension.get("x-apisguru-categories").toString();
-            if(cateInfo!=null){
-                this.category=cateInfo;
+        if(result.getSwagger().getInfo()!=null){
+            Map<String, Object> extension = result.getSwagger().getInfo().getVendorExtensions();
+            if(extension!=null && extension.size()!=0){
+                String cateInfo = extension.get("x-apisguru-categories").toString();
+                if(cateInfo!=null){
+                    this.category=cateInfo;
+                }
             }
         }
+
         validateResult.put("category",getCategory());
         return;
     }
@@ -850,13 +853,16 @@ public class ValidatorController{
     *@date: 2020/7/5
     */
     private void setCategory(SwaggerParseResult result) {
-        Map<String, Object> extension = result.getOpenAPI().getInfo().getExtensions();
-        if(extension!=null){
-            String cateInfo = extension.get("x-apisguru-categories").toString();
-            if(cateInfo!=null){
-                this.category=cateInfo;
+        if(result.getOpenAPI().getInfo()!=null){
+            Map<String, Object> extension = result.getOpenAPI().getInfo().getExtensions();
+            if(extension!=null && extension.size()!=0){
+                String cateInfo = extension.get("x-apisguru-categories").toString();
+                if(cateInfo!=null){
+                    this.category=cateInfo;
+                }
             }
         }
+
         validateResult.put("category",getCategory());
         return;
     }

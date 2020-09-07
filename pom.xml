@@ -103,7 +103,7 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
+                <groupId>org.apache.ms</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
@@ -135,7 +135,7 @@
                         <contextPath>/</contextPath>
                     </webApp>
                     <!--webAppSourceDirectory>target/${project.artifactId}-${project.version}</webAppSourceDirectory-->
-                    <webAppSourceDirectory>src/main/</webAppSourceDirectory>
+                    <webAppSourceDirectory>src/main/webapp</webAppSourceDirectory>
                     <httpConnector>
                         <port>8080</port>
                         <idleTimeout>60000</idleTimeout>
@@ -241,12 +241,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>4.0.0</version>
             <scope>provided</scope>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
             <artifactId>wiremock</artifactId>

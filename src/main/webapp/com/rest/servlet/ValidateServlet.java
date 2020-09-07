@@ -1,15 +1,17 @@
 package com.rest.servlet;
 
 import io.swagger.handler.ValidatorController;
+import io.swagger.handler.fileHandle;
 import io.swagger.oas.inflector.models.RequestContext;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.servlet.annotation.WebServlet;
+//import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 //@WebServlet(name = "HelloServlet",urlPatterns = "/hello")
 public class ValidateServlet extends javax.servlet.http.HttpServlet {
@@ -22,23 +24,21 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         //System.out.println(url);
         //System.out.println(context);
         ValidatorController validator = new ValidatorController();
-        String pathNum="";
-        String pathList="";
-        String endpointNum="";
-        String avgHierarchy="";
-        List<List<String>> CRUDPathOperations=new ArrayList<>();
-        List<String> CRUDList=new ArrayList<>();
+        Map<String, Object> result=null;
         if(context!=null){
             validator.validateByString(new RequestContext(), context);
-            pathNum=Float.toString(validator.getPathNum());
-            pathList=validator.getPathlist().toString();
-            avgHierarchy=Float.toString(validator.getAvgHierarchy());
-            endpointNum=Float.toString(validator.getEndpointNum());
-            CRUDPathOperations=validator.getCRUDPathOperations();
-            CRUDList=validator.getCRUDlist();
+            result=validator.getValidateResult();
         }
-        System.out.println("list"+CRUDList);
-        // 设置response的编码
+        JSONObject object = new JSONObject();
+        try {
+            fileHandle.MaptoJsonObj(result,object);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        System.out.println(object);
+        response.getWriter().print(object);
+
+        /*// 设置response的编码
         response.setCharacterEncoding("UTF-8");
         response.setContentType("text/html");
         // 获取PrintWriter对象
@@ -56,7 +56,7 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         out.println("</HTML>");
         // 释放PrintWriter对象
         out.flush();
-        out.close();
+        out.close();*/
     }
 
     protected void doGet(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException, IOException {

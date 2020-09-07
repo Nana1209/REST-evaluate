@@ -3,13 +3,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 import io.swagger.util.Json;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -346,5 +346,13 @@ public class fileHandle {
             }
         }
         return files;
+    }
+    public static JSONObject MaptoJsonObj(Map<String, Object> map, JSONObject resultJson) throws JSONException {
+        Iterator it = map.keySet().iterator();
+        while (it.hasNext()) {
+            String key = (String) it.next();
+            resultJson.put(key, map.get(key));
+        }
+        return resultJson;
     }
 }

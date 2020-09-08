@@ -90,7 +90,7 @@ public class ValidatorController{
     private int endpointNum;//端点数
     private int score=100; //评分机制
     public Map<String,String> evaluations=new HashMap<String, String>();
-    private float pathEvaData[] =new float[10];//记录实现各规范的path数
+    private float pathEvaData[] =new float[10];//记录实现各规范的path数 [0 no_,1 lowercase,2 noVersion,3 noapi,4 noCRUD,5 noSuffix,6 noend/,7 sumHierarchy,8 maxHierarchy]
     private float avgHierarchy;//路径平均层级数
     private List<String> hierarchies=new ArrayList<>();//所有路径层级数统计
 
@@ -1115,6 +1115,7 @@ public class ValidatorController{
         }
         validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
+        validateResult.put("avgHierarchies",getAvgHierarchy());
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
         evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
@@ -1287,6 +1288,7 @@ public class ValidatorController{
         }
         validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
+        validateResult.put("avgHierarchies",getAvgHierarchy());
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
         evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率

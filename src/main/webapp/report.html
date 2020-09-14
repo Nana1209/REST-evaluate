@@ -6968,7 +6968,7 @@
 <body class="gray-bg">
 <div class="row dashboard-header" style="margin-left: 20px;margin-right: 20px;background-color: #1ab394">
     <div class="col-sm-12 text-center">
-        <span style="color: #ffffff; font-size: 30px; font-weight: 700">测试报告</span>
+        <span style="color: #ffffff; font-size: 30px; font-weight: 700">Evaluation Result</span>
     </div>
 </div>
 <div class="row">
@@ -6983,8 +6983,8 @@
                     <td><textarea  class="form-control" rows="3" name="context"></textarea></td>
                 </div>
 
-                <input class="btn btn-primary" type="button" onclick="submitForm()" value="检测"/>
-                <input class="btn btn-default" type="reset" value="重置"/>
+                <input class="btn btn-primary" type="button" onclick="submitForm()" value="EVALUATE"/>
+                <input class="btn btn-default" type="reset" value="RESET"/>
 
             </form>
         </div>
@@ -6996,64 +6996,64 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins" style="margin-bottom: 0px">
                 <div class="ibox-title">
-                    <h5>整体情况</h5>
+                    <h5>Overall Result</h5>
                     <div class="ibox-tools">
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
                         </a>
-                        <a class="close-link">
+                        <!--<a class="close-link">
                             <i class="fa fa-times"></i>
-                        </a>
+                        </a>-->
                     </div>
                 </div>
                 <div class="ibox-content">
                     <div class="row">
                         <div class="col-sm-6 b-r" style="height:350px">
                             <form class="form-horizontal">
-                                <div class="form-group">
+                                <!--<div class="form-group">
                                     <label class="col-sm-2 control-label text-navy">API名称:</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="testName"></span>
                                     </div>
-                                </div>
+                                </div>-->
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">类别:</label>
+                                    <label class="col-sm-2 control-label text-navy">category</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="category"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">遵循规范:</label>
+                                    <label class="col-sm-2 control-label text-navy">OpenAPI Version</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="openapiVersion"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-danger">资源数:</label>
+                                    <label class="col-sm-2 control-label text-danger">Total Paths</label>
                                     <div class="col-sm-5">
                                         <span class="form-control text-danger" id="pathNum"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-warning">端点数:</label>
+                                    <label class="col-sm-2 control-label text-warning">Total Endpoints</label>
                                     <div class="col-sm-5">
                                         <span class="form-control text-warning" id="endpointNum"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">平均端点数:</label>
+                                    <label class="col-sm-2 control-label text-navy">AVG Endpoint</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="avgEndpoint"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">平均层级数:</label>
+                                    <label class="col-sm-2 control-label text-navy">AVG Hierarchies</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="avgHierarchies"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">安全方案:</label>
+                                    <label class="col-sm-2 control-label text-navy">Security Schema</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="securitySchema"></span>
                                     </div>
@@ -7075,14 +7075,14 @@
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
-                    <h5>详细报告</h5>
+                    <h5>Detailed result</h5>
                     <div class="ibox-tools">
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
                         </a>
-                        <a class="close-link">
+                        <!--<a class="close-link">
                             <i class="fa fa-times"></i>
-                        </a>
+                        </a>-->
                     </div>
                 </div>
                 <div class="ibox-content" id="pathDetail">
@@ -7147,11 +7147,11 @@
                 //pushDom(JSON.parse(data));
                 validateResult=JSON.parse(data);
                 console.log("huidiao");
-                console.log(validateResult['pathNum']);
                 replaceFunc();
 
             },
             error: function (data) {
+                console.log("huidiao error");
                 alert(JSON.stringify(data));
             }
         });
@@ -7247,22 +7247,22 @@
             $("#pathDetail").children().remove();
             $.each(validateResult["path"], function (key, value) {
                     var path = '<div class="panel panel-default">'+
-                                    '<div class="panel-heading">'+key+'</div>'+
-                                    '<div class="panel-body"><p>...</p></div>'+
+                                    '<div class="panel-heading"><h5>'+key+'</h5></div>'+
+                                    '<div class="panel-body"><p></p></div>'+
                                     '<table class="table table-hover">'+
                                         '<thead>'+
                                         '<tr>'+
-                                        '<th>#</th><th>规范</th><th>级别</th><th>是否实现</th><th>备注</th>'+
+                                        '<th>#</th><th>Standard</th><th>Degree</th><th>realized</th><th>note</th>'+
                                         '</tr>'+
                                         '</thead>'+
                                         '<tbody id="detailBody">'+
-                                            '<tr><th>1</th><th>no_</th><th>规范要求</th><th>'+value["no_"]+'</th><th>使用“-”进行分割</th></tr>'+
-                                            '<tr><th>2</th><th>lowercase</th><th>规范要求</th><th>'+value["lowercase"]+'</th><th></th></tr>'+
-                                            '<tr><th>3</th><th>noVersion</th><th>建议实现</th><th>'+value["noVersion"]+'</th><th>建议在头文件中标识版本信息</th></tr>'+
-                                            '<tr><th>4</th><th>noapi</th><th>规范要求</th><th>'+value["noapi"]+'</th><th></th></tr>'+
-                                            '<tr><th>5</th><th>noCRUD</th><th>规范要求</th><th>'+value["noCRUD"]+'</th><th>'+value["CRUDlist"]+'</th></tr>'+
-                                            '<tr><th>6</th><th>noSuffix</th><th>规范要求</th><th>'+value["noSuffix"]+'</th><th>'+value["suffixList"]+'</th></tr>'+
-                                            '<tr><th>7</th><th>noend/</th><th>规范要求</th><th>'+value["noend/"]+'</th><th></th></tr>'+
+                                            '<tr><th>1</th><th>no_</th><th>MUST</th><th>'+value["no_"]+'</th><th>Use "-" to split</th></tr>'+
+                                            '<tr><th>2</th><th>lowercase</th><th>MUST</th><th>'+value["lowercase"]+'</th><th></th></tr>'+
+                                            '<tr><th>3</th><th>noVersion</th><th>RECOMMENDED</th><th>'+value["noVersion"]+'</th><th>Recommended to identify the version information in Header</th></tr>'+
+                                            '<tr><th>4</th><th>noAPI</th><th>MUST</th><th>'+value["noapi"]+'</th><th></th></tr>'+
+                                            '<tr><th>5</th><th>noCRUD</th><th>SHOULD</th><th>'+value["noCRUD"]+'</th><th>'+value["CRUDlist"]+'</th></tr>'+
+                                            '<tr><th>6</th><th>noSuffix</th><th>MUST</th><th>'+value["noSuffix"]+'</th><th>'+value["suffixList"]+'</th></tr>'+
+                                            '<tr><th>7</th><th>noEnd/</th><th>MUST</th><th>'+value["noend/"]+'</th><th></th></tr>'+
                                         '</tbody>'+
                                     '</table>'+
                                 '</div>';
@@ -7280,7 +7280,7 @@
         function pie() {
             var option = {
                 title: {
-                    text: 'HTTP方法使用情况',
+                    text: 'HTTP Method Usage',
                     subtext: '',
                     x: 'center'
                 },
@@ -7295,7 +7295,7 @@
                 },
                 series: [
                     {
-                        name: '运行结果',
+                        name: 'Usage ratio',
                         type: 'pie',
                         radius: '55%',
                         center: ['50%', '60%'],
@@ -7329,7 +7329,7 @@
             console.log(validateResult.pathEvaData[0]);
             var option = {
                 title: {
-                    text: '规范实现率',
+                    text: 'Standard Realization Rate',
                     subtext: '',
                     x: 'center'
                 },
@@ -7340,7 +7340,7 @@
                 legend: {
                     orient: 'vertical',
                     left: 'left',
-                    data: ['规范实现率']
+                    data: ['Standard Realization Rate']
                 },
                 xAxis:{
                     axisLabel: {					//---坐标轴 标签
@@ -7351,10 +7351,10 @@
                         margin: 5,					//---刻度标签与轴线之间的距离
                         //color:'red',				//---默认取轴线的颜色
                     },
-                    data:["no_","lowercase","noVersion","noapi","noCRUD","noSuffix","noend/"]
+                    data:["no_","lowercase","noVersion","noAPI","noCRUD","noSuffix","noEnd/"]
                 },
                 yAxis:{
-                    name:'实现率',				//---轴名称
+                    name:'Rate',				//---轴名称
                     type:'value',			//---轴类型，默认'category'
                     axisLabel: {
                         show: true,
@@ -7364,7 +7364,7 @@
                 },
                 series: [
                     {
-                        name: '实现率',
+                        name: 'Rate',
                         type: 'bar',
                         itemStyle:{					//---图形形状
                             barBorderRadius: [25, 25, 0, 0],
@@ -7388,4 +7388,4 @@
         }
         bar();
     }
-</script>               
+</script>

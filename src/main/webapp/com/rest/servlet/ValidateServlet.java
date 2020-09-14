@@ -22,7 +22,7 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         String url = request.getParameter("url");
         String context = request.getParameter("context");
         //System.out.println(url);
-        //System.out.println(context);
+        System.out.println("context"+context);
         ValidatorController validator = new ValidatorController();
         Map<String, Object> result=null;
         if(context!=null){

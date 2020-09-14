@@ -776,7 +776,7 @@ public class ValidatorController{
             this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
             this.opTrace = path.getTrace() != null ? this.opTrace+1 : this.opTrace;
         }
-        validateResult.put("endpointNum",this.getPathNum());
+        validateResult.put("endpointNum",this.getEndpointNum());
         validateResult.put("opGET",this.getOpGet());
         validateResult.put("opPOST",this.getOpPost());
         validateResult.put("opDELETE",getOpDelete());
@@ -812,7 +812,7 @@ public class ValidatorController{
             this.opPatch = path.getPatch() != null ? this.opPatch+1 : this.opPatch;
             this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
         }
-        validateResult.put("endpointNum",this.getPathNum());
+        validateResult.put("endpointNum",this.getEndpointNum());
         validateResult.put("opGET",this.getOpGet());
         validateResult.put("opPOST",this.getOpPost());
         validateResult.put("opDELETE",getOpDelete());

@@ -6976,22 +6976,22 @@
             <div class="col-sm-12 text-center"  id="showForm">
                 <form class="form-horizontal text-center" id="ajaxForm">
                     <div class="form-group text-center">
-                        <label class="col-sm-2 control-label text-navy">API url：</label>
+                        <label class="col-sm-2 control-label text-navy">API url</label>
                         <div class="col-sm-5">
                             <input type="text" class="form-control" name="url"/>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-2 control-label text-navy">API context：</label>
+                        <label class="col-sm-2 control-label text-navy">API context</label>
                         <div class="col-sm-5">
                             <textarea  class="form-control" rows="3" name="context"></textarea>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-sm-2 control-label text-navy">Category：</label>
+                        <label class="col-sm-2 control-label text-navy">Category</label>
                         <div class="col-sm-5">
                             <select class="form-control" name="category">
-                                <option value="none">Please select             </option>
+                                <option selected="selected">Please select             </option>
                                 <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
                                 <option value="open_data">open_data (open_data, storage, database, data)</option>
                                 <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
@@ -7062,6 +7062,9 @@
                                     <div class="col-sm-5">
                                         <span class="form-control text-danger" id="pathNum"></span>
                                     </div>
+                                    <div class="col-sm-5">
+                                        <span class="form-control text-danger" id="categoryPathNum"></span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label text-warning">Total Endpoints</label>
@@ -7074,11 +7077,17 @@
                                     <div class="col-sm-5">
                                         <span class="form-control" id="avgEndpoint"></span>
                                     </div>
+                                    <div class="col-sm-5">
+                                        <span class="form-control" id="categoryAvgEndpoint"></span>
+                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label text-navy">AVG Hierarchies</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="avgHierarchies"></span>
+                                    </div>
+                                    <div class="col-sm-5">
+                                        <span class="form-control" id="categoryAvgHierarchies"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -7184,6 +7193,23 @@
                 alert(JSON.stringify(data));
             }
         });
+        /*$.ajax({
+
+            type: 'post',
+            url: 'http://localhost:8080/result/category',
+            data: $('#category').serialize(), //将表单的数据拼成标准参数模式字符串，e.g.“username=chen&nickname=alien”
+            success: function (data) {
+                //pushDom(JSON.parse(data));
+                validateResult=JSON.parse(data);
+                console.log("huidiao");
+                replaceFunc();
+
+            },
+            error: function (data) {
+                console.log("huidiao error");
+                alert(JSON.stringify(data));
+            }
+        });*/
 
         /*function pushDom(data) {
             // 然后再交给 vue 进行渲染
@@ -7220,7 +7246,7 @@
     }
     //$(replaceFunc);
     function replaceFunc () {
-        console.log(validateResult['pathNum']);
+        console.log(validateResult.categoryResult[1]);
         $("#testName").text(validateResult['pathNum']);
         $("#category").text(validateResult['category']);
         $("#openapiVersion").text(validateResult['openapiVersion']);
@@ -7229,6 +7255,10 @@
         $("#avgEndpoint").text(validateResult['endpointNum']/validateResult['pathNum']);
         $("#avgHierarchies").text(validateResult['avgHierarchies']);
         $("#securitySchema").text(validateResult['securityList']);
+
+        $("#categoryPathNum").text(validateResult.categoryResult[0]);
+        $("#categoryAvgEndpoint").text(validateResult.categoryResult[1]);
+        $("#categoryAvgHierarchies").text(validateResult.categoryResult[10]);
 
 
 
@@ -7326,8 +7356,11 @@
                     {
                         name: 'Usage ratio',
                         type: 'pie',
-                        radius: '55%',
-                        center: ['50%', '60%'],
+                        radius: '50%',
+                        center: ['50%', '50%'],
+                        label: {
+                            position: 'inner'
+                        },
                         data: [
                             {value: validateResult['opGET'], name: 'GET'},
                             {value: validateResult['opPOST'], name: 'POST'},
@@ -7337,6 +7370,33 @@
                             {value: validateResult['opPATCH'], name: 'PATCH'},
                             {value: validateResult['opOPTIONS'], name: 'OPTIONS'},
                             {value: validateResult['opTRACE'], name: 'TRACE'},
+                        ],
+                        itemStyle: {
+                            emphasis: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    },
+                    {
+                        name: 'Category Usage ratio',
+                        tooltip: {
+                            trigger: 'item',
+                            formatter: "{a} <br/>{b} : ({d}%)"
+                        },
+                        type: 'pie',
+                        radius: ['60%','80%'],
+                        center: ['50%', '50%'],
+                        data: [
+                            {value: validateResult.categoryResult[2], name: 'GET'},
+                            {value: validateResult.categoryResult[3], name: 'POST'},
+                            {value: validateResult.categoryResult[4], name: 'DELETE'},
+                            {value: validateResult.categoryResult[5], name: 'PUT'},
+                            {value: validateResult.categoryResult[6], name: 'HEAD'},
+                            {value: validateResult.categoryResult[7], name: 'PATCH'},
+                            {value: validateResult.categoryResult[8], name: 'OPTIONS'},
+                            {value: validateResult.categoryResult[9], name: 'TRACE'},
                         ],
                         itemStyle: {
                             emphasis: {
@@ -7404,10 +7464,27 @@
                             }
 
                         },
+                        barWidth:'40%',
+                        z:10,
                         data: [validateResult.pathEvaData[0]/validateResult['pathNum']*100,validateResult.pathEvaData[1]/validateResult['pathNum']*100,
                             validateResult.pathEvaData[2]/validateResult['pathNum']*100,validateResult.pathEvaData[3]/validateResult['pathNum']*100,
                             validateResult.pathEvaData[4]/validateResult['pathNum']*100,validateResult.pathEvaData[5]/validateResult['pathNum']*100,
                             validateResult.pathEvaData[6]/validateResult['pathNum']*100]
+
+                    },
+                    {
+                        name: 'catrgoryAvgRate',
+                        type: 'bar',
+                        itemStyle:{					//---图形形状
+                            barBorderRadius: [25, 25, 0, 0],
+                            color: '#cdcdcd'
+
+                        },
+                        barGap:'-100%',
+                        barWidth:'80%',
+                        data: [validateResult.categoryResult[13]*100,validateResult.categoryResult[14]*100,validateResult.categoryResult[15]*100,
+                            validateResult.categoryResult[16]*100,validateResult.categoryResult[17]*100,validateResult.categoryResult[18]*100,
+                            validateResult.categoryResult[19]*100]
 
                     }
                 ]

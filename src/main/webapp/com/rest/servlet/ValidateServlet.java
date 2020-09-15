@@ -1,5 +1,6 @@
 package com.rest.servlet;
 
+import io.swagger.handler.ConfigManager;
 import io.swagger.handler.ValidatorController;
 import io.swagger.handler.fileHandle;
 import io.swagger.oas.inflector.models.RequestContext;
@@ -21,8 +22,13 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         // 获取信息
         String url = request.getParameter("url");
         String context = request.getParameter("context");
+        String category = request.getParameter("category");
+
+        String categoryResult[]= ConfigManager.getInstance().getValue(category.toUpperCase()).split(",",-1);
+
+        System.out.println(categoryResult);
         //System.out.println(url);
-        System.out.println("context"+context);
+        //System.out.println("context"+context);
         ValidatorController validator = new ValidatorController();
         Map<String, Object> result=null;
         if(context!=null){
@@ -32,6 +38,7 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         JSONObject object = new JSONObject();
         try {
             fileHandle.MaptoJsonObj(result,object);
+            object.put("categoryResult",categoryResult);
         } catch (JSONException e) {
             e.printStackTrace();
         }

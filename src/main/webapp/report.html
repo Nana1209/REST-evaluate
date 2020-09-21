@@ -6966,73 +6966,75 @@
     </style>
 </head>
 <body class="gray-bg">
-<div class="row dashboard-header" style="margin-left: 20px;margin-right: 20px;background-color: #1ab394">
+<div class="wrapper wrapper-content animated fadeInRight eva-in" style="padding-top: 10px; padding-bottom: 0px">
+    <div class="row text-center">
+        <div class="col-sm-12 text-center"  id="showForm">
+            <form class="form-horizontal text-center" id="ajaxForm">
+                <div class="form-group text-center">
+                    <label class="col-sm-2 control-label text-navy">API url</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control" name="url"/>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label text-navy">API context</label>
+                    <div class="col-sm-5">
+                        <textarea  class="form-control" rows="3" name="context"></textarea>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label text-navy">Category</label>
+                    <div class="col-sm-5">
+                        <select class="form-control" name="category">
+                            <option selected="selected">Please select             </option>
+                            <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                            <option value="open_data">open_data (open_data, storage, database, data)</option>
+                            <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                            <option value="media">media</option>
+                            <option value="entertainment">entertainment (entertainment, sports)</option>
+                            <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                            <option value="financial">financial</option>
+                            <option value="location">location (location, transport, time_management)</option>
+                            <option value="text">text (text, transcription, documents, reporting)</option>
+                            <option value="social">social (social, customer_relation, customer relationship management)</option>
+                            <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                            <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                            <option value="security">security (security, monitoring, verification, fitness)</option>
+                            <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                            <option value="hosting">hosting (hosting, domains, accounts</option>
+                            <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input class="btn btn-primary" type="button" onclick="submitForm()" value="EVALUATE"/>
+                <input class="btn btn-default" type="reset" value="RESET"/>
+
+            </form>
+        </div>
+    </div>
+</div>
+<div class="row dashboard-header eva-result" style="display:none; margin-left: 20px;margin-right: 20px;background-color: #1ab394">
     <div class="col-sm-12 text-center">
         <span style="color: #ffffff; font-size: 30px; font-weight: 700">Evaluation Result</span>
     </div>
 </div>
-<div class="wrapper wrapper-content animated fadeInRight" style="padding-top: 10px; padding-bottom: 0px">
-    <div class="row text-center">
-            <div class="col-sm-12 text-center"  id="showForm">
-                <form class="form-horizontal text-center" id="ajaxForm">
-                    <div class="form-group text-center">
-                        <label class="col-sm-2 control-label text-navy">API url</label>
-                        <div class="col-sm-5">
-                            <input type="text" class="form-control" name="url"/>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label text-navy">API context</label>
-                        <div class="col-sm-5">
-                            <textarea  class="form-control" rows="3" name="context"></textarea>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label text-navy">Category</label>
-                        <div class="col-sm-5">
-                            <select class="form-control" name="category">
-                                <option selected="selected">Please select             </option>
-                                <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
-                                <option value="open_data">open_data (open_data, storage, database, data)</option>
-                                <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
-                                <option value="media">media</option>
-                                <option value="entertainment">entertainment (entertainment, sports)</option>
-                                <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
-                                <option value="financial">financial</option>
-                                <option value="location">location (location, transport, time_management)</option>
-                                <option value="text">text (text, transcription, documents, reporting)</option>
-                                <option value="social">social (social, customer_relation, customer relationship management)</option>
-                                <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
-                                <option value="messaging">messaging (messaging, telecom, email, chat)</option>
-                                <option value="security">security (security, monitoring, verification, fitness)</option>
-                                <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
-                                <option value="hosting">hosting (hosting, domains, accounts</option>
-                                <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <input class="btn btn-primary" type="button" onclick="submitForm()" value="EVALUATE"/>
-                    <input class="btn btn-default" type="reset" value="RESET"/>
 
-                </form>
-            </div>
-    </div>
-</div>
-
-<div class="wrapper wrapper-content animated fadeInRight" style="padding-top: 10px; padding-bottom: 0px">
+<div class="wrapper wrapper-content animated fadeInRight eva-result" style="display:none; padding-top: 10px; padding-bottom: 0px">
     <div class="row">
         <div class="col-sm-12">
             <div class="ibox float-e-margins" style="margin-bottom: 0px">
                 <div class="ibox-title">
                     <h5>Overall Result</h5>
                     <div class="ibox-tools">
+
+                        <a data-toggle="modal" data-target="#myModal">
+                            <i class="fa fa-list-ul"></i>
+                        </a>
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
                         </a>
-                        <!--<a class="close-link">
-                            <i class="fa fa-times"></i>
-                        </a>-->
                     </div>
                 </div>
                 <div class="ibox-content">
@@ -7108,19 +7110,20 @@
         </div>
     </div>
 </div>
-<div class="wrapper wrapper-content animated fadeInRight" style="padding-top: 10px; padding-bottom: 0px">
+<div class="wrapper wrapper-content animated fadeInRight eva-result" style="display:none; padding-top: 10px; padding-bottom: 0px">
     <div class="row">
         <div class="col-sm-12">
             <div class="ibox float-e-margins">
                 <div class="ibox-title">
                     <h5>Detailed result</h5>
                     <div class="ibox-tools">
+                        <a data-toggle="modal" data-target="#myModal">
+                            <i class="fa fa-list-ul"></i>
+                        </a>
                         <a class="collapse-link">
                             <i class="fa fa-chevron-up"></i>
                         </a>
-                        <!--<a class="close-link">
-                            <i class="fa fa-times"></i>
-                        </a>-->
+
                     </div>
                 </div>
                 <div class="ibox-content" id="pathDetail">
@@ -7129,11 +7132,61 @@
         </div>
     </div>
 </div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                    &times;
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    Standard Explanation
+                </h4>
+            </div>
+            <div class="modal-body">
+                在这里添加一些文本
+            </div>
+            <!--<div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭
+                </button>
+                <button type="button" class="btn btn-primary">
+                    提交更改
+                </button>
+            </div>-->
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<p>文件：<input id="file_upload" type="file" name="testfile"></p>
+<p><button id="js_post">原生js提交</button>  <button id="jquery_post">jquery提交</button></p>
+
+</body>
+
+
 <script src="https://cdn.bootcss.com/jquery/2.1.4/jquery.min.js"></script>
 <script src="https://unpkg.com/vue/dist/vue.js"></script>
 <script src="https://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
 <script src="https://cdn.bootcss.com/chosen/1.8.2/chosen.jquery.js"></script>
+<script type="text/javascript">
+    $("#jquery_post").on("click",function(){
+        var data=new FormData;
+        data.append("testfile",document.getElementById("file_upload").files[0]);
+        $.ajax({
+            url:'http://localhost:8080/restapi',
+            type:"POST",
+            dataType:"JSON",
+            data:data,
+            /*不加Ajax自动转换成字符串*/
+            contentType: false,
+            processData: false,
+            success:function(rst){
+                console.log("file succcess");
+            }
+        })
+    })
+</script>
 <script type="text/javascript">
     function $childNode(o) {
         return window.frames[o]
@@ -7176,6 +7229,7 @@
     //var resultData = {"testPass":1,"testResult":[{"className":"com.test.testcase.TestDemo1","methodName":"testDemo","description":"测试DEMO","spendTime":"0ms","status":"失败","log":["this is demo!","java.lang.ArithmeticException: / by zero","    com.test.testcase.TestDemo1.testDemo(TestDemo1.java:28)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:714)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo1","description":"测试DEMO1","spendTime":"0ms","status":"失败","log":["this is demo!","java.lang.AssertionError: should be equals. expected [b] but found [a]","    org.testng.Assert.fail(Assert.java:94)","    org.testng.Assert.failNotEquals(Assert.java:494)","    org.testng.Assert.assertEquals(Assert.java:123)","    org.testng.Assert.assertEquals(Assert.java:176)","    com.test.testcase.TestDemo1.testDemo1(TestDemo1.java:36)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:714)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo2","description":"测试DEMO2","spendTime":"0ms","status":"失败","log":["this is demo!","java.lang.AssertionError: should be equals. expected [1] but found [2]","    org.testng.Assert.fail(Assert.java:94)","    org.testng.Assert.failNotEquals(Assert.java:494)","    org.testng.Assert.assertEquals(Assert.java:123)","    org.testng.Assert.assertEquals(Assert.java:370)","    com.test.testcase.TestDemo1.testDemo2(TestDemo1.java:42)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:714)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo2","description":"测试DEMO2","spendTime":"0ms","status":"成功","log":["this is demo!"]},{"className":"com.test.testcase.TestDemo1","methodName":"beforeMethod","description":"测试方法前初始化","spendTime":"0ms","status":"失败","log":["java.lang.ArithmeticException: / by zero","    com.test.testcase.TestDemo1.beforeMethod(TestDemo1.java:20)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeConfigurationMethod(Invoker.java:564)","    org.testng.internal.Invoker.invokeConfigurations(Invoker.java:213)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:653)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo3","description":"测试DEMO3","spendTime":"0ms","status":"跳过","log":[]}],"testName":"20171121103839789","testAll":5,"testFail":3,"beginTime":"2017-11-21 10:38:39.805","totalTime":"0ms","testSkip":1};
     var validateResult={};
     function submitForm() {
+
         $.ajax({
 
             type: 'post',
@@ -7210,7 +7264,6 @@
                 alert(JSON.stringify(data));
             }
         });*/
-
         /*function pushDom(data) {
             // 然后再交给 vue 进行渲染
             var vm = new Vue({
@@ -7246,6 +7299,8 @@
     }
     //$(replaceFunc);
     function replaceFunc () {
+        $(".eva-result").css('display',"inline");
+        $(".eva-in").css('display',"none");
         console.log(validateResult.categoryResult[1]);
         $("#testName").text(validateResult['pathNum']);
         $("#category").text(validateResult['category']);

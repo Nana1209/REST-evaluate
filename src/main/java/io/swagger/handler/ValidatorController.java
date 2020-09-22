@@ -478,6 +478,7 @@ public class ValidatorController{
         // get the version, return deprecated if version 1.x
         String version = getVersion(spec);
         validateResult.put("openapiVersion",version);
+
         if (version != null && (version.startsWith("\"1") || version.startsWith("1"))) {
             ProcessingMessage pm = new ProcessingMessage();
             pm.setLogLevel(LogLevel.ERROR);
@@ -503,6 +504,7 @@ public class ValidatorController{
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                 }
+                validateResult.put("name",result.getSwagger().getInfo().getTitle());
 
                 //路径（命名）检测
                 Set paths = result.getSwagger().getPaths().keySet();
@@ -606,6 +608,7 @@ public class ValidatorController{
                 return output;
             }
             if (result != null) {
+                validateResult.put("name",result.getOpenAPI().getInfo().getTitle());
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                     System.out.println(message);

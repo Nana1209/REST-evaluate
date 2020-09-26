@@ -6977,49 +6977,110 @@
             <li><a href="#file" data-toggle="tab">FILE</a></li>
             <li><a href="#text" data-toggle="tab">TEXT</a></li>
         </ul>
-        <div class="col-sm-12 text-center tab-pane fade in active"  id="url">
-            <form class="form-horizontal text-center" id="ajaxForm">
-                <div class="form-group text-center">
-                    <label class="col-sm-2 control-label text-navy">API url</label>
-                    <div class="col-sm-5">
-                        <input type="text" class="form-control" name="url"/>
+        <div id="myTabContent" class="tab-content">
+            <div class="tab-pane fade in active"  id="url">
+                <form class="form-horizontal text-center" id="urlForm">
+                    <div class="form-group text-center">
+                        <label class="col-sm-2 control-label text-navy">API url</label>
+                        <div class="col-sm-5">
+                            <input type="text" class="form-control" name="url"/>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label text-navy">API context</label>
-                    <div class="col-sm-5">
-                        <textarea  class="form-control" rows="3" name="context"></textarea>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label text-navy">Category</label>
-                    <div class="col-sm-5">
-                        <select class="form-control" name="category">
-                            <option selected="selected">Please select             </option>
-                            <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
-                            <option value="open_data">open_data (open_data, storage, database, data)</option>
-                            <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
-                            <option value="media">media</option>
-                            <option value="entertainment">entertainment (entertainment, sports)</option>
-                            <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
-                            <option value="financial">financial</option>
-                            <option value="location">location (location, transport, time_management)</option>
-                            <option value="text">text (text, transcription, documents, reporting)</option>
-                            <option value="social">social (social, customer_relation, customer relationship management)</option>
-                            <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
-                            <option value="messaging">messaging (messaging, telecom, email, chat)</option>
-                            <option value="security">security (security, monitoring, verification, fitness)</option>
-                            <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
-                            <option value="hosting">hosting (hosting, domains, accounts</option>
-                            <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
-                        </select>
-                    </div>
-                </div>
 
-                <input class="btn btn-primary" type="button" onclick="submitForm()" value="EVALUATE"/>
-                <input class="btn btn-default" type="reset" value="RESET"/>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label text-navy">Category</label>
+                        <div class="col-sm-5">
+                            <select class="form-control" name="category">
+                                <option selected="selected">Please select             </option>
+                                <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                                <option value="open_data">open_data (open_data, storage, database, data)</option>
+                                <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                                <option value="media">media</option>
+                                <option value="entertainment">entertainment (entertainment, sports)</option>
+                                <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                                <option value="financial">financial</option>
+                                <option value="location">location (location, transport, time_management)</option>
+                                <option value="text">text (text, transcription, documents, reporting)</option>
+                                <option value="social">social (social, customer_relation, customer relationship management)</option>
+                                <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                                <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                                <option value="security">security (security, monitoring, verification, fitness)</option>
+                                <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                                <option value="hosting">hosting (hosting, domains, accounts</option>
+                                <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+                            </select>
+                        </div>
+                    </div>
 
-            </form>
+                    <input class="btn btn-primary" type="button" onclick="urlSubmitForm()" value="EVALUATE"/>
+                    <input class="btn btn-default" type="reset" value="RESET"/>
+
+                </form>
+            </div>
+            <div class="tab-pane fade "  id="text">
+                <form class="form-horizontal text-center" id="textForm">
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label text-navy">API context</label>
+                        <div class="col-sm-5">
+                            <textarea  class="form-control" rows="3" name="context"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label text-navy">Category</label>
+                        <div class="col-sm-5">
+                            <select class="form-control" name="category">
+                                <option selected="selected">Please select             </option>
+                                <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                                <option value="open_data">open_data (open_data, storage, database, data)</option>
+                                <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                                <option value="media">media</option>
+                                <option value="entertainment">entertainment (entertainment, sports)</option>
+                                <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                                <option value="financial">financial</option>
+                                <option value="location">location (location, transport, time_management)</option>
+                                <option value="text">text (text, transcription, documents, reporting)</option>
+                                <option value="social">social (social, customer_relation, customer relationship management)</option>
+                                <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                                <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                                <option value="security">security (security, monitoring, verification, fitness)</option>
+                                <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                                <option value="hosting">hosting (hosting, domains, accounts</option>
+                                <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input class="btn btn-primary" type="button" onclick="textSubmitForm()" value="EVALUATE"/>
+                    <input class="btn btn-default" type="reset" value="RESET"/>
+
+                </form>
+            </div>
+            <div class="tab-pane fade"  id="file">
+                <form id="fileupload">
+                    <p>文件：<input id="file_upload" type="file" name="testfile"></p>
+                    <select class="form-control" name="category">
+                        <option selected="selected">Please select             </option>
+                        <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                        <option value="open_data">open_data (open_data, storage, database, data)</option>
+                        <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                        <option value="media">media</option>
+                        <option value="entertainment">entertainment (entertainment, sports)</option>
+                        <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                        <option value="financial">financial</option>
+                        <option value="location">location (location, transport, time_management)</option>
+                        <option value="text">text (text, transcription, documents, reporting)</option>
+                        <option value="social">social (social, customer_relation, customer relationship management)</option>
+                        <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                        <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                        <option value="security">security (security, monitoring, verification, fitness)</option>
+                        <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                        <option value="hosting">hosting (hosting, domains, accounts</option>
+                        <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+                    </select>
+                    <input class="btn btn-primary" type="button" onclick="submitFileForm()" value="EVALUATE"/>
+                    <p> <button id="jquery_post">jquery提交</button></p>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -7168,7 +7229,7 @@
     </div><!-- /.modal -->
 </div>
 <!--<form enctype="multipart/form-data">-->
-<form id="fileupload">
+<!--<form id="fileupload">
     <p>文件：<input id="file_upload" type="file" name="testfile"></p>
     <select class="form-control" name="category">
         <option selected="selected">Please select             </option>
@@ -7191,7 +7252,7 @@
     </select>
     <input class="btn btn-primary" type="button" onclick="submitFileForm()" value="EVALUATE"/>
     <p> <button id="jquery_post">jquery提交</button></p>
-</form>
+</form>-->
 <!--</form>-->
 </body>
 
@@ -7287,13 +7348,13 @@
         })
     }
 
-    function submitForm() {
+    function urlSubmitForm() {
 
         $.ajax({
 
             type: 'post',
             url: 'http://localhost:8080/restapi',
-            data: $('#ajaxForm').serialize(), //将表单的数据拼成标准参数模式字符串，e.g.“username=chen&nickname=alien”
+            data: $('#urlForm').serialize(), //将表单的数据拼成标准参数模式字符串，e.g.“username=chen&nickname=alien”
             success: function (data) {
                 //pushDom(JSON.parse(data));
                 validateResult=JSON.parse(data);
@@ -7306,11 +7367,14 @@
                 alert(JSON.stringify(data));
             }
         });
-        /*$.ajax({
+    }
+    function textSubmitForm() {
+
+        $.ajax({
 
             type: 'post',
-            url: 'http://localhost:8080/result/category',
-            data: $('#category').serialize(), //将表单的数据拼成标准参数模式字符串，e.g.“username=chen&nickname=alien”
+            url: 'http://localhost:8080/restapi',
+            data: $('#textForm').serialize(), //将表单的数据拼成标准参数模式字符串，e.g.“username=chen&nickname=alien”
             success: function (data) {
                 //pushDom(JSON.parse(data));
                 validateResult=JSON.parse(data);
@@ -7322,14 +7386,7 @@
                 console.log("huidiao error");
                 alert(JSON.stringify(data));
             }
-        });*/
-        /*function pushDom(data) {
-            // 然后再交给 vue 进行渲染
-            var vm = new Vue({
-                el: '#app',
-                data: data
-            });
-        }*/
+        });
     }
     function clickRow(obj){
         $("#detailBody").children("tr").attr("style","font-family: Consolas");

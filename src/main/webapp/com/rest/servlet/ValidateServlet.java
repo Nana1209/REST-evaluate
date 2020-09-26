@@ -29,47 +29,56 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         String context = request.getParameter("context");
         String category = request.getParameter("category");
         //ServletInputStream serIn=request.getInputStream();
-        try {
-            //创建DiskFileItemFactory工厂对象
-            DiskFileItemFactory factory=new DiskFileItemFactory();
-            ServletFileUpload fileUpload=new ServletFileUpload(factory);
+        ValidatorController validator = new ValidatorController();
+        if(context ==null) {
+            if(url!=null){
+                context=validator.getUrlContents(url, false, false); //获取url提供的swagger文档，返回响应entity
+            }else {
+
+                try {
+                    //创建DiskFileItemFactory工厂对象
+                    DiskFileItemFactory factory = new DiskFileItemFactory();
+                    ServletFileUpload fileUpload = new ServletFileUpload(factory);
 
 
-            fileUpload.setHeaderEncoding("utf-8");
-    //            解析request，将form表单的各个字段封装为FileItem对象
+                    fileUpload.setHeaderEncoding("utf-8");
+                    //            解析request，将form表单的各个字段封装为FileItem对象
 
-            List<FileItem> fileItems = fileUpload.parseRequest(request);
-            //获取上传文件流
-            for (FileItem fileItem:fileItems) {
-                if(fileItem.isFormField()==false) {
-                    InputStream in = fileItem.getInputStream();
-                    List<Byte> b = new ArrayList<Byte>();
-                    //byte b[] = new byte[10240];
-                    int len = 0;
-                    int temp = 0;          //所有读取的内容都使用temp接收
-                    while ((temp = in.read()) != -1) {    //当没有读取完时，继续读取
-                        //b[len]=(byte)temp;
-                        b.add((byte) temp);
-                        len++;
-                    }
-                    byte[] bb = Bytes.toArray(b);
-                    context = new String(bb, 0, len);
-                    System.out.println(context);
-                    in.close();
-                }else{
-                    //break;
-                    String name = fileItem.getFieldName();
-                    if(name.equals("category")){
+                    List<FileItem> fileItems = fileUpload.parseRequest(request);
+                    //获取上传文件流
+                    for (FileItem fileItem : fileItems) {
+                        if (fileItem.isFormField() == false) {
+                            InputStream in = fileItem.getInputStream();
+                            List<Byte> b = new ArrayList<Byte>();
+                            //byte b[] = new byte[10240];
+                            int len = 0;
+                            int temp = 0;          //所有读取的内容都使用temp接收
+                            while ((temp = in.read()) != -1) {    //当没有读取完时，继续读取
+                                //b[len]=(byte)temp;
+                                b.add((byte) temp);
+                                len++;
+                            }
+                            byte[] bb = Bytes.toArray(b);
+                            context = new String(bb, 0, len);
+                            System.out.println(context);
+                            in.close();
+                        } else {
+                            //break;
+                            String name = fileItem.getFieldName();
+                            if (name.equals("category")) {
 //                        如果字段值不为空
-                        if (!fileItem.getString().equals("")){
-                            category=fileItem.getString("utf-8");
+                                if (!fileItem.getString().equals("")) {
+                                    category = fileItem.getString("utf-8");
+                                }
+                            }
                         }
                     }
+                } catch (FileUploadException e) {
+                    e.printStackTrace();
                 }
             }
-        } catch (FileUploadException e) {
-            e.printStackTrace();
         }
+
         String categoryResult[]=null;
         if(category!=null){
             categoryResult= ConfigManager.getInstance().getValue(category.toUpperCase()).split(",",-1);
@@ -78,7 +87,7 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
 
         //System.out.println(url);
         //System.out.println("context"+context);
-        ValidatorController validator = new ValidatorController();
+
         Map<String, Object> result=null;
         if(context!=null){
             validator.validateByString(new RequestContext(), context);

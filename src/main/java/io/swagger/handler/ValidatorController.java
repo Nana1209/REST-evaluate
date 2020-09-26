@@ -1527,7 +1527,7 @@ public class ValidatorController{
     public String getUrlContents(String urlString) throws IOException {
         return getUrlContents(urlString, false, false);
     }
-    private String getUrlContents(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {
+    public String getUrlContents(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {
         LOGGER.trace("fetching URL contents");
         URL url = new URL(urlString);
         if(rejectLocal) {

@@ -6968,7 +6968,16 @@
 <body class="gray-bg">
 <div class="wrapper wrapper-content animated fadeInRight eva-in" style="padding-top: 10px; padding-bottom: 0px">
     <div class="row text-center">
-        <div class="col-sm-12 text-center"  id="showForm">
+        <ul id="myTab" class="nav nav-tabs">
+            <li class="active">
+                <a href="#url" data-toggle="tab">
+                    URL
+                </a>
+            </li>
+            <li><a href="#file" data-toggle="tab">FILE</a></li>
+            <li><a href="#text" data-toggle="tab">TEXT</a></li>
+        </ul>
+        <div class="col-sm-12 text-center tab-pane fade in active"  id="url">
             <form class="form-horizontal text-center" id="ajaxForm">
                 <div class="form-group text-center">
                     <label class="col-sm-2 control-label text-navy">API url</label>
@@ -7159,8 +7168,30 @@
     </div><!-- /.modal -->
 </div>
 <!--<form enctype="multipart/form-data">-->
+<form id="fileupload">
     <p>文件：<input id="file_upload" type="file" name="testfile"></p>
+    <select class="form-control" name="category">
+        <option selected="selected">Please select             </option>
+        <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+        <option value="open_data">open_data (open_data, storage, database, data)</option>
+        <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+        <option value="media">media</option>
+        <option value="entertainment">entertainment (entertainment, sports)</option>
+        <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+        <option value="financial">financial</option>
+        <option value="location">location (location, transport, time_management)</option>
+        <option value="text">text (text, transcription, documents, reporting)</option>
+        <option value="social">social (social, customer_relation, customer relationship management)</option>
+        <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+        <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+        <option value="security">security (security, monitoring, verification, fitness)</option>
+        <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+        <option value="hosting">hosting (hosting, domains, accounts</option>
+        <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+    </select>
+    <input class="btn btn-primary" type="button" onclick="submitFileForm()" value="EVALUATE"/>
     <p> <button id="jquery_post">jquery提交</button></p>
+</form>
 <!--</form>-->
 </body>
 
@@ -7232,14 +7263,17 @@
 <script type="text/javascript">
     var validateResult={};
     //文件上传Ajax
-    $("#jquery_post").on("click",function(){
+    //$("#jquery_post").on("click",function(){
+    function  submitFileForm(){
         var inputf=new FormData;
         inputf.append("testfile",document.getElementById("file_upload").files[0]);
+        var formdata=new FormData(document.getElementById("fileupload"));
         $.ajax({
             url:'http://localhost:8080/restapi',
             type:"POST",
             dataType:"JSON",
-            data:inputf,
+            //data:inputf,
+            data:formdata,
             /*不加Ajax自动转换成字符串*/
             contentType: false,
             processData: false,
@@ -7248,10 +7282,10 @@
                 console.log("filehuidiao");
                 validateResult=data;
                 console.log("parsesuccess");
-                fileReplaceFunc();
+                replaceFunc();
             }
         })
-    });
+    }
 
     function submitForm() {
 

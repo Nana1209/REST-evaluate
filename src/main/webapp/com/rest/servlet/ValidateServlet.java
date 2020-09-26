@@ -57,7 +57,14 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
                     System.out.println(context);
                     in.close();
                 }else{
-                    break;
+                    //break;
+                    String name = fileItem.getFieldName();
+                    if(name.equals("category")){
+//                        如果字段值不为空
+                        if (!fileItem.getString().equals("")){
+                            category=fileItem.getString("utf-8");
+                        }
+                    }
                 }
             }
         } catch (FileUploadException e) {

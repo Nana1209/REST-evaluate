@@ -29,7 +29,7 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         String context = request.getParameter("context");
         String category = request.getParameter("category");
         //ServletInputStream serIn=request.getInputStream();
-        /*try {
+        try {
             //创建DiskFileItemFactory工厂对象
             DiskFileItemFactory factory=new DiskFileItemFactory();
             ServletFileUpload fileUpload=new ServletFileUpload(factory);
@@ -41,26 +41,34 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
             List<FileItem> fileItems = fileUpload.parseRequest(request);
             //获取上传文件流
             for (FileItem fileItem:fileItems) {
-                InputStream in = fileItem.getInputStream();
-                List<Byte> b=new ArrayList<Byte>();
-                //byte b[] = new byte[10240];
-                int len = 0;
-                int temp=0;          //所有读取的内容都使用temp接收
-                while((temp=in.read())!=-1){    //当没有读取完时，继续读取
-                    //b[len]=(byte)temp;
-                    b.add((byte)temp);
-                    len++;
+                if(fileItem.isFormField()==false) {
+                    InputStream in = fileItem.getInputStream();
+                    List<Byte> b = new ArrayList<Byte>();
+                    //byte b[] = new byte[10240];
+                    int len = 0;
+                    int temp = 0;          //所有读取的内容都使用temp接收
+                    while ((temp = in.read()) != -1) {    //当没有读取完时，继续读取
+                        //b[len]=(byte)temp;
+                        b.add((byte) temp);
+                        len++;
+                    }
+                    byte[] bb = Bytes.toArray(b);
+                    context = new String(bb, 0, len);
+                    System.out.println(context);
+                    in.close();
+                }else{
+                    break;
                 }
-                byte[] bb= Bytes.toArray(b);
-                String s=new String(bb,0,len);
-                System.out.println(s);
-                in.close();
             }
         } catch (FileUploadException e) {
             e.printStackTrace();
-        }*/
-        String categoryResult[]= ConfigManager.getInstance().getValue(category.toUpperCase()).split(",",-1);
-        System.out.println(categoryResult);
+        }
+        String categoryResult[]=null;
+        if(category!=null){
+            categoryResult= ConfigManager.getInstance().getValue(category.toUpperCase()).split(",",-1);
+            System.out.println(categoryResult);
+        }
+
         //System.out.println(url);
         //System.out.println("context"+context);
         ValidatorController validator = new ValidatorController();
@@ -72,7 +80,10 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         JSONObject object = new JSONObject();
         try {
             fileHandle.MaptoJsonObj(result,object);
-            object.put("categoryResult",categoryResult);
+            if(categoryResult!=null){
+                object.put("categoryResult",categoryResult);
+            }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

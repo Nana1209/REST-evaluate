@@ -7041,12 +7041,12 @@
                     <div class="row">
                         <div class="col-sm-6 b-r" style="height:350px">
                             <form class="form-horizontal">
-                                <!--<div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">API名称:</label>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label text-navy">name</label>
                                     <div class="col-sm-5">
-                                        <span class="form-control" id="testName"></span>
+                                        <span class="form-control" id="apiName"></span>
                                     </div>
-                                </div>-->
+                                </div>
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label text-navy">category</label>
                                     <div class="col-sm-5">
@@ -7158,9 +7158,10 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal -->
 </div>
-<p>文件：<input id="file_upload" type="file" name="testfile"></p>
-<p><button id="js_post">原生js提交</button>  <button id="jquery_post">jquery提交</button></p>
-
+<!--<form enctype="multipart/form-data">-->
+    <p>文件：<input id="file_upload" type="file" name="testfile"></p>
+    <p> <button id="jquery_post">jquery提交</button></p>
+<!--</form>-->
 </body>
 
 
@@ -7169,7 +7170,7 @@
 <script src="https://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
 <script src="https://cdn.bootcss.com/chosen/1.8.2/chosen.jquery.js"></script>
-<script type="text/javascript">
+<!--<script type="text/javascript">
     $("#jquery_post").on("click",function(){
         var data=new FormData;
         data.append("testfile",document.getElementById("file_upload").files[0]);
@@ -7181,12 +7182,15 @@
             /*不加Ajax自动转换成字符串*/
             contentType: false,
             processData: false,
-            success:function(rst){
-                console.log("file succcess");
+            success:function (data) {
+                //pushDom(JSON.parse(data));
+                validateResult=JSON.parse(data);
+                console.log("huidiao");
+                replaceFunc();
             }
         })
     })
-</script>
+</script>-->
 <script type="text/javascript">
     function $childNode(o) {
         return window.frames[o]
@@ -7226,8 +7230,29 @@
     }
 </script>
 <script type="text/javascript">
-    //var resultData = {"testPass":1,"testResult":[{"className":"com.test.testcase.TestDemo1","methodName":"testDemo","description":"测试DEMO","spendTime":"0ms","status":"失败","log":["this is demo!","java.lang.ArithmeticException: / by zero","    com.test.testcase.TestDemo1.testDemo(TestDemo1.java:28)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:714)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo1","description":"测试DEMO1","spendTime":"0ms","status":"失败","log":["this is demo!","java.lang.AssertionError: should be equals. expected [b] but found [a]","    org.testng.Assert.fail(Assert.java:94)","    org.testng.Assert.failNotEquals(Assert.java:494)","    org.testng.Assert.assertEquals(Assert.java:123)","    org.testng.Assert.assertEquals(Assert.java:176)","    com.test.testcase.TestDemo1.testDemo1(TestDemo1.java:36)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:714)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo2","description":"测试DEMO2","spendTime":"0ms","status":"失败","log":["this is demo!","java.lang.AssertionError: should be equals. expected [1] but found [2]","    org.testng.Assert.fail(Assert.java:94)","    org.testng.Assert.failNotEquals(Assert.java:494)","    org.testng.Assert.assertEquals(Assert.java:123)","    org.testng.Assert.assertEquals(Assert.java:370)","    com.test.testcase.TestDemo1.testDemo2(TestDemo1.java:42)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:714)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo2","description":"测试DEMO2","spendTime":"0ms","status":"成功","log":["this is demo!"]},{"className":"com.test.testcase.TestDemo1","methodName":"beforeMethod","description":"测试方法前初始化","spendTime":"0ms","status":"失败","log":["java.lang.ArithmeticException: / by zero","    com.test.testcase.TestDemo1.beforeMethod(TestDemo1.java:20)","    sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)","    sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:57)","    sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)","    java.lang.reflect.Method.invoke(Method.java:606)","    org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)","    org.testng.internal.Invoker.invokeConfigurationMethod(Invoker.java:564)","    org.testng.internal.Invoker.invokeConfigurations(Invoker.java:213)","    org.testng.internal.Invoker.invokeMethod(Invoker.java:653)","    org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)","    org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)","    org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)","    org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)","    org.testng.TestRunner.privateRun(TestRunner.java:767)","    org.testng.TestRunner.run(TestRunner.java:617)","    org.testng.SuiteRunner.runTest(SuiteRunner.java:334)","    org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)","    org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)","    org.testng.SuiteRunner.run(SuiteRunner.java:240)","    org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)","    org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)","    org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)","    org.testng.TestNG.runSuitesLocally(TestNG.java:1149)","    org.testng.TestNG.run(TestNG.java:1057)","    org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)","    org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)","    org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)"]},{"className":"com.test.testcase.TestDemo1","methodName":"testDemo3","description":"测试DEMO3","spendTime":"0ms","status":"跳过","log":[]}],"testName":"20171121103839789","testAll":5,"testFail":3,"beginTime":"2017-11-21 10:38:39.805","totalTime":"0ms","testSkip":1};
     var validateResult={};
+    //文件上传Ajax
+    $("#jquery_post").on("click",function(){
+        var inputf=new FormData;
+        inputf.append("testfile",document.getElementById("file_upload").files[0]);
+        $.ajax({
+            url:'http://localhost:8080/restapi',
+            type:"POST",
+            dataType:"JSON",
+            data:inputf,
+            /*不加Ajax自动转换成字符串*/
+            contentType: false,
+            processData: false,
+            success:function (data) {
+                //pushDom(JSON.parse(data));
+                console.log("filehuidiao");
+                validateResult=data;
+                console.log("parsesuccess");
+                fileReplaceFunc();
+            }
+        })
+    });
+
     function submitForm() {
 
         $.ajax({
@@ -7298,11 +7323,183 @@
 
     }
     //$(replaceFunc);
+    function fileReplaceFunc () {
+        $(".eva-result").css('display',"block");
+        $(".eva-in").css('display',"none");
+        /*console.log(validateResult.categoryResult[1]);*/
+        $("#apiName").text(validateResult['name']);
+        $("#category").text(validateResult['category']);
+        $("#openapiVersion").text(validateResult['openapiVersion']);
+        $("#pathNum").text(validateResult['pathNum']);
+        $("#endpointNum").text(validateResult['endpointNum']);
+        $("#avgEndpoint").text(validateResult['endpointNum']/validateResult['pathNum']);
+        $("#avgHierarchies").text(validateResult['avgHierarchies']);
+        $("#securitySchema").text(validateResult['securityList']);
+
+       /* $("#categoryPathNum").text(validateResult.categoryResult[0]);
+        $("#categoryAvgEndpoint").text(validateResult.categoryResult[1]);
+        $("#categoryAvgHierarchies").text(validateResult.categoryResult[10]);*/
+
+
+
+
+
+
+        function generatePathDetail() {
+            $("#pathDetail").children().remove();
+            $.each(validateResult["path"], function (key, value) {
+                var path = '<div class="panel panel-default">'+
+                    '<div class="panel-heading"><h5>'+key+'</h5></div>'+
+                    '<div class="panel-body"><p></p></div>'+
+                    '<table class="table table-hover">'+
+                    '<thead>'+
+                    '<tr>'+
+                    '<th>#</th><th>Standard</th><th>Degree</th><th>realized</th><th>note</th>'+
+                    '</tr>'+
+                    '</thead>'+
+                    '<tbody id="detailBody">'+
+                    '<tr><th>1</th><th>no_</th><th>MUST</th><th>'+value["no_"]+'</th><th>Use "-" to split</th></tr>'+
+                    '<tr><th>2</th><th>lowercase</th><th>MUST</th><th>'+value["lowercase"]+'</th><th></th></tr>'+
+                    '<tr><th>3</th><th>noVersion</th><th>RECOMMENDED</th><th>'+value["noVersion"]+'</th><th>Recommended to identify the version information in Header</th></tr>'+
+                    '<tr><th>4</th><th>noAPI</th><th>MUST</th><th>'+value["noapi"]+'</th><th></th></tr>'+
+                    '<tr><th>5</th><th>noCRUD</th><th>SHOULD</th><th>'+value["noCRUD"]+'</th><th>'+value["CRUDlist"]+'</th></tr>'+
+                    '<tr><th>6</th><th>noSuffix</th><th>MUST</th><th>'+value["noSuffix"]+'</th><th>'+value["suffixList"]+'</th></tr>'+
+                    '<tr><th>7</th><th>noEnd/</th><th>MUST</th><th>'+value["noend/"]+'</th><th></th></tr>'+
+                    '</tbody>'+
+                    '</table>'+
+                    '</div>';
+                $("#pathDetail").append(path);
+
+
+
+            });
+        }
+        generatePathDetail();
+
+
+        //$(".chosen-select").trigger("chosen:updated");
+
+        function pie() {
+            var option = {
+                title: {
+                    text: 'HTTP Method Usage',
+                    subtext: '',
+                    x: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: ['GET', 'POST', 'DELETE','PUT','HEAD','PATCH','OPTIONS','TRACE']
+                },
+                series: [
+                    {
+                        name: 'Usage ratio',
+                        type: 'pie',
+                        radius: '50%',
+                        center: ['50%', '50%'],
+                        label: {
+                            position: 'inner'
+                        },
+                        data: [
+                            {value: validateResult['opGET'], name: 'GET'},
+                            {value: validateResult['opPOST'], name: 'POST'},
+                            {value: validateResult['opDELETE'], name: 'DELETE'},
+                            {value: validateResult['opPUT'], name: 'PUT'},
+                            {value: validateResult['opHEAD'], name: 'HEAD'},
+                            {value: validateResult['opPATCH'], name: 'PATCH'},
+                            {value: validateResult['opOPTIONS'], name: 'OPTIONS'},
+                            {value: validateResult['opTRACE'], name: 'TRACE'},
+                        ],
+                        itemStyle: {
+                            emphasis: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ]
+            };
+            var chart = echarts.init(document.getElementById("echarts-pie-chart"));
+            chart.setOption(option);
+        }
+
+        pie();
+        function bar() {
+            console.log("validateResult.pathEvaData[0]");
+            console.log(validateResult.pathEvaData[0]);
+            var option = {
+                title: {
+                    text: 'Standard Realization Rate',
+                    subtext: '',
+                    x: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c}%"
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 'left',
+                    data: ['Standard Realization Rate']
+                },
+                xAxis:{
+                    axisLabel: {					//---坐标轴 标签
+                        show: true,					//---是否显示
+                        interval: 0,                //---强制显示所有标签
+                        inside: false,				//---是否朝内
+                        rotate: 0,					//---旋转角度
+                        margin: 5,					//---刻度标签与轴线之间的距离
+                        //color:'red',				//---默认取轴线的颜色
+                    },
+                    data:["no_","lowercase","noVersion","noAPI","noCRUD","noSuffix","noEnd/"]
+                },
+                yAxis:{
+                    name:'Rate',				//---轴名称
+                    type:'value',			//---轴类型，默认'category'
+                    axisLabel: {
+                        show: true,
+                        interval: 'auto',
+                        formatter: '{value} %'
+                    },
+                },
+                series: [
+                    {
+                        name: 'Rate',
+                        type: 'bar',
+                        itemStyle:{					//---图形形状
+                            barBorderRadius: [25, 25, 0, 0],
+                            color: function(params) {
+                                // build a color map as your need.
+                                var colorList = ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'];
+                                return colorList[params.dataIndex]
+                            }
+
+                        },
+                        barWidth:'40%',
+                        z:10,
+                        data: [validateResult.pathEvaData[0]/validateResult['pathNum']*100,validateResult.pathEvaData[1]/validateResult['pathNum']*100,
+                            validateResult.pathEvaData[2]/validateResult['pathNum']*100,validateResult.pathEvaData[3]/validateResult['pathNum']*100,
+                            validateResult.pathEvaData[4]/validateResult['pathNum']*100,validateResult.pathEvaData[5]/validateResult['pathNum']*100,
+                            validateResult.pathEvaData[6]/validateResult['pathNum']*100]
+
+                    }
+                ]
+            };
+            var chart = echarts.init(document.getElementById("echarts-bar-chart"));
+            chart.setOption(option);
+        }
+        bar();
+    }
     function replaceFunc () {
-        $(".eva-result").css('display',"inline");
+        $(".eva-result").css('display',"block");
         $(".eva-in").css('display',"none");
         console.log(validateResult.categoryResult[1]);
-        $("#testName").text(validateResult['pathNum']);
+        $("#apiName").text(validateResult['name']);
         $("#category").text(validateResult['category']);
         $("#openapiVersion").text(validateResult['openapiVersion']);
         $("#pathNum").text(validateResult['pathNum']);

@@ -6963,123 +6963,149 @@
                 font-size: 12px
             }
         }
+        .vertical-middle{
+            float: none;
+            display: inline-block;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body class="gray-bg">
-<div class="wrapper wrapper-content animated fadeInRight eva-in" style="padding-top: 10px; padding-bottom: 0px">
-    <div class="row text-center">
-        <ul id="myTab" class="nav nav-tabs">
-            <li class="active">
-                <a href="#url" data-toggle="tab">
-                    URL
-                </a>
-            </li>
-            <li><a href="#file" data-toggle="tab">FILE</a></li>
-            <li><a href="#text" data-toggle="tab">TEXT</a></li>
-        </ul>
-        <div id="myTabContent" class="tab-content">
-            <div class="tab-pane fade "  id="url">
-                <form class="form-horizontal text-center" id="urlForm">
-                    <div class="form-group text-center">
-                        <label class="col-sm-2 control-label text-navy">API url</label>
-                        <div class="col-sm-5">
-                            <input type="text" class="form-control" name="url"/>
+<div class="wrapper wrapper-content animated fadeInRight eva-in " style="padding-top: 10px; padding-bottom: 0px">
+    <div class="row">
+        <div class="col-md-4 col-md-offset-4">
+            <h2>Please enter your API specification:</h2>
+        </div>
+    </div>
+    <div class="row text-center ">
+        <div class="col-md-4 col-md-offset-4">
+            <ul id="myTab" class="nav nav-tabs">
+                <li><h3>choose a way</h3></li>
+                <li class="active">
+                    <a href="#file" data-toggle="tab">
+                        FILE
+                    </a>
+                </li>
+                <li><a href="#url" data-toggle="tab">URL</a></li>
+                <li><a href="#text" data-toggle="tab">TEXT</a></li>
+            </ul>
+            <div id="myTabContent" class="tab-content">
+                <div class="tab-pane fade "  id="url">
+                    <form class="form-horizontal text-center" id="urlForm">
+                        <div class="form-group text-center">
+                            <label class="col-md-2 col-md-offset-2 control-label text-navy">API url</label>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" name="url"/>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label text-navy">Category</label>
-                        <div class="col-sm-5">
-                            <select class="form-control" name="category">
-                                <option selected="selected">Please select             </option>
-                                <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
-                                <option value="open_data">open_data (open_data, storage, database, data)</option>
-                                <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
-                                <option value="media">media</option>
-                                <option value="entertainment">entertainment (entertainment, sports)</option>
-                                <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
-                                <option value="financial">financial</option>
-                                <option value="location">location (location, transport, time_management)</option>
-                                <option value="text">text (text, transcription, documents, reporting)</option>
-                                <option value="social">social (social, customer_relation, customer relationship management)</option>
-                                <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
-                                <option value="messaging">messaging (messaging, telecom, email, chat)</option>
-                                <option value="security">security (security, monitoring, verification, fitness)</option>
-                                <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
-                                <option value="hosting">hosting (hosting, domains, accounts</option>
-                                <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
-                            </select>
+                        <div class="form-group">
+                            <label class="col-sm-2 col-md-offset-2 control-label text-navy">Category</label>
+                            <div class="col-sm-6">
+                                <select class="form-control" name="category">
+                                    <option selected="selected">Please select             </option>
+                                    <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                                    <option value="open_data">open_data (open_data, storage, database, data)</option>
+                                    <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                                    <option value="media">media</option>
+                                    <option value="entertainment">entertainment (entertainment, sports)</option>
+                                    <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                                    <option value="financial">financial</option>
+                                    <option value="location">location (location, transport, time_management)</option>
+                                    <option value="text">text (text, transcription, documents, reporting)</option>
+                                    <option value="social">social (social, customer_relation, customer relationship management)</option>
+                                    <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                                    <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                                    <option value="security">security (security, monitoring, verification, fitness)</option>
+                                    <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                                    <option value="hosting">hosting (hosting, domains, accounts</option>
+                                    <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <input class="btn btn-primary" type="button" onclick="urlSubmitForm()" value="EVALUATE"/>
-                    <input class="btn btn-default" type="reset" value="RESET"/>
+                        <input class="btn btn-primary" type="button" onclick="urlSubmitForm()" value="EVALUATE"/>
+                        <input class="btn btn-default" type="reset" value="RESET"/>
 
-                </form>
-            </div>
-            <div class="tab-pane fade "  id="text">
-                <form class="form-horizontal text-center" id="textForm">
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label text-navy">API context</label>
-                        <div class="col-sm-5">
-                            <textarea  class="form-control" rows="3" name="context"></textarea>
+                    </form>
+                </div>
+                <div class="tab-pane fade "  id="text">
+                    <form class="form-horizontal text-center" id="textForm">
+                        <div class="form-group">
+                            <label class="col-sm-2 col-md-offset-2 control-label text-navy">API context</label>
+                            <div class="col-sm-6">
+                                <textarea  class="form-control" rows="3" name="context"></textarea>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label text-navy">Category</label>
-                        <div class="col-sm-5">
-                            <select class="form-control" name="category">
-                                <option selected="selected">Please select             </option>
-                                <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
-                                <option value="open_data">open_data (open_data, storage, database, data)</option>
-                                <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
-                                <option value="media">media</option>
-                                <option value="entertainment">entertainment (entertainment, sports)</option>
-                                <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
-                                <option value="financial">financial</option>
-                                <option value="location">location (location, transport, time_management)</option>
-                                <option value="text">text (text, transcription, documents, reporting)</option>
-                                <option value="social">social (social, customer_relation, customer relationship management)</option>
-                                <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
-                                <option value="messaging">messaging (messaging, telecom, email, chat)</option>
-                                <option value="security">security (security, monitoring, verification, fitness)</option>
-                                <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
-                                <option value="hosting">hosting (hosting, domains, accounts</option>
-                                <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
-                            </select>
+                        <div class="form-group">
+                            <label class="col-sm-2 col-md-offset-2 control-label text-navy">Category</label>
+                            <div class="col-sm-6">
+                                <select class="form-control" name="category">
+                                    <option selected="selected">Please select             </option>
+                                    <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                                    <option value="open_data">open_data (open_data, storage, database, data)</option>
+                                    <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                                    <option value="media">media</option>
+                                    <option value="entertainment">entertainment (entertainment, sports)</option>
+                                    <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                                    <option value="financial">financial</option>
+                                    <option value="location">location (location, transport, time_management)</option>
+                                    <option value="text">text (text, transcription, documents, reporting)</option>
+                                    <option value="social">social (social, customer_relation, customer relationship management)</option>
+                                    <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                                    <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                                    <option value="security">security (security, monitoring, verification, fitness)</option>
+                                    <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                                    <option value="hosting">hosting (hosting, domains, accounts</option>
+                                    <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <input class="btn btn-primary" type="button" onclick="textSubmitForm()" value="EVALUATE"/>
-                    <input class="btn btn-default" type="reset" value="RESET"/>
+                        <input class="btn btn-primary" type="button" onclick="textSubmitForm()" value="EVALUATE"/>
+                        <input class="btn btn-default" type="reset" value="RESET"/>
 
-                </form>
-            </div>
-            <div class="tab-pane fade in active"  id="file">
-                <form id="fileupload">
-                    <p>文件：<input id="file_upload" type="file" name="testfile"></p>
-                    <select class="form-control" name="category">
-                        <option selected="selected">Please select             </option>
-                        <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
-                        <option value="open_data">open_data (open_data, storage, database, data)</option>
-                        <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
-                        <option value="media">media</option>
-                        <option value="entertainment">entertainment (entertainment, sports)</option>
-                        <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
-                        <option value="financial">financial</option>
-                        <option value="location">location (location, transport, time_management)</option>
-                        <option value="text">text (text, transcription, documents, reporting)</option>
-                        <option value="social">social (social, customer_relation, customer relationship management)</option>
-                        <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
-                        <option value="messaging">messaging (messaging, telecom, email, chat)</option>
-                        <option value="security">security (security, monitoring, verification, fitness)</option>
-                        <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
-                        <option value="hosting">hosting (hosting, domains, accounts</option>
-                        <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
-                    </select>
-                    <input class="btn btn-primary" type="button" onclick="submitFileForm()" value="EVALUATE"/>
-                    <p> <button id="jquery_post">jquery提交</button></p>
-                </form>
+                    </form>
+                </div>
+                <div class="tab-pane fade in active"  id="file">
+                    <form id="fileupload">
+                        <div class="form-group">
+                            <div class="row">
+                                <label class="col-sm-2 col-md-offset-2 control-label text-navy">API file</label>
+                                <div class="col-md-6">
+                                    <input id="file_upload" type="file" name="testfile">
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 col-md-offset-2 control-label text-navy">Category</label>
+                            <div class="col-sm-6">
+                                <select class="form-control" name="category">
+                                    <option selected="selected">Please select             </option>
+                                    <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                                    <option value="open_data">open_data (open_data, storage, database, data)</option>
+                                    <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                                    <option value="media">media</option>
+                                    <option value="entertainment">entertainment (entertainment, sports)</option>
+                                    <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                                    <option value="financial">financial</option>
+                                    <option value="location">location (location, transport, time_management)</option>
+                                    <option value="text">text (text, transcription, documents, reporting)</option>
+                                    <option value="social">social (social, customer_relation, customer relationship management)</option>
+                                    <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                                    <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                                    <option value="security">security (security, monitoring, verification, fitness)</option>
+                                    <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                                    <option value="hosting">hosting (hosting, domains, accounts</option>
+                                    <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <input class="btn btn-primary" type="button" onclick="submitFileForm()" value="EVALUATE"/>
+                        <!--<p> <button id="jquery_post">jquery提交</button></p>-->
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -7112,19 +7138,19 @@
                         <div class="col-sm-6 b-r" style="height:350px">
                             <form class="form-horizontal">
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">name</label>
+                                    <label class="col-sm-2 control-label text-primary">name</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="apiName"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">category</label>
+                                    <label class="col-sm-2 control-label text-primary">category</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="category"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">OpenAPI Version</label>
+                                    <label class="col-sm-2 control-label text-primary">OpenAPI Version</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="openapiVersion"></span>
                                     </div>
@@ -7139,31 +7165,31 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-warning">Total Endpoints</label>
+                                    <label class="col-sm-2 control-label text-navy">Total Endpoints</label>
                                     <div class="col-sm-5">
-                                        <span class="form-control text-warning" id="endpointNum"></span>
+                                        <span class="form-control text-navy" id="endpointNum"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">AVG Endpoint</label>
+                                    <label class="col-sm-2 control-label text-info">AVG Endpoint</label>
                                     <div class="col-sm-5">
-                                        <span class="form-control" id="avgEndpoint"></span>
+                                        <span class="form-control text-info" id="avgEndpoint"></span>
                                     </div>
                                     <div class="col-sm-5">
-                                        <span class="form-control" id="categoryAvgEndpoint"></span>
+                                        <span class="form-control text-info" id="categoryAvgEndpoint"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="col-sm-2 control-label text-navy">AVG Hierarchies</label>
                                     <div class="col-sm-5">
-                                        <span class="form-control" id="avgHierarchies"></span>
+                                        <span class="form-control text-navy" id="avgHierarchies"></span>
                                     </div>
                                     <div class="col-sm-5">
-                                        <span class="form-control" id="categoryAvgHierarchies"></span>
+                                        <span class="form-control text-navy" id="categoryAvgHierarchies"></span>
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="col-sm-2 control-label text-navy">Security Schema</label>
+                                    <label class="col-sm-2 control-label text-primary">Security Schema</label>
                                     <div class="col-sm-5">
                                         <span class="form-control" id="securitySchema"></span>
                                     </div>
@@ -7228,32 +7254,6 @@
         </div><!-- /.modal-content -->
     </div><!-- /.modal -->
 </div>
-<!--<form enctype="multipart/form-data">-->
-<!--<form id="fileupload">
-    <p>文件：<input id="file_upload" type="file" name="testfile"></p>
-    <select class="form-control" name="category">
-        <option selected="selected">Please select             </option>
-        <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
-        <option value="open_data">open_data (open_data, storage, database, data)</option>
-        <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
-        <option value="media">media</option>
-        <option value="entertainment">entertainment (entertainment, sports)</option>
-        <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
-        <option value="financial">financial</option>
-        <option value="location">location (location, transport, time_management)</option>
-        <option value="text">text (text, transcription, documents, reporting)</option>
-        <option value="social">social (social, customer_relation, customer relationship management)</option>
-        <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
-        <option value="messaging">messaging (messaging, telecom, email, chat)</option>
-        <option value="security">security (security, monitoring, verification, fitness)</option>
-        <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
-        <option value="hosting">hosting (hosting, domains, accounts</option>
-        <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
-    </select>
-    <input class="btn btn-primary" type="button" onclick="submitFileForm()" value="EVALUATE"/>
-    <p> <button id="jquery_post">jquery提交</button></p>
-</form>-->
-<!--</form>-->
 </body>
 
 
@@ -7262,27 +7262,7 @@
 <script src="https://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
 <script src="https://cdn.bootcss.com/chosen/1.8.2/chosen.jquery.js"></script>
-<!--<script type="text/javascript">
-    $("#jquery_post").on("click",function(){
-        var data=new FormData;
-        data.append("testfile",document.getElementById("file_upload").files[0]);
-        $.ajax({
-            url:'http://localhost:8080/restapi',
-            type:"POST",
-            dataType:"JSON",
-            data:data,
-            /*不加Ajax自动转换成字符串*/
-            contentType: false,
-            processData: false,
-            success:function (data) {
-                //pushDom(JSON.parse(data));
-                validateResult=JSON.parse(data);
-                console.log("huidiao");
-                replaceFunc();
-            }
-        })
-    })
-</script>-->
+
 <script type="text/javascript">
     function $childNode(o) {
         return window.frames[o]
@@ -7326,8 +7306,8 @@
     //文件上传Ajax
     //$("#jquery_post").on("click",function(){
     function  submitFileForm(){
-        var inputf=new FormData;
-        inputf.append("testfile",document.getElementById("file_upload").files[0]);
+        /*var inputf=new FormData;
+        inputf.append("testfile",document.getElementById("file_upload").files[0]);*/
         var formdata=new FormData(document.getElementById("fileupload"));
         $.ajax({
             url:'http://localhost:8080/restapi',
@@ -7439,8 +7419,8 @@
         function generatePathDetail() {
             $("#pathDetail").children().remove();
             $.each(validateResult["path"], function (key, value) {
-                var path = '<div class="panel panel-default">'+
-                    '<div class="panel-heading"><h5>'+key+'</h5></div>'+
+                var path = '<div class="panel panel-success">'+
+                    '<div class="panel-heading"><h3 class="panel-title"'+key+'</h3></div>'+
                     '<div class="panel-body"><p></p></div>'+
                     '<table class="table table-hover">'+
                     '<thead>'+

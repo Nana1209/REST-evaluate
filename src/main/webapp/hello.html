@@ -27,6 +27,28 @@
     </div>
     <div class="page-header text-center">
         <h2>RESTful empirical study</h2>
+        <form class="form-inline text-center" id="cateForm">
+            <select class="form-control" name="category">
+                <option selected="selected" value="allresult">Show all, please select one category.</option>
+                <option value="cloud">cloud (cloud, backend, IOT, iPAAS)</option>
+                <option value="open_data">open_data (open_data, storage, database, data)</option>
+                <option value="tools">tools (developer_tools, project_management, web site management, application development)</option>
+                <option value="media">media</option>
+                <option value="entertainment">entertainment (entertainment, sports)</option>
+                <option value="ecommerce">ecommerce (ecommerce, marketing, payment, business)</option>
+                <option value="financial">financial</option>
+                <option value="location">location (location, transport, time_management)</option>
+                <option value="text">text (text, transcription, documents, reporting)</option>
+                <option value="social">social (social, customer_relation, customer relationship management)</option>
+                <option value="collaboration">collaboration (collaboration, enterprise, jobs)</option>
+                <option value="messaging">messaging (messaging, telecom, email, chat)</option>
+                <option value="security">security (security, monitoring, verification, fitness)</option>
+                <option value="search">search (search, education, genetics, government, food, medical, charity, reference, healthcare, 3d)</option>
+                <option value="hosting">hosting (hosting, domains, accounts</option>
+                <option value="analytics">analytics (analytics, machine_learning, extraction)</option>
+            </select>
+            <input class="btn btn-primary" type="button" onclick="cateResult()" value="START"/>
+        </form>
     </div>
     <div class="row">
         <div class="col-md-6 col-lg-6 col-sm-12">
@@ -47,11 +69,12 @@
 <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
 <script src="https://cdn.bootcss.com/chosen/1.8.2/chosen.jquery.js"></script>
 <script type="text/javascript">
-    $(function() {
+    function cateResult() {
         $.ajax({
 
             type: 'get',
             url: 'http://localhost:8080/empirical-result',
+            data: $('#cateForm').serialize(),
             success: function (data) {
                 alert(JSON.stringify(data));
                 validateResult=JSON.parse(data);
@@ -70,7 +93,8 @@
                 data: data
             })
         }*/
-    })
+    }
+    cateResult();
 </script>
 <script type="text/javascript">
     var myChart = echarts.init(document.getElementById("echarts-tree-chart"));

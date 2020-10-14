@@ -25,9 +25,17 @@
         <servlet-name>ValidateServlet</servlet-name>
         <servlet-class>com.rest.servlet.ValidateServlet</servlet-class>
     </servlet>
+    <servlet>
+        <servlet-name>CategoryServlet</servlet-name>
+        <servlet-class>com.rest.servlet.CategoryServlet</servlet-class>
+    </servlet>
     <servlet-mapping>
         <servlet-name>ValidateServlet</servlet-name>
         <url-pattern>/restapi</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CategoryServlet</servlet-name>
+        <url-pattern>/empirical-result</url-pattern>
     </servlet-mapping>
     <filter>
         <filter-name>CORSFilter</filter-name>

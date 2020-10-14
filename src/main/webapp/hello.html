@@ -13,7 +13,7 @@
     <div class="container text-center">
         <h1>RESTER</h1>
         <h2>REST API EvaluatoR</h2>
-        <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more</a></p>
+        <p><a class="btn btn-primary btn-lg" href="http://localhost:8080/report.html" role="button">Evaluate NOW!</a></p>
     </div>
 </div>
 <div class="container">
@@ -26,7 +26,8 @@
         </div>
     </div>
     <div class="page-header text-center">
-        <h2>RESTful empirical study</h2>
+        <h2>REST API development status</h2>
+        <h3>REST APIs for our empirical srudy from APIs.guru(https://apis.guru/).</h3>
         <form class="form-inline text-center" id="cateForm">
             <select class="form-control" name="category">
                 <option selected="selected" value="allresult">Show all, please select one category.</option>
@@ -52,10 +53,10 @@
     </div>
     <div class="row">
         <div class="col-md-6 col-lg-6 col-sm-12">
-            <div style="height:300px" id="echarts-bar-chart"></div>
+            <div style="height:500px" id="echarts-bar-chart"></div>
         </div>
         <div class="col-md-6 col-lg-6 col-sm-12">
-            <div style="height:800px" id="echarts-pie-chart"></div>
+            <div style="height:500px" id="echarts-pie-chart"></div>
         </div>
     </div>
 </div>
@@ -76,8 +77,9 @@
             url: 'http://localhost:8080/empirical-result',
             data: $('#cateForm').serialize(),
             success: function (data) {
-                alert(JSON.stringify(data));
+                //alert(JSON.stringify(data));
                 validateResult=JSON.parse(data);
+                replaceFunc();
                 /*pushDom(JSON.parse(data));*/
 
             },
@@ -93,6 +95,121 @@
                 data: data
             })
         }*/
+        function replaceFunc () {
+
+
+            function pie() {
+                var option = {
+                    title: {
+                        text: 'HTTP Method Usage',
+                        subtext: '',
+                        x: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: "{a} <br/>{b} : {c} ({d}%)"
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left',
+                        data: ['GET', 'POST', 'DELETE','PUT','HEAD','PATCH','OPTIONS','TRACE']
+                    },
+                    series: [
+                        {
+                            name: 'Usage ratio',
+                            type: 'pie',
+                            radius: '50%',
+                            center: ['50%', '50%'],
+                            label: {
+                                position: 'inner'
+                            },
+                            data: [
+                                {value: validateResult.categoryResult[2], name: 'GET'},
+                                {value: validateResult.categoryResult[3], name: 'POST'},
+                                {value: validateResult.categoryResult[4], name: 'DELETE'},
+                                {value: validateResult.categoryResult[5], name: 'PUT'},
+                                {value: validateResult.categoryResult[6], name: 'HEAD'},
+                                {value: validateResult.categoryResult[7], name: 'PATCH'},
+                                {value: validateResult.categoryResult[8], name: 'OPTIONS'},
+                                {value: validateResult.categoryResult[9], name: 'TRACE'},
+                            ],
+                            itemStyle: {
+                                emphasis: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                var chart = echarts.init(document.getElementById("echarts-pie-chart"));
+                chart.setOption(option);
+            }
+
+            pie();
+            function bar() {
+                var option = {
+                    title: {
+                        text: 'Standard Realization Rate',
+                        subtext: '',
+                        x: 'center'
+                    },
+                    tooltip: {
+                        trigger: 'item',
+                        formatter: "{a} <br/>{b} : {c}%"
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left',
+                        data: ['Standard Realization Rate']
+                    },
+                    xAxis:{
+                        axisLabel: {					//---坐标轴 标签
+                            show: true,					//---是否显示
+                            interval: 0,                //---强制显示所有标签
+                            inside: false,				//---是否朝内
+                            rotate: 0,					//---旋转角度
+                            margin: 5,					//---刻度标签与轴线之间的距离
+                            //color:'red',				//---默认取轴线的颜色
+                        },
+                        data:["no_","lowercase","noVersion","noAPI","noCRUD","noSuffix","noEnd/"]
+                    },
+                    yAxis:{
+                        name:'Rate',				//---轴名称
+                        type:'value',			//---轴类型，默认'category'
+                        axisLabel: {
+                            show: true,
+                            interval: 'auto',
+                            formatter: '{value} %'
+                        },
+                    },
+                    series: [
+                        {
+                            name: 'Rate',
+                            type: 'bar',
+                            itemStyle:{					//---图形形状
+                                barBorderRadius: [25, 25, 0, 0],
+                                color: function(params) {
+                                    // build a color map as your need.
+                                    var colorList = ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'];
+                                    return colorList[params.dataIndex]
+                                }
+
+                            },
+                            barWidth:'40%',
+                            z:10,
+                            data: [validateResult.categoryResult[13]*100,validateResult.categoryResult[14]*100,validateResult.categoryResult[15]*100,
+                                validateResult.categoryResult[16]*100,validateResult.categoryResult[17]*100,validateResult.categoryResult[18]*100,
+                                validateResult.categoryResult[19]*100]
+                        }
+                    ]
+                };
+                var chart = echarts.init(document.getElementById("echarts-bar-chart"));
+                chart.setOption(option);
+            }
+            bar();
+        }
     }
     cateResult();
 </script>

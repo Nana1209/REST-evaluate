@@ -60,7 +60,7 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
                             }
                             byte[] bb = Bytes.toArray(b);
                             context = new String(bb, 0, len);
-                            System.out.println(context);
+                            //System.out.println(context);
                             in.close();
                         } else {
                             //break;

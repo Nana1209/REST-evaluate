@@ -239,7 +239,7 @@ public class fileHandle {
         }
         //基本信息（路径、端点）
         //createCSVFile(basicInfos,"result","pathValidate-all");
-        //层级信息
+        //安全信息
         //createCSVFile(securities,"result","security-v2.0");
         //命名验证结果
         //createCSVFile(validations,"result","validationRate-openAPIv2.0");

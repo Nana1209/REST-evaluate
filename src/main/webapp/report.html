@@ -7130,7 +7130,7 @@
                         <a data-toggle="modal" data-target="#myModal">
                             <i class="fa fa-list-ul"></i>
                         </a>
-                        <a class="collapse-link">
+                        <a class="collapse-link" onclick="collapse(this)">
                             <i class="fa fa-chevron-up"></i>
                         </a>
                     </div>
@@ -7292,19 +7292,35 @@
         }).disableSelection()
     }
     var $parentNode = window.parent.document;
-    if ($(".tooltip-demo").tooltip({
+    console.log("befor if");
+    function collapse(that){
+        var $parentNode = window.parent.document;
+        var o = $(that).closest("div.ibox"), e = $(that).find("i"), i = o.find("div.ibox-content");
+        console.log(o.data());
+        i.slideToggle(200), e.toggleClass("fa-chevron-up").toggleClass("fa-chevron-down"), o.toggleClass("").toggleClass("border-bottom"), setTimeout(function () {
+            o.resize(), o.find("[id^=map-]").resize()}, 50)
+    }
+    /*$(".collapse-link").click(function () {
+        var o = $(this).closest("div.ibox"), e = $(this).find("i"), i = o.find("div.ibox-content");
+        console.log(o.data());
+        i.slideToggle(200), e.toggleClass("fa-chevron-up").toggleClass("fa-chevron-down"), o.toggleClass("").toggleClass("border-bottom"), setTimeout(function () {
+            o.resize(), o.find("[id^=map-]").resize()
+        }, 50) })*/
+    /*if (/!*$(".tooltip-demo").tooltip({
         selector: "[data-toggle=tooltip]",
         container: "body"
-    }), $(".modal").appendTo("body"), $("[data-toggle=popover]").popover(), $(".collapse-link").click(function () {
+    }), $(".modal").appendTo("body"), $("[data-toggle=popover]").popover(),*!/ $(".collapse-link").click(function () {
         var o = $(this).closest("div.ibox"), e = $(this).find("i"), i = o.find("div.ibox-content");
         i.slideToggle(200), e.toggleClass("fa-chevron-up").toggleClass("fa-chevron-down"), o.toggleClass("").toggleClass("border-bottom"), setTimeout(function () {
             o.resize(), o.find("[id^=map-]").resize()
         }, 50)
-    }), $(".close-link").click(function () {
+    }),/!* $(".close-link").click(function () {
         var o = $(this).closest("div.ibox");
         o.remove()
-    }), top == this) {
-    }
+    }),*!/ top == this) {
+        console.log("inside if");
+    }*/
+    console.log("after if");
 </script>
 <script type="text/javascript">
     var validateResult={};

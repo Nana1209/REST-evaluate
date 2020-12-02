@@ -1,6 +1,5 @@
 package io.swagger.handler;
 
-import static io.swagger.models.global.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -10,8 +9,7 @@ import com.github.fge.jsonschema.core.report.ProcessingMessage;
 import com.github.fge.jsonschema.core.report.ProcessingReport;
 import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
-import io.swagger.models.HttpMethod;
-import io.swagger.models.Path;
+import io.swagger.models.*;
 import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
@@ -22,13 +20,14 @@ import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.servers.ServerVariable;
+import io.swagger.v3.oas.models.servers.ServerVariables;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import io.swagger.parser.util.SwaggerDeserializationResult;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
-import io.swagger.models.SchemaValidationError;
-import io.swagger.models.ValidationResponse;
 import io.swagger.v3.parser.util.OpenAPIDeserializer;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,12 +45,13 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import javax.ws.rs.core.Response;
-import java.awt.peer.ChoicePeer;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
@@ -94,7 +94,10 @@ public class ValidatorController{
     private float avgHierarchy;//路径平均层级数
     private List<String> hierarchies=new ArrayList<>();//所有路径层级数统计
 
-    private Map<String,Object> validateResult=new HashMap<>();
+    private Map<String,Object> validateResult=new HashMap<>(); //检测结果json
+
+
+
     private Map<String,Object> pathDetail=new HashMap<>();
 
     private boolean hasPagePara = false;//是否有分页相关属性
@@ -111,13 +114,18 @@ public class ValidatorController{
     private  List<String> CRUDlist=new ArrayList<>();//出现的动词列表
     private List<String> suffixlist=new ArrayList<>();//出现的后缀列表
     private List<String> pathlist=new ArrayList<>();//路径
-    private List<String> querypara=new ArrayList<>();//过滤、限制、分页查询参数
+    private List<String> querypara=new ArrayList<>();//过滤、条件限制、分页查询参数
     private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
+
+    String contentType="";
+    private boolean hasCacheScheme;
 
     public Map<String, Object> getValidateResult() {
         return validateResult;
     }
-
+    public Map<String, Object> getPathDetail() {
+        return pathDetail;
+    }
     public List<List<String>> getCRUDPathOperations() {
         return CRUDPathOperations;
     }
@@ -457,7 +465,86 @@ public class ValidatorController{
 
         return debugByContent(request, content);
     }
+    public void dynamicValidateByContent(String content) throws IOException, JSONException {
+        JsonNode spec = readNode(content); //解析json/yaml格式，生成树结构
+        String version = getVersion(spec);
+        if (version != null && (version.startsWith("\"2") || version.startsWith("2"))){
+            SwaggerDeserializationResult result = null;
+            try {
+                result = readSwagger(content);  //根据content构建swagger model
+            } catch (Exception e) {
+                LOGGER.debug("can't read Swagger contents", e);
 
+                ProcessingMessage pm = new ProcessingMessage();
+                pm.setLogLevel(LogLevel.ERROR);
+                pm.setMessage("unable to parse Swagger: " + e.getMessage());
+            }
+            //动态检测，提取url
+
+            List<Scheme> schemes = result.getSwagger().getSchemes();
+            if(schemes==null){
+                schemes.add(Scheme.HTTP);
+            }
+            String host=result.getSwagger().getHost()==null?"":result.getSwagger().getHost();
+            String basepath=result.getSwagger().getBasePath()==null || result.getSwagger().getBasePath().equals("/")?"":result.getSwagger().getBasePath();
+            Set paths = result.getSwagger().getPaths().keySet();
+            for(Scheme scheme:schemes){
+                for (Iterator it = paths.iterator(); it.hasNext(); ) {
+                    String path = (String) it.next();
+                    String url=scheme.toValue()+"://"+host+basepath+path;
+                    System.out.println(url);
+                    dynamicValidateByURL(url,false,false);
+
+
+                }
+            }
+        }else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
+            SwaggerParseResult result = null;
+            try {
+                result = readOpenApi(content);
+            } catch (Exception e) {
+                LOGGER.debug("can't read OpenAPI contents", e);
+
+                ProcessingMessage pm = new ProcessingMessage();
+                pm.setLogLevel(LogLevel.ERROR);
+                pm.setMessage("unable to parse OpenAPI: " + e.getMessage());
+            }
+            Set paths = result.getOpenAPI().getPaths().keySet();
+            //动态检测，获取URL
+            List<Server> servers = result.getOpenAPI().getServers();
+            if(servers.size()==1 && servers.get(0).getUrl()=="/"){
+
+            }else {
+                for (Server server : servers) {
+                    String serverURL = server.getUrl();
+                    if(serverURL.contains("{")){
+                        ServerVariables serverVaris = server.getVariables();
+                        List<String> varsInURL = extractMessageByRegular(serverURL);//找到路径中出现的参数
+                        for(String varInURL:varsInURL){
+                            ServerVariable serverVar = serverVaris.get(varInURL);
+                            List<String> varValues = serverVar.getEnum();//提取对应的参数枚举值
+                            String varValue=varValues.get(0);
+                            serverURL=serverURL.replace("{"+varInURL+"}",varValue);//将{参数}替换为枚举值第一个值
+                        }
+                        System.out.println(serverURL);
+
+
+
+                    }
+
+                    for (Iterator it = paths.iterator(); it.hasNext(); ) {
+                        String path = (String) it.next();
+                        String url = serverURL + path;
+                        dynamicValidateByURL(url, false, false);
+
+
+                    }
+
+
+                }
+            }
+        }
+    }
     public ValidationResponse debugByContent(RequestContext request, String content) throws Exception {
 
         ValidationResponse output = new ValidationResponse();
@@ -572,25 +659,7 @@ public class ValidatorController{
                 //类别信息获取
                 setCategory(result);
 
-                //动态检测，提取url
-                /*
 
-                List<Scheme> schemes = result.getSwagger().getSchemes();
-                if(schemes==null){
-                    schemes.add(Scheme.HTTP);
-                }
-                String host=result.getSwagger().getHost()==null?"":result.getSwagger().getHost();
-                String basepath=result.getSwagger().getBasePath()==null || result.getSwagger().getBasePath().equals("/")?"":result.getSwagger().getBasePath();
-                for(Scheme scheme:schemes){
-                    for (Iterator it = paths.iterator(); it.hasNext(); ) {
-                        String path = (String) it.next();
-                        String url=scheme.toValue()+"://"+host+basepath+path;
-                        System.out.println(url);
-                        Header[] headers=getUrlHeaders(url,false,false);
-                        headerEvaluate(url,headers);
-
-                    }
-                }*/
 
             }//if result!=null
         }
@@ -694,42 +763,7 @@ public class ValidatorController{
                 //类别信息获取
                 setCategory(result);
 
-                //动态检测，获取URL
-                /*错误太多，跳过
-                List<Server> servers = result.getOpenAPI().getServers();
-                if(servers.size()==1 && servers.get(0).getUrl()=="/"){
 
-                }else {
-                    for (Server server : servers) {
-                        String serverURL = server.getUrl();
-                        if(serverURL.contains("{")){
-                            ServerVariables serverVaris = server.getVariables();
-                            List<String> varsInURL = extractMessageByRegular(serverURL);//找到路径中出现的参数
-                            for(String varInURL:varsInURL){
-                                ServerVariable serverVar = serverVaris.get(varInURL);
-                                List<String> varValues = serverVar.getEnum();//提取对应的参数枚举值
-                                String varValue=varValues.get(0);
-                                serverURL=serverURL.replace("{"+varInURL+"}",varValue);//将{参数}替换为枚举值第一个值
-                            }
-                            System.out.println(serverURL);
-
-
-
-                        }
-
-                        for (Iterator it = paths.iterator(); it.hasNext(); ) {
-                            String path = (String) it.next();
-                            String url = serverURL + path;
-                            Header[] headers = getUrlHeaders(url, false, false);
-                            if (headers != null) {
-                                headerEvaluate(url, headers);
-                            }
-
-                        }
-
-
-                    }
-                }*/
 
                 //类别信息提取
                 //categorySet(result);
@@ -877,7 +911,8 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/5/20
     */
-    private void headerEvaluate(String url,Header[] headers) {
+    private void headerEvaluate(String url, Header[] headers,Map<String,Object> pathResult) {
+        //Map<String,Object> pathResult=new HashMap<>();
         boolean hasCacheScheme=false;
         boolean hasEtag=false;
         boolean hasCacheControl=false;
@@ -889,6 +924,7 @@ public class ValidatorController{
             if(header.getName().equals("etag")){
                 System.out.println(url+" response has Etag");
                 hasEtag=true;
+
             }
             if(header.getName().equals("last-modified")){
                 System.out.println(url+" response has last-modified");
@@ -903,19 +939,28 @@ public class ValidatorController{
                 hasCacheControl=true;
             }
             if(header.getName().equals("content-type")){
-                System.out.println(url+" response has content-type");
+
                 //evaluations.put("content-type",header.getValue());
                 contentType=header.getValue();
                 hasContentType=true;
+                System.out.println(url+" response has content-type:"+contentType);
             }
         }
         hasCacheScheme=hasCacheControl || hasEtag || hasExpires || hasLastModified;
-        evaluations.put("hasEtag",String.valueOf(hasEtag));
+        /*evaluations.put("hasEtag",String.valueOf(hasEtag));
         evaluations.put("hasLastModified",String.valueOf(hasLastModified));
         evaluations.put("hasExpires",String.valueOf(hasExpires));
         evaluations.put("hasCacheControl",String.valueOf(hasCacheControl));
         evaluations.put("hasCacheScheme",String.valueOf(hasCacheScheme));
-        evaluations.put("hasContentType",hasContentType==true?contentType:"false");
+        evaluations.put("hasContentType",hasContentType==true?contentType:"false");*/
+        pathResult.put("hasCacheScheme",hasCacheScheme);
+        pathResult.put("hasEtag",hasEtag);
+        pathResult.put("hasExpires",hasExpires);
+        pathResult.put("hasLastModified",hasLastModified);
+        pathResult.put("hasCacheControl",hasCacheControl);
+        pathResult.put("hasContentType",hasContentType);
+        pathResult.put("contentType",contentType);
+
     }
 
     /**
@@ -1377,15 +1422,16 @@ public class ValidatorController{
     }
 
     /**
-    *@Description: 获取指定url的响应头内容
+    *@Description: 动态检测指定url的响应内容
     *@Param: [urlString, rejectLocal, rejectRedirect]
     *@return: org.apache.http.Header[]
     *@Author: zhouxinyu
     *@date: 2020/5/18
     */
-    public Header[] getUrlHeaders(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {
+    public void dynamicValidateByURL(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException, JSONException {
+        Map<String,Object> pathResult=new HashMap<>();
         if(urlString.contains("{")){
-            return  null;
+            return  ;
         }else {
             URL url = new URL(urlString);
 
@@ -1414,15 +1460,25 @@ public class ValidatorController{
 
                 try {
 
-                    HttpEntity entity = response.getEntity();
+
                     StatusLine line = response.getStatusLine();
                     if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {
-                        return null;
+                        return ;
                         //throw new IOException("failed to read swagger with code " + line.getStatusCode());
                     }
-                    Header[] headers = response.getAllHeaders();
+                    Header[] headers = response.getAllHeaders();//获取头文件
+                    if(headers!=null){
+                        headerEvaluate(urlString,headers,pathResult);//对头文件进行检测
+                        //System.out.println("changesuccess?"+pathResult.size());
+                    }
+
+                    HttpEntity entity = response.getEntity();//获取响应体
+                    if(entity!=null){
+                        entityEvaluate(urlString,entity,pathResult);//检测响应体
+                    }
+
                     //return EntityUtils.toString(entity, "UTF-8");
-                    return headers;
+
                 } finally {
                     response.close();
                     httpClient.close();
@@ -1431,6 +1487,65 @@ public class ValidatorController{
                 throw new IOException("CloseableHttpClient could not be initialized");
             }
         }
+        this.pathDetail.put(urlString,pathResult);//各url的动态检测结果
+        return;
+    }
+
+    private void entityEvaluate(String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {
+        String entityString=EntityUtils.toString(entity);
+        //System.out.println(entityString);
+        Boolean isHATEOAS=false;
+       if(entity.getContentType().getValue().contains("application/json")) {//判断响应体格式是否为json
+           //JSONObject object = JSONObject.parseObject(entityString);
+
+           //String[] keySet = null;
+           //解析为jsonObject或jsonArray
+           JSONObject entityObject=null;
+            ArrayList<JSONObject> jsonArray=new ArrayList<JSONObject>();
+           if(entityString.startsWith("{")) {
+               try {
+                   entityObject = new JSONObject(entityString);
+                   //keySet=JSONObject.getNames(entityObject);
+               }catch (JSONException e){
+                   System.out.println(e.toString());
+                   return;
+               }
+
+           }else if(entityString.startsWith("[")){
+               try {
+                   JSONArray entityArray = new JSONArray(entityString);
+                   for (int i = 0; i < entityArray.length(); i++) {
+                       JSONObject object = entityArray.getJSONObject(i);
+                       jsonArray.add(object);
+                       //keySet = JSONObject.getNames(object);
+                   }
+               }catch (JSONException e){
+                   System.out.println(e.toString());
+                   return;
+               }
+           }
+           //检测是否实现HATEOAS原则，即响应体中是否含有link
+           if(entityObject!=null){
+               for(String key:JSONObject.getNames(entityObject)){
+                   if(key.contains("link")){
+                       isHATEOAS=true;
+                       System.out.println(urlString+" has HATEOAS "+key+":"+entityObject.getString(key));
+                   }
+               }
+           }else if(jsonArray.size()!=0){
+               for(JSONObject entityjson:jsonArray){
+                   for(String key:JSONObject.getNames(entityjson)){
+                       if(key.contains("link")){
+                           isHATEOAS=true;
+                           System.out.println(urlString+"has HATEOAS "+key+":"+entityjson.getString(key));
+                       }
+                   }
+               }
+           }
+
+           //System.out.println("entityKeyset"+keySet.toString());
+       }
+       pathResult.put("isHATEOAS",isHATEOAS);
     }
 
     private JsonSchema getSchema(boolean isVersion2) throws Exception {

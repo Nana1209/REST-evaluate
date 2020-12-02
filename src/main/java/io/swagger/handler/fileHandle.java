@@ -26,7 +26,11 @@ public class fileHandle {
     private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
 
     public static void main(String[] args) throws Exception {
-        String ver=ConfigManager.getInstance().getValue("VERSIONPATH_REGEX");
+        ValidatorController validator = new ValidatorController();
+        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
+        validator.dynamicValidateByContent(content);
+        System.out.println(validator.getPathDetail().keySet().toString());
+        /*String ver=ConfigManager.getInstance().getValue("VERSIONPATH_REGEX");
         System.out.println(ver);
         String CRUD[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
         System.out.println(CRUD[2]);
@@ -39,7 +43,7 @@ public class fileHandle {
             delList[i] = str2;
         }
 
-        System.out.println(delList[2][1]);
+        System.out.println(delList[2][1]);*/
         //    在此目录中找文件
         //String baseDIR = "D:\\REST API\\openapi-directory-master\\APIs";
         //    找扩展名为txt的文件

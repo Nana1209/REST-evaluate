@@ -26,24 +26,18 @@ public class fileHandle {
     private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
 
     public static void main(String[] args) throws Exception {
+
         ValidatorController validator = new ValidatorController();
         String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
+        //动态检测
         validator.dynamicValidateByContent(content);
-        System.out.println(validator.getPathDetail().keySet().toString());
-        /*String ver=ConfigManager.getInstance().getValue("VERSIONPATH_REGEX");
-        System.out.println(ver);
-        String CRUD[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",");
-        System.out.println(CRUD[2]);
-        String dellistString=ConfigManager.getInstance().getValue("DELLIST");
-        String str1[] = dellistString.split(";");
-        String delList[][]=new String[str1.length][];
-        for(int i = 0;i < str1.length;i++) {
 
-            String str2[] = str1[i].split(",");
-            delList[i] = str2;
+        //静态检测
+        validator.validateByString(new RequestContext(), content);
+        for(String key:validator.getValidateResult().keySet()){
+            System.out.println(key+":"+validator.getValidateResult().get(key));
         }
 
-        System.out.println(delList[2][1]);*/
         //    在此目录中找文件
         //String baseDIR = "D:\\REST API\\openapi-directory-master\\APIs";
         //    找扩展名为txt的文件

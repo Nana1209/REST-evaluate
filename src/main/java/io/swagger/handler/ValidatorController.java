@@ -101,6 +101,7 @@ public class ValidatorController{
     private Map<String,Object> pathDetail=new HashMap<>();
 
     private boolean hasPagePara = false;//是否有分页相关属性
+    boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
     private String fileName;
     private String category=null;//类别信息
     private int opGet;//get操作数
@@ -613,48 +614,47 @@ public class ValidatorController{
                 //基本信息统计
                 basicInfoGet(result);
 
-                //属性研究,swagger解析出属性:path-> operation -> parameter
+                //属性研究,swagger解析出属性:全局属性，路径级别属性，操作级别属性（path-> operation -> parameter）
+                List<io.swagger.models.parameters.Parameter> parameters= new ArrayList<>();
+                Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();//提取全局属性,加入到属性列表中
+                if(parametersInSwagger!=null){
+                    for(io.swagger.models.parameters.Parameter parameter:parametersInSwagger.values()){
+                        parameters.add(parameter);
+                    }
+                }
                 for(String pathName : result.getSwagger().getPaths().keySet()){
-                    Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();
                     Path path = result.getSwagger().getPath(pathName);
+                    if(path.getParameters()!=null)
+                        parameters.addAll(path.getParameters());//提取路径级别属性，加入属性列表中
+                    //提取操作级别属性
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
-
-                    if (parametersInSwagger==null){
-
-
-                        for(io.swagger.models.Operation operation : operations){
-                            List<io.swagger.models.parameters.Parameter> parasInOprlevel = operation.getParameters();
-                            if(parasInOprlevel!=null){
-                                for(io.swagger.models.parameters.Parameter parameter:parasInOprlevel){
-                                    //检查是否使用分页参数（查询参数方式）
-                                    if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
-                                        this.querypara.add(parameter.getName());
-                                        setHasPagePara(true);
-                                        System.out.println(parameter.getName()+" is page parameter. ");
-
-                                    }
-                                }
-                                evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
-                            }
-                        }
-
-                    }else{
-                        for(String key:parametersInSwagger.keySet()){
-                            //检查是否使用分页参数（查询参数方式）
-                            Parameter parameter = (Parameter) parametersInSwagger.get(key);
-                            if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
+                    for(io.swagger.models.Operation operation : operations){
+                        if(operation.getParameters()!=null)
+                            parameters.addAll(operation.getParameters());//加入操作级别属性到属性列表中
+                    }
+                }
+                if(parameters.size()!=0){
+                    for(io.swagger.models.parameters.Parameter parameter:parameters){
+                        if(parameter.getIn().equals("query")){//查询属性
+                            if(isPagePara(parameter.getName())){//判断查询属性中是否有功能性属性
                                 this.querypara.add(parameter.getName());
                                 setHasPagePara(true);
                                 System.out.println(parameter.getName()+" is page parameter. ");
-
+                            }else if(parameter.getName().contains("version")){//版本信息
+                                this.versionInQueryPara=true;
+                                System.out.println("Query-parameter shouldn't has version parameter: "+parameter.getName());
                             }
-                        }
-                        evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
-                    }
 
+
+
+                        }
+                    }
                 }
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
+                validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
+                evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
+
 
                 //类别信息获取
                 setCategory(result);
@@ -714,59 +714,56 @@ public class ValidatorController{
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
+                List<Parameter> parameters=new ArrayList<>();
                 if (component!=null) {
-                    Map<String, Parameter> parametersInComponent = result.getOpenAPI().getComponents().getParameters();
+                    Map<String, Parameter> parametersInComponent = result.getOpenAPI().getComponents().getParameters();//全局属性
                     if (parametersInComponent != null) {
-                        for (String paraName : parametersInComponent.keySet()) {
-                            //检查是否使用分页参数（查询参数方式）
+                        for (Parameter parameter : parametersInComponent.values()) {
+                            parameters.add(parameter);//全局属性加入属性列表
+                            /*//检查是否使用分页参数（查询参数方式）
                             if (isPagePara(paraName) && parametersInComponent.get(paraName).getIn().equals("query")) {
                                 this.querypara.add(paraName);
                                 setHasPagePara(true);
                                 System.out.println(paraName + " is page parameter. ");
-                            }
+                            }*/
                         }
-                        evaluations.put("hasPageParameter", String.valueOf(isHasPagePara()));
                     }
                 }
 
                 for(String pathName : result.getOpenAPI().getPaths().keySet()){
                     //path-》operation-》parameters
-
-                    List<Parameter> parasInPathlevel = result.getOpenAPI().getPaths().get(pathName).getParameters();
+                    if(result.getOpenAPI().getPaths().get(pathName).getParameters()!=null)
+                        parameters.addAll(result.getOpenAPI().getPaths().get(pathName).getParameters());//路径级别属性加入属性列表
                     OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
-                    List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));
+                    List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));//获取所有操作
                     //this.endpointNum+=operationsInAPath.size();//统计端点数
-                    if(parasInPathlevel==null){
-
-
-                        for(Operation operation:operationsInAPath){
-                            List<Parameter> parasInOprlevel=operation.getParameters();
-                            if(parasInOprlevel!=null){
-                                for(Parameter parameter: parasInOprlevel){
-                                    //检查是否使用分页参数（查询参数方式）
-                                    if(isPagePara(parameter.getName()) && parameter.getIn().equals("query")){
-                                        this.querypara.add(parameter.getName());
-                                        setHasPagePara(true);
-                                        System.out.println(parameter.getName()+" is page parameter. ");
-                                    }
-                                }
-                                evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
+                    for(Operation operation:operationsInAPath){
+                        if(operation.getParameters()!=null)
+                            parameters.addAll(operation.getParameters());//操作级别属性加入属性列表
+                    }
+                }
+                if(parameters.size()!=0){//对属性进行检测
+                    for(Parameter parameter:parameters){
+                        if( parameter.getIn().equals("query")){//查询属性
+                            if(isPagePara(parameter.getName())){//功能性属性
+                                this.querypara.add(parameter.getName());
+                                setHasPagePara(true);
+                                System.out.println(parameter.getName()+" is page parameter. ");
                             }
+                        }else if(parameter.getName().contains("version")){//版本信息
+                            this.versionInQueryPara=true;
+                            System.out.println("Query-parameter shouldn't has version parameter: "+parameter.getName());
                         }
                     }
-
 
                 }
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
+                validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
 
                 //类别信息获取
                 setCategory(result);
 
-
-
-                //类别信息提取
-                //categorySet(result);
                 
             }
         }
@@ -1036,6 +1033,7 @@ public class ValidatorController{
             }
 
             //Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
+
             Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
             if(m1.find()){

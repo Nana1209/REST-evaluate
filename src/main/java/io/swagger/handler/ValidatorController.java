@@ -102,6 +102,8 @@ public class ValidatorController{
 
     private boolean hasPagePara = false;//是否有分页相关属性
     boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
+    boolean apiInServer=false;//域名中是否有“api”
+
     private String fileName;
     private String category=null;//类别信息
     private int opGet;//get操作数
@@ -599,6 +601,14 @@ public class ValidatorController{
                 pathlist= new ArrayList<>(paths);
                 pathEvaluate(paths,result);
 
+                //域名检测
+                String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
+                if(serverurl.contains("api")){
+                    this.apiInServer=true;
+                    System.out.println(serverurl+"has api");
+                }
+                validateResult.put("apiInServer",this.apiInServer);
+
                 //安全解决方案
                 System.out.println(result.getSwagger().getSecurity());
                 Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
@@ -691,6 +701,17 @@ public class ValidatorController{
                 pathlist= new ArrayList<>(paths);
                 pathEvaluate(paths,result);
 
+                //域名检测
+                List<Server> servers=result.getOpenAPI().getServers();
+                if(servers!=null){
+                    for(Server server:servers){
+                        if(server.getUrl().contains("api")){//检测域名中包含“api”
+                            this.apiInServer=true;
+                            System.out.println(server.getUrl()+"has api");
+                        }
+                    }
+                }
+                validateResult.put("apiInServer",this.apiInServer);
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）

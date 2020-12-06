@@ -11,6 +11,8 @@ import com.github.fge.jsonschema.main.JsonSchema;
 import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.swagger.models.*;
 import io.swagger.models.auth.SecuritySchemeDefinition;
+import io.swagger.models.parameters.BodyParameter;
+import io.swagger.models.parameters.SerializableParameter;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
@@ -493,10 +495,50 @@ public class ValidatorController{
             Set paths = result.getSwagger().getPaths().keySet();
             for(Scheme scheme:schemes){
                 for (Iterator it = paths.iterator(); it.hasNext(); ) {
-                    String path = (String) it.next();
-                    String url=scheme.toValue()+"://"+host+basepath+path;
-                    System.out.println(url);
-                    dynamicValidateByURL(url,false,false);
+                    String pathString = (String) it.next();
+                    Path path=result.getSwagger().getPath(pathString);
+                    List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
+                    for(io.swagger.models.Operation operation : operations){
+                        List<io.swagger.models.parameters.Parameter> parameters= operation.getParameters();
+                        if(parameters!=null){
+                            for(io.swagger.models.parameters.Parameter parameter:parameters){
+                                if(parameter.getRequired()==true){//必需属性
+                                    try {
+                                        SerializableParameter spara = (SerializableParameter) parameter;//这个子类才能获取到类型、枚举等值
+
+                                        String paraType=spara.getType();
+                                        String paraName = parameter.getName();
+                                        String paraValue="";//填充后的值
+                                        String paraIn=parameter.getIn();
+                                        //生成属性值
+                                        List<String> paraEnum=spara.getEnum();
+                                        if(paraEnum!=null){
+                                            paraValue=paraEnum.get(0);
+                                        }else {
+                                            if(paraType=="integer"){
+                                                paraValue="0";
+                                            }else if(paraType=="String"){
+                                                paraValue="rester";
+                                            }
+                                        }
+                                        if(paraIn=="path") {//路径属性
+                                            pathString=pathString.replace("{"+paraName+"}",paraValue);
+                                        }else if(paraIn=="query"){//查询属性
+                                            pathString+="?"+paraName+"="+paraValue;
+                                        }
+                                    }catch (ClassCastException e){//消息体属性无法反射到SerializableParameter
+                                        BodyParameter bodypara=(BodyParameter) parameter;
+
+                                    }
+
+                                }
+                            }
+                        }
+                        String url=scheme.toValue()+"://"+host+basepath+pathString;
+                        System.out.println(url);
+                        dynamicValidateByURL(url,false,false);
+                    }
+
 
 
                 }
@@ -530,17 +572,12 @@ public class ValidatorController{
                             serverURL=serverURL.replace("{"+varInURL+"}",varValue);//将{参数}替换为枚举值第一个值
                         }
                         System.out.println(serverURL);
-
-
-
-                    }
-
-                    for (Iterator it = paths.iterator(); it.hasNext(); ) {
-                        String path = (String) it.next();
-                        String url = serverURL + path;
-                        dynamicValidateByURL(url, false, false);
-
-
+                    }else {
+                        for (Iterator it = paths.iterator(); it.hasNext(); ) {
+                            String path = (String) it.next();
+                            String url = serverURL + path;
+                            dynamicValidateByURL(url, false, false);
+                        }
                     }
 
 
@@ -741,12 +778,6 @@ public class ValidatorController{
                     if (parametersInComponent != null) {
                         for (Parameter parameter : parametersInComponent.values()) {
                             parameters.add(parameter);//全局属性加入属性列表
-                            /*//检查是否使用分页参数（查询参数方式）
-                            if (isPagePara(paraName) && parametersInComponent.get(paraName).getIn().equals("query")) {
-                                this.querypara.add(paraName);
-                                setHasPagePara(true);
-                                System.out.println(paraName + " is page parameter. ");
-                            }*/
                         }
                     }
                 }

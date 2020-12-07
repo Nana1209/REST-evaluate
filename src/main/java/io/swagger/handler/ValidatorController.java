@@ -517,7 +517,7 @@ public class ValidatorController{
                                         }else {
                                             if(paraType=="integer"){
                                                 paraValue="0";
-                                            }else if(paraType=="String"){
+                                            }else if(paraType=="string"){
                                                 paraValue="rester";
                                             }
                                         }
@@ -637,6 +637,7 @@ public class ValidatorController{
                 Set paths = result.getSwagger().getPaths().keySet();
                 pathlist= new ArrayList<>(paths);
                 pathEvaluate(paths,result);
+                pathSemanticsEvaluate(paths);
 
                 //域名检测
                 String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
@@ -647,7 +648,6 @@ public class ValidatorController{
                 validateResult.put("apiInServer",this.apiInServer);
 
                 //安全解决方案
-                System.out.println(result.getSwagger().getSecurity());
                 Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
                 if(securityDefinitions!=null){
                     for (String key : securityDefinitions.keySet()) {
@@ -833,6 +833,13 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    private void pathSemanticsEvaluate(Set paths) {
+        for (Iterator it = paths.iterator(); it.hasNext(); ) {
+            String p = (String) it.next();
+            p=p.replace('/',' ');
+        }
     }
 
     /**

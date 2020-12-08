@@ -37,8 +37,7 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.*;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -497,48 +496,73 @@ public class ValidatorController{
                 for (Iterator it = paths.iterator(); it.hasNext(); ) {
                     String pathString = (String) it.next();
                     Path path=result.getSwagger().getPath(pathString);
-                    List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
-                    for(io.swagger.models.Operation operation : operations){
-                        List<io.swagger.models.parameters.Parameter> parameters= operation.getParameters();
-                        if(parameters!=null){
-                            for(io.swagger.models.parameters.Parameter parameter:parameters){
-                                if(parameter.getRequired()==true){//必需属性
-                                    try {
-                                        SerializableParameter spara = (SerializableParameter) parameter;//这个子类才能获取到类型、枚举等值
+                    Map<String,io.swagger.models.Operation> operations=getAllOperationsMapInAPath(path);
+                    for(String method : operations.keySet()){//对于每一个操作,创建一个请求
+                        if(operations.get(method)!=null){
+                            io.swagger.models.Operation operation=operations.get(method);
+                            Map<String,String> headers=new HashMap<>();//请求头文件
+                            Map<String,Object> entity=new HashMap<>();//请求体
 
-                                        String paraType=spara.getType();
-                                        String paraName = parameter.getName();
-                                        String paraValue="";//填充后的值
-                                        String paraIn=parameter.getIn();
-                                        //生成属性值
-                                        List<String> paraEnum=spara.getEnum();
-                                        if(paraEnum!=null){
-                                            paraValue=paraEnum.get(0);
-                                        }else {
-                                            if(paraType=="integer"){
-                                                paraValue="0";
-                                            }else if(paraType=="string"){
-                                                paraValue="rester";
+                            List<io.swagger.models.parameters.Parameter> parameters= operation.getParameters();
+                            Map<String,String> queryParas=new HashMap<>();//查询参数
+                            if(parameters!=null){
+                                for(io.swagger.models.parameters.Parameter parameter:parameters){
+                                    if(parameter.getRequired()==true){//必需属性
+                                        try {
+                                            SerializableParameter spara = (SerializableParameter) parameter;//这个子类才能获取到类型、枚举等值
+
+                                            String paraType=spara.getType();
+                                            String paraName = parameter.getName();
+                                            String paraValue="";//填充后的值
+                                            String paraIn=parameter.getIn();
+                                            //生成属性值
+                                            List<String> paraEnum=spara.getEnum();
+                                            if(paraEnum!=null){
+                                                paraValue=paraEnum.get(0);
+                                            }else {
+                                                if(paraType=="integer"){
+                                                    paraValue="0";
+                                                }else if(paraType=="string"){
+                                                    paraValue="rester";
+                                                }
+                                            }
+                                            if(paraIn=="path") {//路径属性
+                                                pathString=pathString.replace("{"+paraName+"}",paraValue);
+                                            }else if(paraIn=="query"){//查询属性
+                                                queryParas.put(paraName,paraValue);
+                                                //pathString+="?"+paraName+"="+paraValue;
+                                            }else if(paraIn=="header"){
+                                                headers.put(paraName,paraValue);
+                                            }else if(paraIn=="body"){
+                                                entity.put(paraName,paraValue);
+                                            }
+                                        }catch (ClassCastException e){//消息体属性无法反射到SerializableParameter
+                                            BodyParameter bodypara=(BodyParameter) parameter;
+                                            if(bodypara.getExamples()!=null){
+                                                for(String k:bodypara.getExamples().keySet()){
+                                                    entity.put(k,bodypara.getExamples().get(k));
+                                                }
                                             }
                                         }
-                                        if(paraIn=="path") {//路径属性
-                                            pathString=pathString.replace("{"+paraName+"}",paraValue);
-                                        }else if(paraIn=="query"){//查询属性
-                                            pathString+="?"+paraName+"="+paraValue;
-                                        }
-                                    }catch (ClassCastException e){//消息体属性无法反射到SerializableParameter
-                                        BodyParameter bodypara=(BodyParameter) parameter;
 
                                     }
-
                                 }
                             }
+                            if(queryParas.size()!=0){//拼接查询属性到url中
+                                String querPart="";
+                                for(String paraname:queryParas.keySet()){
+                                    querPart+=paraname+"="+queryParas.get(paraname)+"&";
+                                }
+                                querPart="?"+querPart;
+                                querPart=querPart.substring(0,querPart.length()-1);
+                                pathString+=querPart;
+                            }
+                            String url=scheme.toValue()+"://"+host+basepath+pathString;
+                            System.out.println(url);
+                            Request request=new Request(method,url,headers,entity);
+                            dynamicValidateByURL(request,false,false);
                         }
-                        String url=scheme.toValue()+"://"+host+basepath+pathString;
-                        System.out.println(url);
-                        dynamicValidateByURL(url,false,false);
                     }
-
 
 
                 }
@@ -576,7 +600,7 @@ public class ValidatorController{
                         for (Iterator it = paths.iterator(); it.hasNext(); ) {
                             String path = (String) it.next();
                             String url = serverURL + path;
-                            dynamicValidateByURL(url, false, false);
+                            //dynamicValidateByURL(url, false, false);
                         }
                     }
 
@@ -1040,6 +1064,11 @@ public class ValidatorController{
         return result;
     }
 
+    /**
+     * 获取一个路径中的所有操作list
+     * @param pathObj
+     * @return
+     */
     public List<io.swagger.models.Operation> getAllOperationsInAPath(Path pathObj) {
         List<io.swagger.models.Operation> operations = new ArrayList();
         addToOperationsList(operations, pathObj.getGet());
@@ -1049,6 +1078,23 @@ public class ValidatorController{
         addToOperationsList(operations, pathObj.getDelete());
         addToOperationsList(operations, pathObj.getOptions());
         addToOperationsList(operations, pathObj.getHead());
+        return operations;
+    }
+
+    /**
+     * 获取一个路径中的所有操作Map
+     * @param pathObj
+     * @return
+     */
+    public Map<String,io.swagger.models.Operation> getAllOperationsMapInAPath(Path pathObj) {
+        Map<String,io.swagger.models.Operation> operations = new HashMap<>();
+        operations.put("get",pathObj.getGet());
+        operations.put("put",pathObj.getPut());
+        operations.put("delete",pathObj.getDelete());
+        operations.put("post",pathObj.getPost());
+        operations.put("patch",pathObj.getPatch());
+        operations.put("options",pathObj.getOptions());
+        operations.put("head",pathObj.getHead());
         return operations;
     }
 
@@ -1485,8 +1531,9 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/5/18
     */
-    public void dynamicValidateByURL(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException, JSONException {
+    public void dynamicValidateByURL(Request request, boolean rejectLocal, boolean rejectRedirect) throws IOException, JSONException {
         Map<String,Object> pathResult=new HashMap<>();
+        String urlString=request.getUrl();
         if(urlString.contains("{")){
             return  ;
         }else {
@@ -1499,21 +1546,40 @@ public class ValidatorController{
                     throw new IOException("Only accepts http/https protocol");
                 }
             }
-            final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);
+            final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
 
-            RequestConfig.Builder requestBuilder = RequestConfig.custom();
+            RequestConfig.Builder requestBuilder = RequestConfig.custom();//设置配置信息
             requestBuilder = requestBuilder
-                    .setConnectTimeout(5000)
-                    .setSocketTimeout(5000);
+                    .setConnectTimeout(5000)//连接超时时间
+                    .setSocketTimeout(5000);//socket超时时间
 
+            String method=request.getMethod();
+            HttpRequestBase httpRequest=null;
+            if(method=="get"){
+                httpRequest = new HttpGet(urlString);//创建get请求
+            }else if(method=="post"){
+                httpRequest=new HttpPost(urlString);
+            }else if(method=="put"){
+                httpRequest=new HttpPut(urlString);
+            }else if(method=="delete"){
+                httpRequest=new HttpDelete(urlString);
+            }else if(method=="head"){
+                httpRequest=new HttpHead(urlString);
+            }else if(method=="patch"){
+                httpRequest=new HttpPatch(urlString);
+            }else if(method=="options"){
+                httpRequest=new HttpOptions(urlString);
+            }
+            else{
+                httpRequest = new HttpGet(urlString);//创建get请求
+            }
 
-            HttpGet getMethod = new HttpGet(urlString);
-            getMethod.setConfig(requestBuilder.build());
-            getMethod.setHeader("Accept", "application/json, */*");
+            httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+            httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
 
 
             if (httpClient != null) {
-                final CloseableHttpResponse response = httpClient.execute(getMethod);
+                final CloseableHttpResponse response = httpClient.execute(httpRequest);
 
                 try {
 

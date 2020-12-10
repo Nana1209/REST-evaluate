@@ -3,8 +3,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 import io.swagger.util.Json;
-import org.json.JSONException;
-import org.json.JSONObject;
+import net.sf.json.JSONObject;
+/*import org.json.JSONException;
+import org.json.JSONObject;*/
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -345,7 +346,7 @@ public class fileHandle {
         }
         return files;
     }
-    public static JSONObject MaptoJsonObj(Map<String, Object> map, JSONObject resultJson) throws JSONException {
+    public static JSONObject MaptoJsonObj(Map<String, Object> map, JSONObject resultJson){
         Iterator it = map.keySet().iterator();
         while (it.hasNext()) {
             String key = (String) it.next();

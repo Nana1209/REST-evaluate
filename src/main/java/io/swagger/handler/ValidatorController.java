@@ -31,6 +31,7 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import io.swagger.v3.parser.util.OpenAPIDeserializer;
+import net.sf.json.JSONException;
 import org.apache.commons.lang3.StringUtils;
 
 import org.apache.http.Header;
@@ -40,15 +41,16 @@ import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.*;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONArray;
+/*import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
+import org.json.JSONObject;*/
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,7 +67,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
+import net.sf.json.JSONObject;
+import net.sf.json.JSONArray;
 public class ValidatorController{
 
     static final String SCHEMA_FILE = "schema3.json";
@@ -1590,7 +1593,10 @@ public class ValidatorController{
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
                 }
-                //httpRequest.setEntity();
+                JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
+                String string = jsonObject.toString();
+                StringEntity entity = new StringEntity(string, "UTF-8");
+                httpRequest.setEntity(entity);
             }else if(method=="put"){
                 HttpPut httpRequest=new HttpPut(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
@@ -1745,7 +1751,7 @@ public class ValidatorController{
             ArrayList<JSONObject> jsonArray=new ArrayList<JSONObject>();
            if(entityString.startsWith("{")) {
                try {
-                   entityObject = new JSONObject(entityString);
+                   entityObject = JSONObject.fromObject(entityString);
                    //keySet=JSONObject.getNames(entityObject);
                }catch (JSONException e){
                    System.out.println(e.toString());
@@ -1754,8 +1760,8 @@ public class ValidatorController{
 
            }else if(entityString.startsWith("[")){
                try {
-                   JSONArray entityArray = new JSONArray(entityString);
-                   for (int i = 0; i < entityArray.length(); i++) {
+                   JSONArray entityArray = JSONArray.fromObject(entityString);
+                   for (int i = 0; i < entityArray.size(); i++) {
                        JSONObject object = entityArray.getJSONObject(i);
                        jsonArray.add(object);
                        //keySet = JSONObject.getNames(object);
@@ -1767,18 +1773,18 @@ public class ValidatorController{
            }
            //检测是否实现HATEOAS原则，即响应体中是否含有link
            if(entityObject!=null){
-               for(String key:JSONObject.getNames(entityObject)){
-                   if(key.contains("link")){
+               for(Object key:entityObject.keySet()){
+                   if(key.toString().contains("link")){
                        isHATEOAS=true;
-                       System.out.println(urlString+" has HATEOAS "+key+":"+entityObject.getString(key));
+                       System.out.println(urlString+" has HATEOAS "+key+":"+entityObject.getString(key.toString()));
                    }
                }
            }else if(jsonArray.size()!=0){
                for(JSONObject entityjson:jsonArray){
-                   for(String key:JSONObject.getNames(entityjson)){
-                       if(key.contains("link")){
+                   for(Object key:entityjson.keySet()){
+                       if(key.toString().contains("link")){
                            isHATEOAS=true;
-                           System.out.println(urlString+"has HATEOAS "+key+":"+entityjson.getString(key));
+                           System.out.println(urlString+"has HATEOAS "+key+":"+entityjson.getString(key.toString()));
                        }
                    }
                }

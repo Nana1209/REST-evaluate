@@ -1,5 +1,6 @@
 package com.rest.servlet;
 import com.google.common.primitives.Bytes;
+import net.sf.json.JSONObject;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
@@ -8,8 +9,8 @@ import io.swagger.handler.ConfigManager;
 import io.swagger.handler.ValidatorController;
 import io.swagger.handler.fileHandle;
 import io.swagger.oas.inflector.models.RequestContext;
-import org.json.JSONException;
-import org.json.JSONObject;
+/*import org.json.JSONException;
+import org.json.JSONObject;*/
 
 //import javax.servlet.annotation.WebServlet;
 import java.io.IOException;
@@ -94,15 +95,14 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
             result=validator.getValidateResult();
         }
         JSONObject object = new JSONObject();
-        try {
-            fileHandle.MaptoJsonObj(result,object);
-            if(categoryResult!=null){
-                object.put("categoryResult",categoryResult);
-            }
 
-        } catch (JSONException e) {
-            e.printStackTrace();
+        //fileHandle.MaptoJsonObj(result,object);
+        object=JSONObject.fromObject(result);
+        if(categoryResult!=null){
+            object.put("categoryResult",categoryResult);
         }
+
+
         System.out.println(object);
         response.getWriter().print(object);
 
@@ -127,14 +127,12 @@ public class ValidateServlet extends javax.servlet.http.HttpServlet {
         out.close();*/
     }
 
-    protected void doGet(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) throws javax.servlet.ServletException, IOException {
+    protected void doGet(javax.servlet.http.HttpServletRequest request, javax.servlet.http.HttpServletResponse response) throws  IOException {
         JSONObject object = new JSONObject();
-        try {
+
             object.put("name", "tom");
             object.put("age", 15);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+
 
         System.out.println(object);
         response.getWriter().print(object);

@@ -1546,7 +1546,7 @@ public class ValidatorController{
                     throw new IOException("Only accepts http/https protocol");
                 }
             }
-            final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+
 
             RequestConfig.Builder requestBuilder = RequestConfig.custom();//设置配置信息
             requestBuilder = requestBuilder
@@ -1554,64 +1554,182 @@ public class ValidatorController{
                     .setSocketTimeout(5000);//socket超时时间
 
             String method=request.getMethod();
-            HttpRequestBase httpRequest=null;
+            //HttpRequestBase httpRequest=null;
+            //HttpEntityEnclosingRequestBase httpRequest=null;
             if(method=="get"){
-                httpRequest = new HttpGet(urlString);//创建get请求
+                HttpGet httpRequest = new HttpGet(urlString);//创建get请求,此时父类A的变量和静态方法会将子类的变量和静态方法隐藏。instanceA此时唯一可能调用的子类B的地方就是子类B中覆盖了父类A中的实例方法。
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
+                    }
+                }
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
             }else if(method=="post"){
-                httpRequest=new HttpPost(urlString);
+                HttpPost httpRequest=new HttpPost(urlString);
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
+                    }
+                }
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
+                //httpRequest.setEntity();
             }else if(method=="put"){
-                httpRequest=new HttpPut(urlString);
+                HttpPut httpRequest=new HttpPut(urlString);
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
+                    }
+                }
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
             }else if(method=="delete"){
-                httpRequest=new HttpDelete(urlString);
+                HttpDelete httpRequest=new HttpDelete(urlString);
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
+                    }
+                }
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
             }else if(method=="head"){
-                httpRequest=new HttpHead(urlString);
+                HttpHead httpRequest=new HttpHead(urlString);
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
+                    }
+                }
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
             }else if(method=="patch"){
-                httpRequest=new HttpPatch(urlString);
+                HttpPatch httpRequest=new HttpPatch(urlString);
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
+                    }
+                }
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
             }else if(method=="options"){
-                httpRequest=new HttpOptions(urlString);
+                HttpOptions httpRequest=new HttpOptions(urlString);
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
+                    }
+                }
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
             }
             else{
-                httpRequest = new HttpGet(urlString);//创建get请求
-            }
-
-            httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-            httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
-
-
-            if (httpClient != null) {
-                final CloseableHttpResponse response = httpClient.execute(httpRequest);
-
-                try {
-
-
-                    StatusLine line = response.getStatusLine();
-                    if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {
-                        return ;
-                        //throw new IOException("failed to read swagger with code " + line.getStatusCode());
+                HttpGet httpRequest = new HttpGet(urlString);//创建get请求
+                httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+                if(request.getHeader()!=null){
+                    for(String name:request.getHeader().keySet()){
+                        httpRequest.setHeader(name,request.getHeader().get(name));
                     }
-                    Header[] headers = response.getAllHeaders();//获取头文件
-                    if(headers!=null){
-                        headerEvaluate(urlString,headers,pathResult);//对头文件进行检测
-                        //System.out.println("changesuccess?"+pathResult.size());
-                    }
-
-                    HttpEntity entity = response.getEntity();//获取响应体
-                    if(entity!=null){
-                        entityEvaluate(urlString,entity,pathResult);//检测响应体
-                    }
-
-                    //return EntityUtils.toString(entity, "UTF-8");
-
-                } finally {
-                    response.close();
-                    httpClient.close();
                 }
-            } else {
-                throw new IOException("CloseableHttpClient could not be initialized");
+                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
+                if (httpClient != null) {
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    dynamicValidateByResponse(response,urlString,pathResult);
+                    httpClient.close();
+                } else {
+                    throw new IOException("CloseableHttpClient could not be initialized");
+                }
             }
+
+
         }
         this.pathDetail.put(urlString,pathResult);//各url的动态检测结果
         return;
+    }
+
+    private void dynamicValidateByResponse(CloseableHttpResponse response,String urlString,Map<String,Object> pathResult) throws IOException {
+        try {
+
+
+            StatusLine line = response.getStatusLine();
+            if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {
+                return ;
+                //throw new IOException("failed to read swagger with code " + line.getStatusCode());
+            }
+            Header[] headers = response.getAllHeaders();//获取头文件
+            if(headers!=null){
+                headerEvaluate(urlString,headers,pathResult);//对头文件进行检测
+                //System.out.println("changesuccess?"+pathResult.size());
+            }
+
+            HttpEntity entity = response.getEntity();//获取响应体
+            if(entity!=null){
+                entityEvaluate(urlString,entity,pathResult);//检测响应体
+            }
+
+            //return EntityUtils.toString(entity, "UTF-8");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } finally {
+            response.close();
+
+        }
     }
 
     private void entityEvaluate(String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {

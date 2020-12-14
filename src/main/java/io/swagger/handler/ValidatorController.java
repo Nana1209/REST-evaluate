@@ -1114,7 +1114,7 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/8/12
     */
-    private void pathEvaluate(Set paths, SwaggerDeserializationResult result) {
+    private void pathEvaluate(Set paths, SwaggerDeserializationResult result) throws IOException {
         //setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
@@ -1190,7 +1190,7 @@ public class ValidatorController{
             for(int i=0; i< crudnames.length; i++){
                 // notice it should start with the CRUD name
                 String temp=fileHandle.delListFromString(pathclear,delList[i]);
-                if (temp.indexOf(crudnames[i]) >=0) {
+                if (temp.contains(crudnames[i])) {
                     isCrudy = true;
                     verblist.add(crudnames[i]);
 
@@ -1209,6 +1209,21 @@ public class ValidatorController{
                 this.pathEvaData[4]++;
                 pathResult.put("noCRUD",true);
             }
+            //层级之间的语义上下文关系
+            List<String> splitPaths=new ArrayList<>();
+            /*String[] split=pathclear.split("/");
+            for(String s:split){
+                if(s.length()!=0){
+                    splitPaths.add(s);
+                }
+            }*/
+            String pathText=pathclear.replace("/"," ");
+            splitPaths=StanfordNLP.getlemma(pathText);//词形还原
+            if(splitPaths.size()>=2){
+                WordNet wordNet=new WordNet();
+                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系
+            }
+
 
             //文件扩展名不应该包含在API的URL命名中
             //String suffix[]=SUFFIX_NAMES;
@@ -1593,6 +1608,7 @@ public class ValidatorController{
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
                 }
+                //设置消息体
                 JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
                 String string = jsonObject.toString();
                 StringEntity entity = new StringEntity(string, "UTF-8");

@@ -5,15 +5,40 @@ import edu.stanford.nlp.ie.util.*;
 import edu.stanford.nlp.pipeline.*;
 import edu.stanford.nlp.semgraph.*;
 import edu.stanford.nlp.trees.*;
+import edu.stanford.nlp.util.CoreMap;
+
 import java.util.*;
 public class StanfordNLP {
-    public static String text = "Joe Smith was born in California. " +
+    public static String text = "getUserByID user/name. " +
             "In 2017, he went to Paris, France in the summer. " +
             "His flight left at 3:00pm on July 10th, 2017. " +
             "After eating some escargot for the first time, Joe said, \"That was delicious!\" " +
             "He sent a postcard to his sister Jane Smith. " +
             "After hearing about Joe's trip, Jane decided she might go to France one day.";
     static String texttest="getUserByName";
+    /**
+     * 词形还原
+     * @param :字符串
+     * @return List<String> 分词、提取词形还原后的结果
+     * */
+    public static List<String> getlemma(String text){
+        //单词集合
+        List<String> wordslist = new ArrayList<>();;
+        //StanfordCoreNLP词形还原
+        Properties props = new Properties();  // set up pipeline properties
+        props.put("annotators", "tokenize, ssplit, pos, lemma");   //分词、分句、词性标注和词根信息。
+        StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+        Annotation document = new Annotation(text);
+        pipeline.annotate(document);
+        List<CoreMap> words = document.get(CoreAnnotations.SentencesAnnotation.class);
+        for(CoreMap word_temp: words) {
+            for (CoreLabel token: word_temp.get(CoreAnnotations.TokensAnnotation.class)) {
+                String lemma = token.get(CoreAnnotations.LemmaAnnotation.class);  // 获取对应上面word的词元信息，即我所需要的词形还原后的单词
+                wordslist.add(lemma);
+            }
+        }
+        return wordslist;
+    }
     public static void main(String[] args){
         // set up pipeline properties
         Properties props = new Properties();
@@ -44,7 +69,7 @@ public class StanfordNLP {
         System.out.println();
 
         // second sentence
-        CoreSentence sentence = document.sentences().get(1);
+        CoreSentence sentence = document.sentences().get(0);
 
         // list of the part-of-speech tags for the second sentence
         List<String> posTags = sentence.posTags();

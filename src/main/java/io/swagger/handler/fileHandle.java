@@ -31,7 +31,7 @@ public class fileHandle {
         ValidatorController validator = new ValidatorController();
         String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
         //动态检测
-        validator.dynamicValidateByContent(content);
+        //validator.dynamicValidateByContent(content);
 
         //静态检测
         validator.validateByString(new RequestContext(), content);

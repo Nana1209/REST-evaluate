@@ -31,13 +31,13 @@ public class fileHandle {
         ValidatorController validator = new ValidatorController();
         String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
         //动态检测
-        //validator.dynamicValidateByContent(content);
+        validator.dynamicValidateByContent(content);
 
-        //静态检测
+        /*//静态检测
         validator.validateByString(new RequestContext(), content);
         for(String key:validator.getValidateResult().keySet()){
             System.out.println(key+":"+validator.getValidateResult().get(key));
-        }
+        }*/
 
         //    在此目录中找文件
         //String baseDIR = "D:\\REST API\\openapi-directory-master\\APIs";

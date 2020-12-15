@@ -12,7 +12,12 @@ import com.github.fge.jsonschema.main.JsonSchemaFactory;
 import io.swagger.models.*;
 import io.swagger.models.auth.SecuritySchemeDefinition;
 import io.swagger.models.parameters.BodyParameter;
+import io.swagger.models.parameters.RefParameter;
 import io.swagger.models.parameters.SerializableParameter;
+import io.swagger.models.properties.ArrayProperty;
+import io.swagger.models.properties.MapProperty;
+import io.swagger.models.properties.ObjectProperty;
+import io.swagger.models.properties.Property;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 
@@ -510,25 +515,29 @@ public class ValidatorController{
                             Map<String,String> queryParas=new HashMap<>();//查询参数
                             if(parameters!=null){
                                 for(io.swagger.models.parameters.Parameter parameter:parameters){
+                                    /*//Swagger解析时，RefParameter会直接连接到对应属性，并生成对应的实例
+                                    if(parameter.getClass().getName()=="RefParameter"){
+                                        RefParameter refpara=(RefParameter)parameter;
+                                        String ref=refpara.get$ref();
+                                    }*/
                                     if(parameter.getRequired()==true){//必需属性
                                         try {
-                                            SerializableParameter spara = (SerializableParameter) parameter;//这个子类才能获取到类型、枚举等值
+                                            SerializableParameter spara = (SerializableParameter) parameter;//这个子类才能获取到类型、枚举等值,包括header、querty、path、cookie、Form属性
 
                                             String paraType=spara.getType();
                                             String paraName = parameter.getName();
                                             String paraValue="";//填充后的值
                                             String paraIn=parameter.getIn();
+
                                             //生成属性值
                                             List<String> paraEnum=spara.getEnum();
                                             if(paraEnum!=null){
                                                 paraValue=paraEnum.get(0);
                                             }else {
-                                                if(paraType=="integer"){
-                                                    paraValue="0";
-                                                }else if(paraType=="string"){
-                                                    paraValue="rester";
-                                                }
+                                                paraValue=getDefaultFromType(paraType).toString();
                                             }
+
+                                            //根据属性位置给请求填充属性
                                             if(paraIn=="path") {//路径属性
                                                 pathString=pathString.replace("{"+paraName+"}",paraValue);
                                             }else if(paraIn=="query"){//查询属性
@@ -536,14 +545,30 @@ public class ValidatorController{
                                                 //pathString+="?"+paraName+"="+paraValue;
                                             }else if(paraIn=="header"){
                                                 headers.put(paraName,paraValue);
-                                            }else if(paraIn=="body"){
-                                                entity.put(paraName,paraValue);
+                                            }else if(paraIn=="cookie"){
+                                                headers.put("cookie",paraValue);
                                             }
+
                                         }catch (ClassCastException e){//消息体属性无法反射到SerializableParameter
                                             BodyParameter bodypara=(BodyParameter) parameter;
-                                            if(bodypara.getExamples()!=null){
+                                            if(bodypara.getExamples()!=null){//有例子直接使用例子值
                                                 for(String k:bodypara.getExamples().keySet()){
                                                     entity.put(k,bodypara.getExamples().get(k));
+                                                }
+                                            }else if(bodypara.getSchema()!=null){//schema内容描述
+                                                Map<String, Property> properties=bodypara.getSchema().getProperties();
+                                                if(properties!=null){//schema中直接有描述
+                                                    entity=parsePropertiesToEntity(properties);
+                                                }else if(bodypara.getSchema().getReference()!=null){//引用schema
+                                                    //从definition中获得描述信息
+                                                    String ref=bodypara.getSchema().getReference();
+                                                    String[] refsplits=ref.split("/");
+                                                    if(refsplits[1].equals("definitions")){
+                                                        Map<String, Model> defs=result.getSwagger().getDefinitions();
+                                                        Model def=defs.get(refsplits[2]);
+                                                        Map<String, Property> propertiesFromDef=def.getProperties();
+                                                        entity=parsePropertiesToEntity(propertiesFromDef);
+                                                    }
                                                 }
                                             }
                                         }
@@ -561,7 +586,7 @@ public class ValidatorController{
                                 pathString+=querPart;
                             }
                             String url=scheme.toValue()+"://"+host+basepath+pathString;
-                            System.out.println(url);
+                            //System.out.println(url);
                             Request request=new Request(method,url,headers,entity);
                             dynamicValidateByURL(request,false,false);
                         }
@@ -612,6 +637,62 @@ public class ValidatorController{
             }
         }
     }
+
+    /**
+     * 解析properties成为Map对象，最终这个Map会转成json作为请求消息体
+     * @param properties objectProperty存在嵌套，Array、Map
+     * @return
+     */
+    private Map<String, Object> parsePropertiesToEntity(Map<String, Property> properties) {
+        Map<String, Object> result=new HashMap<>();
+        for(String proName:properties.keySet()){
+            Property pro=properties.get(proName);
+            if(pro.getExample()!=null){//检查说明中有无例子，有的话直接使用例子
+                result.put(proName,pro.getExample());
+            }else{
+                //根据property的类别进行值的生成
+                if(pro.getType()=="object"/*pro.getClass().getName()=="ObjectProperty"*/){//只有ObjectProperty存在嵌套
+                    ObjectProperty obPro=(ObjectProperty)pro;
+                    result.put(proName,parsePropertiesToEntity(obPro.getProperties()));
+                }else if(pro.getType()=="array"){
+                    ArrayProperty arrPro=(ArrayProperty)pro;
+                    String itemType=arrPro.getItems().getType();
+                    List<Object> items=new ArrayList<>();
+                    items.add(getDefaultFromType(itemType));//返回基本类型的默认值
+                    result.put(proName,items);
+
+                }else if(pro.getType()=="map"){
+                    MapProperty mapPro=(MapProperty)pro;
+                    String proType=mapPro.getAdditionalProperties().getType();
+                    Map<String,Object> pros=new HashMap<>();
+                    pros.put(proType,getDefaultFromType(proType));
+                    result.put(proName,pros);
+                }else{
+                    result.put(proName,getDefaultFromType(pro.getType()));
+                }
+            }
+
+        }
+        return result;
+    }
+
+    /**
+     * 根据基本类型返回默认值
+     * @param itemType
+     * @return
+     */
+    private Object getDefaultFromType(String itemType) {
+        if(itemType=="string"){
+            return "string";
+        }else if(itemType=="integer"){
+            return 0;
+        }else if(itemType=="boolean"){
+            return true;
+        }else{
+            return "default";
+        }
+    }
+
     public ValidationResponse debugByContent(RequestContext request, String content) throws Exception {
 
         ValidationResponse output = new ValidationResponse();
@@ -1210,7 +1291,7 @@ public class ValidatorController{
                 pathResult.put("noCRUD",true);
             }
             //层级之间的语义上下文关系
-            List<String> splitPaths=new ArrayList<>();
+            List<String> splitPaths;
             /*String[] split=pathclear.split("/");
             for(String s:split){
                 if(s.length()!=0){
@@ -1304,7 +1385,7 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/5/16
     */
-    private void pathEvaluate(Set paths, SwaggerParseResult result) {
+    private void pathEvaluate(Set paths, SwaggerParseResult result) throws IOException {
         //setPathNum(paths.size());//提取路径数
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
@@ -1397,6 +1478,14 @@ public class ValidatorController{
             }else{
                 this.pathEvaData[4]++;
                 pathResult.put("noCRUD",true);
+            }
+            //层级之间的语义上下文关系
+            List<String> splitPaths;
+            String pathText=pathclear.replace("/"," ");
+            splitPaths=StanfordNLP.getlemma(pathText);//词形还原
+            if(splitPaths.size()>=2){
+                WordNet wordNet=new WordNet();
+                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系
             }
 
             //文件扩展名不应该包含在API的URL命名中
@@ -1552,6 +1641,7 @@ public class ValidatorController{
     public void dynamicValidateByURL(Request request, boolean rejectLocal, boolean rejectRedirect) throws IOException, JSONException {
         Map<String,Object> pathResult=new HashMap<>();
         String urlString=request.getUrl();
+        System.out.println(urlString);
         if(urlString.contains("{")){
             return  ;
         }else {
@@ -1572,8 +1662,9 @@ public class ValidatorController{
                     .setSocketTimeout(5000);//socket超时时间
 
             String method=request.getMethod();
-            //HttpRequestBase httpRequest=null;
-            //HttpEntityEnclosingRequestBase httpRequest=null;
+            System.out.println(method);
+            request.getHeader().put("Authoriaztion","token d9d201233a5dcd80642190d5777c36b6b39ebeb0");
+
             if(method=="get"){
                 HttpGet httpRequest = new HttpGet(urlString);//创建get请求,此时父类A的变量和静态方法会将子类的变量和静态方法隐藏。instanceA此时唯一可能调用的子类B的地方就是子类B中覆盖了父类A中的实例方法。
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
@@ -1611,6 +1702,7 @@ public class ValidatorController{
                 //设置消息体
                 JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
                 String string = jsonObject.toString();
+                System.out.println("entity: "+string);
                 StringEntity entity = new StringEntity(string, "UTF-8");
                 httpRequest.setEntity(entity);
             }else if(method=="put"){
@@ -1729,7 +1821,8 @@ public class ValidatorController{
 
 
             StatusLine line = response.getStatusLine();
-            if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {
+            System.out.println("response status: "+line.getStatusCode());
+            if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {//成功状态
                 return ;
                 //throw new IOException("failed to read swagger with code " + line.getStatusCode());
             }

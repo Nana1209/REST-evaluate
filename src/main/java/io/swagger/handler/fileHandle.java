@@ -1,8 +1,10 @@
 package io.swagger.handler;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 import io.swagger.util.Json;
+import io.swagger.util.Yaml;
 import net.sf.json.JSONObject;
 /*import org.json.JSONException;
 import org.json.JSONObject;*/
@@ -38,16 +40,28 @@ public class fileHandle {
         for(String key:validator.getValidateResult().keySet()){
             System.out.println(key+":"+validator.getValidateResult().get(key));
         }*/
-
-        //    在此目录中找文件
-        //String baseDIR = "D:\\REST API\\openapi-directory-master\\APIs";
-        //    找扩展名为txt的文件
-        //String fileName = "openapi.yaml";
-
-        //File imagFile = findFiles(baseDIR, fileName);
-        //System.out.println(imagFile.getPath());
-        /*fileHandle test=new fileHandle();
-        test.validateFiles("E:\\test\\all-clear");*/
+        /*//统计有类别信息的API document个数
+        ObjectMapper YamlMapper = Yaml.mapper();
+        File file = new File("D:\\test\\data-all-clear");
+        ArrayList<File> fileList = getListFiles(file);
+        int num=0;
+        for(File f:fileList){
+            ValidatorController validator = new ValidatorController();
+            String content=validator.readFile(f.getPath());
+            JsonNode jn = YamlMapper.readTree(content); //解析json/yaml格式，生成树结构
+            if(jn.get("info").get("x-apisguru-categories")!=null){
+                num++;
+            }
+            System.out.println(num);
+        }*/
+        /*for(File f : fileList){
+            ValidatorController validator = new ValidatorController();
+            String path=f.getPath();
+            String name=f.getName();
+            String content=validator.readFile(path);
+            System.out.println(name+" start!");
+            ResponseContext response = validator.validateByString(new RequestContext(), content);
+*/
         return ;
     }
 
@@ -128,7 +142,7 @@ public class fileHandle {
     }
 
     /**
-    *@Description: 检验文件夹内说明文件
+    *@Description: 检验文件夹内说明文档
     *@Param: [pathName] 检验指定文件夹
     *@return: void
     *@Author: zhouxinyu

@@ -130,7 +130,9 @@ public class ValidatorController{
     private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
 
     String contentType="";
-    private boolean hasCacheScheme;
+    private boolean hasCacheScheme=false;//是否有缓存机制
+    private boolean versionInHead=false;//头文件中是否有版本信息
+    private boolean securityInHeadPara=false;//头文件（属性）中是否有安全验证机制
 
     public Map<String, Object> getValidateResult() {
         return validateResult;
@@ -745,7 +747,7 @@ public class ValidatorController{
                 Set paths = result.getSwagger().getPaths().keySet();
                 pathlist= new ArrayList<>(paths);
                 pathEvaluate(paths,result);
-                pathSemanticsEvaluate(paths);
+                //pathSemanticsEvaluate(paths);
 
                 //域名检测
                 String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
@@ -799,15 +801,20 @@ public class ValidatorController{
                                 this.versionInQueryPara=true;
                                 System.out.println("Query-parameter shouldn't has version parameter: "+parameter.getName());
                             }
-
-
-
+                        }else if(parameter.getIn().equals("head")){
+                            if(parameter.getName().contains("version")){
+                                this.versionInHead=true;
+                            }else if(parameter.getName().contains("key") || parameter.getName().contains("token") || parameter.getName().contains("authoriaztion") ){
+                                this.securityInHeadPara=true;
+                            }
                         }
                     }
                 }
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
+                validateResult.put("hasSecurityInHeadPara",!this.securityInHeadPara);
+                validateResult.put("hasVersionInHead",!this.versionInHead);
                 evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
 
 
@@ -913,6 +920,12 @@ public class ValidatorController{
                         }else if(parameter.getName().contains("version")){//版本信息
                             this.versionInQueryPara=true;
                             System.out.println("Query-parameter shouldn't has version parameter: "+parameter.getName());
+                        }else if(parameter.getIn().equals("head")){
+                            if(parameter.getName().contains("version")){
+                                this.versionInHead=true;
+                            }else if(parameter.getName().contains("key") || parameter.getName().contains("token") || parameter.getName().contains("authoriaztion") ){
+                                this.securityInHeadPara=true;
+                            }
                         }
                     }
 
@@ -920,7 +933,8 @@ public class ValidatorController{
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
-
+                validateResult.put("hasSecurityInHeadPara",!this.securityInHeadPara);
+                validateResult.put("hasVersionInHead",!this.versionInHead);
                 //类别信息获取
                 setCategory(result);
 
@@ -1086,23 +1100,19 @@ public class ValidatorController{
         String contentType="";
         for(Header header:headers){
             if(header.getName().equals("etag")){
-                System.out.println(url+" response has Etag");
+                System.out.println(url+" response has etag");
                 hasEtag=true;
 
-            }
-            if(header.getName().equals("last-modified")){
+            }else if(header.getName().equals("last-modified")){
                 System.out.println(url+" response has last-modified");
                 hasLastModified=true;
-            }
-            if(header.getName().equals("expires")){
+            }else if(header.getName().equals("expires")){
                 System.out.println(url+" response has expires");
                 hasExpires=true;
-            }
-            if(header.getName().equals("cache-control")){
+            }else if(header.getName().equals("cache-control")){
                 System.out.println(url+" response has cache-control");
                 hasCacheControl=true;
-            }
-            if(header.getName().equals("content-type")){
+            }else if(header.getName().equals("content-type")){
 
                 //evaluations.put("content-type",header.getValue());
                 contentType=header.getValue();
@@ -1663,7 +1673,7 @@ public class ValidatorController{
 
             String method=request.getMethod();
             System.out.println(method);
-            request.getHeader().put("Authoriaztion","token d9d201233a5dcd80642190d5777c36b6b39ebeb0");
+            request.getHeader().put("authoriaztion","token 7d3d79e8be31ca6a367b1920acf5bd3bbd119881");
 
             if(method=="get"){
                 HttpGet httpRequest = new HttpGet(urlString);//创建get请求,此时父类A的变量和静态方法会将子类的变量和静态方法隐藏。instanceA此时唯一可能调用的子类B的地方就是子类B中覆盖了父类A中的实例方法。

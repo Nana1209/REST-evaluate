@@ -27,19 +27,23 @@ public class fileHandle {
     private List<List<String>> paths=new ArrayList<>();//name,path..
     private List<List<String>> paras=new ArrayList<>();//name,paraName..
     private List<List<String>> CRUDPathOperations=new ArrayList<>();//出现动词的路径使用的操作
+    private List<List<String>> versionLocations=new ArrayList<>();//版本信息出现位置的统计
+    private List<List<String>> hasAccepts=new ArrayList<>();
+    private List<List<String>> hasapiInhosts=new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
-
-        ValidatorController validator = new ValidatorController();
-        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
+        fileHandle fileHandle=new fileHandle();
+        fileHandle.validateFiles("D:\\test\\data-all-clear");
+        /*ValidatorController validator = new ValidatorController();
+        String content=validator.readFile("D:\\test\\data-all-clear\\adyen.com-AccountService-5-openapi.yaml");
         //动态检测
-        validator.dynamicValidateByContent(content);
+        //validator.dynamicValidateByContent(content);
 
-        /*//静态检测
+        //静态检测
         validator.validateByString(new RequestContext(), content);
-        for(String key:validator.getValidateResult().keySet()){
-            System.out.println(key+":"+validator.getValidateResult().get(key));
-        }*/
+        System.out.println(validator.isVersionInHead());
+        System.out.println(validator.isVersionInQueryPara());
+        */
         /*//统计有类别信息的API document个数
         ObjectMapper YamlMapper = Yaml.mapper();
         File file = new File("D:\\test\\data-all-clear");
@@ -237,6 +241,7 @@ public class fileHandle {
 
             System.out.println(name+" end!");*/
 
+            /*//出现动词以及对应的操作
             if(validator.getCRUDPathOperations()!=null){
 
 
@@ -248,7 +253,27 @@ public class fileHandle {
                     CRUDPathOperations.add(ops);
                 }
             }
+*/
+            //版本信息的位置
+            List<String> versionLocation=new ArrayList<>();
+            versionLocation.add(name);
+            versionLocation.add(String.valueOf(validator.isVersionInHead()));//版本信息在头文件
+            versionLocation.add(String.valueOf(validator.isVersionInQueryPara()));//在查询参数
+            versionLocation.add(String.valueOf(validator.isHasVersionInHost()));//在域名中
+            versionLocations.add(versionLocation);
 
+            //头文件（accept、身份验证信息（key、token、authoriaztion）实验
+            List<String> hasAccept=new ArrayList<>();
+            hasAccept.add(name);
+            hasAccept.add(String.valueOf(validator.isHasAccept()));//头文件中是否有accpet
+            hasAccept.add(String.valueOf(validator.isSecurityInHeadPara()));//头文件中是否有身份验证信息（key、token、authoriaztion）
+            hasAccepts.add(hasAccept);
+
+            //头文件（accept、身份验证信息（key、token、authoriaztion）实验
+            List<String> hasapiInhost=new ArrayList<>();
+            hasapiInhost.add(name);
+            hasapiInhost.add(String.valueOf(validator.isApiInServer()));
+            hasapiInhosts.add(hasapiInhost);
         }
         //基本信息（路径、端点）
         //createCSVFile(basicInfos,"result","pathValidate-all");
@@ -267,9 +292,12 @@ public class fileHandle {
         //查询参数统计
         //createCSVFile(paras,"D:\\REST API\\result","queryPara-all");
         //出现动词的路径使用的操作
-        createCSVFile(CRUDPathOperations,"D:\\REST API\\result","CRUDPathOperations-allV2");
-
-
+        //createCSVFile(CRUDPathOperations,"D:\\REST API\\result","CRUDPathOperations-allV2");
+        //统计版本信息出现的位置
+        createCSVFile(this.versionLocations,"D:\\REST API file\\result","versionLocation-all");
+        createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
+        createCSVFile(this.hasapiInhosts,"D:\\REST API file\\result","apiInHost-all");
+        System.out.println("end");
 
     }
 

@@ -110,8 +110,8 @@ public class ValidatorController{
     private Map<String,Object> pathDetail=new HashMap<>();
 
     private boolean hasPagePara = false;//是否有分页相关属性
-    boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
-    boolean apiInServer=false;//域名中是否有“api”
+
+    private boolean apiInServer=false;//域名中是否有“api”
 
     private String fileName;
     private String category=null;//类别信息
@@ -131,8 +131,39 @@ public class ValidatorController{
 
     String contentType="";
     private boolean hasCacheScheme=false;//是否有缓存机制
+    boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
     private boolean versionInHead=false;//头文件中是否有版本信息
     private boolean securityInHeadPara=false;//头文件（属性）中是否有安全验证机制
+    private boolean hasAccept=false;//头文件（属性）中是否有accept
+    private boolean hasVersionInHost=false;//服务器信息/域名中是否有版本信息
+
+    public boolean isApiInServer() {
+        return apiInServer;
+    }
+
+    public boolean isHasVersionInHost() {
+        return hasVersionInHost;
+    }
+
+    public boolean isHasAccept() {
+        return hasAccept;
+    }
+
+    public boolean isHasCacheScheme() {
+        return hasCacheScheme;
+    }
+
+    public boolean isVersionInQueryPara() {
+        return versionInQueryPara;
+    }
+
+    public boolean isVersionInHead() {
+        return versionInHead;
+    }
+
+    public boolean isSecurityInHeadPara() {
+        return securityInHeadPara;
+    }
 
     public Map<String, Object> getValidateResult() {
         return validateResult;
@@ -738,6 +769,7 @@ public class ValidatorController{
                 return output;
             }
             if (result != null) {
+                /*20201218 做版本信息的实验（不在路径中，在头文件中，不在查询属性中），为加速实验，注释掉其他检测
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                 }
@@ -749,13 +781,7 @@ public class ValidatorController{
                 pathEvaluate(paths,result);
                 //pathSemanticsEvaluate(paths);
 
-                //域名检测
-                String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
-                if(serverurl.contains("api")){
-                    this.apiInServer=true;
-                    System.out.println(serverurl+"has api");
-                }
-                validateResult.put("apiInServer",this.apiInServer);
+
 
                 //安全解决方案
                 Map<String, SecuritySchemeDefinition> securityDefinitions = result.getSwagger().getSecurityDefinitions()==null?null:result.getSwagger().getSecurityDefinitions();
@@ -770,6 +796,11 @@ public class ValidatorController{
 
                 //基本信息统计
                 basicInfoGet(result);
+*/
+                //域名检测
+                String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
+                serverEvaluate(serverurl);
+                validateResult.put("apiInServer",this.apiInServer);
 
                 //属性研究,swagger解析出属性:全局属性，路径级别属性，操作级别属性（path-> operation -> parameter）
                 List<io.swagger.models.parameters.Parameter> parameters= new ArrayList<>();
@@ -792,20 +823,23 @@ public class ValidatorController{
                 }
                 if(parameters.size()!=0){
                     for(io.swagger.models.parameters.Parameter parameter:parameters){
+                        String paraName=parameter.getName();
                         if(parameter.getIn().equals("query")){//查询属性
-                            if(isPagePara(parameter.getName())){//判断查询属性中是否有功能性属性
-                                this.querypara.add(parameter.getName());
+                            if(isPagePara(paraName)){//判断查询属性中是否有功能性属性
+                                this.querypara.add(paraName);
                                 setHasPagePara(true);
-                                System.out.println(parameter.getName()+" is page parameter. ");
-                            }else if(parameter.getName().contains("version")){//版本信息
+                                System.out.println(paraName+" is page parameter. ");
+                            }else if(paraName.contains("version")){//版本信息
                                 this.versionInQueryPara=true;
-                                System.out.println("Query-parameter shouldn't has version parameter: "+parameter.getName());
+                                System.out.println("Query-parameter shouldn't has version parameter: "+paraName);
                             }
-                        }else if(parameter.getIn().equals("head")){
+                        }else if(parameter.getIn().equals("header")){
                             if(parameter.getName().contains("version")){
                                 this.versionInHead=true;
-                            }else if(parameter.getName().contains("key") || parameter.getName().contains("token") || parameter.getName().contains("authoriaztion") ){
+                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authoriaztion") ){
                                 this.securityInHeadPara=true;
+                            }else if(paraName.equals("accept")){
+                                this.hasAccept=true;
                             }
                         }
                     }
@@ -813,13 +847,14 @@ public class ValidatorController{
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
-                validateResult.put("hasSecurityInHeadPara",!this.securityInHeadPara);
-                validateResult.put("hasVersionInHead",!this.versionInHead);
+                validateResult.put("hasSecurityInHeadPara",this.securityInHeadPara);
+                validateResult.put("hasVersionInHead",this.versionInHead);
+                validateResult.put("hasAccpet",this.hasAccept);
                 evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
 
-
+/*
                 //类别信息获取
-                setCategory(result);
+                setCategory(result);*/
 
 
 
@@ -839,6 +874,12 @@ public class ValidatorController{
                 return output;
             }
             if (result != null) {
+                Components component = result.getOpenAPI().getComponents();
+                /*20201218 做版本信息的实验（不在路径中，在头文件中，不在查询属性中），为加速实验，注释掉其他检测
+
+                //类别信息获取
+                setCategory(result);
+
                 validateResult.put("name",result.getOpenAPI().getInfo().getTitle());
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
@@ -853,17 +894,7 @@ public class ValidatorController{
                 pathlist= new ArrayList<>(paths);
                 pathEvaluate(paths,result);
 
-                //域名检测
-                List<Server> servers=result.getOpenAPI().getServers();
-                if(servers!=null){
-                    for(Server server:servers){
-                        if(server.getUrl().contains("api")){//检测域名中包含“api”
-                            this.apiInServer=true;
-                            System.out.println(server.getUrl()+"has api");
-                        }
-                    }
-                }
-                validateResult.put("apiInServer",this.apiInServer);
+
 
                 //System.out.println(result.getOpenAPI().getSecurity());
                 //获取API security方案类型（apiKey，OAuth，http等）
@@ -884,6 +915,19 @@ public class ValidatorController{
                     evaluations.put("securityType","null");
                 }
                 validateResult.put("securityList",getSecurity());
+
+
+*/
+                //域名检测
+                List<Server> servers=result.getOpenAPI().getServers();
+                if(servers!=null){
+                    for(Server server:servers){
+                        String serverurl=server.getUrl();
+                        serverEvaluate(serverurl);
+
+                    }
+                }
+                validateResult.put("apiInServer",this.apiInServer);
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
@@ -911,20 +955,23 @@ public class ValidatorController{
                 }
                 if(parameters.size()!=0){//对属性进行检测
                     for(Parameter parameter:parameters){
+                        String paraName=parameter.getName().toLowerCase();
                         if( parameter.getIn().equals("query")){//查询属性
-                            if(isPagePara(parameter.getName())){//功能性属性
-                                this.querypara.add(parameter.getName());
+                            if(isPagePara(paraName)){//功能性属性
+                                this.querypara.add(paraName);
                                 setHasPagePara(true);
-                                System.out.println(parameter.getName()+" is page parameter. ");
+                                System.out.println(paraName+" is page parameter. ");
+                            }else if(paraName.contains("version")){//版本信息
+                                this.versionInQueryPara=true;
+                                System.out.println("Query-parameter shouldn't has version parameter: "+paraName);
                             }
-                        }else if(parameter.getName().contains("version")){//版本信息
-                            this.versionInQueryPara=true;
-                            System.out.println("Query-parameter shouldn't has version parameter: "+parameter.getName());
-                        }else if(parameter.getIn().equals("head")){
-                            if(parameter.getName().contains("version")){
+                        }else if(parameter.getIn().equals("header")){//头文件属性
+                            if(paraName.contains("version")){
                                 this.versionInHead=true;
-                            }else if(parameter.getName().contains("key") || parameter.getName().contains("token") || parameter.getName().contains("authoriaztion") ){
+                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authoriaztion") ){
                                 this.securityInHeadPara=true;
+                            }else if(paraName.equals("accept")){
+                                this.hasAccept=true;
                             }
                         }
                     }
@@ -933,10 +980,10 @@ public class ValidatorController{
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
-                validateResult.put("hasSecurityInHeadPara",!this.securityInHeadPara);
-                validateResult.put("hasVersionInHead",!this.versionInHead);
-                //类别信息获取
-                setCategory(result);
+                validateResult.put("hasSecurityInHeadPara",this.securityInHeadPara);
+                validateResult.put("hasVersionInHead",this.versionInHead);
+                validateResult.put("hasAccpet",this.hasAccept);
+
 
                 
             }
@@ -955,6 +1002,23 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    /**
+     * 检测域名内容（“api”以及版本信息）
+     * @param serverurl 服务器信息（OAS3）或域名+baseurl（OAS2）
+     */
+    private void serverEvaluate(String serverurl) {
+        Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
+        Matcher m1 = pattern1.matcher(serverurl); // 获取 matcher 对象
+        if(serverurl.contains("api")){//检测域名中包含“api”
+            this.apiInServer=true;
+            System.out.println(serverurl+"has api");
+        }else if(m1.find()){
+            //System.out.println("version shouldn't in paths "+p);
+            //this.score=this.score-5>0?this.score-5:0;
+            this.hasVersionInHost=true;
+        }
     }
 
     private void pathSemanticsEvaluate(Set paths) {

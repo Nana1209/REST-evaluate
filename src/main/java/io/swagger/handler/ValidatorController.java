@@ -136,6 +136,11 @@ public class ValidatorController{
     private boolean securityInHeadPara=false;//头文件（属性）中是否有安全验证机制
     private boolean hasAccept=false;//头文件（属性）中是否有accept
     private boolean hasVersionInHost=false;//服务器信息/域名中是否有版本信息
+    private Map<String,Integer> status=new HashMap<>();//状态码使用情况的统计
+
+    public Map<String, Integer> getStatus() {
+        return status;
+    }
 
     public boolean isApiInServer() {
         return apiInServer;
@@ -769,7 +774,7 @@ public class ValidatorController{
                 return output;
             }
             if (result != null) {
-                /*20201218 做版本信息的实验（不在路径中，在头文件中，不在查询属性中），为加速实验，注释掉其他检测
+                /*20201218 状态码统计实验，为加速实验，注释掉其他检测
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                 }
@@ -796,12 +801,12 @@ public class ValidatorController{
 
                 //基本信息统计
                 basicInfoGet(result);
-*/
+
                 //域名检测
                 String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
                 serverEvaluate(serverurl);
                 validateResult.put("apiInServer",this.apiInServer);
-
+*/
                 //属性研究,swagger解析出属性:全局属性，路径级别属性，操作级别属性（path-> operation -> parameter）
                 List<io.swagger.models.parameters.Parameter> parameters= new ArrayList<>();
                 Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();//提取全局属性,加入到属性列表中
@@ -810,6 +815,7 @@ public class ValidatorController{
                         parameters.add(parameter);
                     }
                 }
+                int opCount=0;
                 for(String pathName : result.getSwagger().getPaths().keySet()){
                     Path path = result.getSwagger().getPath(pathName);
                     if(path.getParameters()!=null)
@@ -817,13 +823,31 @@ public class ValidatorController{
                     //提取操作级别属性
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
                     for(io.swagger.models.Operation operation : operations){
+                        //统计状态码使用情况
+                        opCount++;
+                        Map<String, io.swagger.models.Response> responses=operation.getResponses();
+                        if(responses!=null){
+                            for(String s:responses.keySet()){
+                                if(status.containsKey(s)){
+                                    status.put(s,status.get(s)+1);
+                                }else{
+                                    status.put(s,1);
+                                }
+                            }
+                        }
+
+                        //加入操作级别属性到属性列表中
                         if(operation.getParameters()!=null)
-                            parameters.addAll(operation.getParameters());//加入操作级别属性到属性列表中
+                            parameters.addAll(operation.getParameters());
                     }
                 }
+                status.put("opcount",opCount);
                 if(parameters.size()!=0){
                     for(io.swagger.models.parameters.Parameter parameter:parameters){
-                        String paraName=parameter.getName();
+                        if(parameter instanceof BodyParameter){
+
+                        }
+                        String paraName=parameter.getName().toLowerCase();
                         if(parameter.getIn().equals("query")){//查询属性
                             if(isPagePara(paraName)){//判断查询属性中是否有功能性属性
                                 this.querypara.add(paraName);
@@ -836,7 +860,7 @@ public class ValidatorController{
                         }else if(parameter.getIn().equals("header")){
                             if(parameter.getName().contains("version")){
                                 this.versionInHead=true;
-                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authoriaztion") ){
+                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authorization") ){
                                 this.securityInHeadPara=true;
                             }else if(paraName.equals("accept")){
                                 this.hasAccept=true;
@@ -874,8 +898,9 @@ public class ValidatorController{
                 return output;
             }
             if (result != null) {
+
                 Components component = result.getOpenAPI().getComponents();
-                /*20201218 做版本信息的实验（不在路径中，在头文件中，不在查询属性中），为加速实验，注释掉其他检测
+/*20201221 响应状态码实验，注释其他
 
                 //类别信息获取
                 setCategory(result);
@@ -917,7 +942,6 @@ public class ValidatorController{
                 validateResult.put("securityList",getSecurity());
 
 
-*/
                 //域名检测
                 List<Server> servers=result.getOpenAPI().getServers();
                 if(servers!=null){
@@ -927,7 +951,7 @@ public class ValidatorController{
 
                     }
                 }
-                validateResult.put("apiInServer",this.apiInServer);
+                validateResult.put("apiInServer",this.apiInServer);*/
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
@@ -941,6 +965,7 @@ public class ValidatorController{
                     }
                 }
 
+                int opCount=0;
                 for(String pathName : result.getOpenAPI().getPaths().keySet()){
                     //path-》operation-》parameters
                     if(result.getOpenAPI().getPaths().get(pathName).getParameters()!=null)
@@ -949,10 +974,24 @@ public class ValidatorController{
                     List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));//获取所有操作
                     //this.endpointNum+=operationsInAPath.size();//统计端点数
                     for(Operation operation:operationsInAPath){
+                        opCount++;
+                        //操作级别属性加入属性列表
                         if(operation.getParameters()!=null)
-                            parameters.addAll(operation.getParameters());//操作级别属性加入属性列表
+                            parameters.addAll(operation.getParameters());
+
+                        if(operation.getResponses()!=null){
+                            for(String s:operation.getResponses().keySet()){
+                                if(status.containsKey(s)){
+                                    status.put(s,status.get(s)+1);
+                                }else{
+                                    status.put(s,1);
+                                }
+                            }
+                        }
                     }
                 }
+                status.put("opcount",opCount);
+                /*
                 if(parameters.size()!=0){//对属性进行检测
                     for(Parameter parameter:parameters){
                         String paraName=parameter.getName().toLowerCase();
@@ -968,7 +1007,7 @@ public class ValidatorController{
                         }else if(parameter.getIn().equals("header")){//头文件属性
                             if(paraName.contains("version")){
                                 this.versionInHead=true;
-                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authoriaztion") ){
+                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authorization") ){
                                 this.securityInHeadPara=true;
                             }else if(paraName.equals("accept")){
                                 this.hasAccept=true;
@@ -976,7 +1015,7 @@ public class ValidatorController{
                         }
                     }
 
-                }
+                }*/
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);

@@ -5,10 +5,12 @@ import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 /*import org.json.JSONException;
 import org.json.JSONObject;*/
 
+import javax.json.JsonArray;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -157,6 +159,7 @@ public class fileHandle {
         File file = new File(pathName);
         //File[] tempList = file.listFiles();
         ArrayList<File> fileList = getListFiles(pathName);
+        Map<String,Object> statuss=new HashMap<>();
         for(File f : fileList){
             ValidatorController validator = new ValidatorController();
             String path=f.getPath();
@@ -165,6 +168,9 @@ public class fileHandle {
             System.out.println(name+" start!");
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
+
+            statuss.put(name,validator.getStatus());
+
             /*基本信息（路径、端点、get，post，delete，put，head，patch）*/
             /*List<String> basicInfo=new ArrayList<>();
             basicInfo.add(name);
@@ -253,7 +259,7 @@ public class fileHandle {
                     CRUDPathOperations.add(ops);
                 }
             }
-*/
+
             //版本信息的位置
             List<String> versionLocation=new ArrayList<>();
             versionLocation.add(name);
@@ -273,7 +279,7 @@ public class fileHandle {
             List<String> hasapiInhost=new ArrayList<>();
             hasapiInhost.add(name);
             hasapiInhost.add(String.valueOf(validator.isApiInServer()));
-            hasapiInhosts.add(hasapiInhost);
+            hasapiInhosts.add(hasapiInhost);*/
         }
         //基本信息（路径、端点）
         //createCSVFile(basicInfos,"result","pathValidate-all");
@@ -294,9 +300,13 @@ public class fileHandle {
         //出现动词的路径使用的操作
         //createCSVFile(CRUDPathOperations,"D:\\REST API\\result","CRUDPathOperations-allV2");
         //统计版本信息出现的位置
-        createCSVFile(this.versionLocations,"D:\\REST API file\\result","versionLocation-all");
+        /*createCSVFile(this.versionLocations,"D:\\REST API file\\result","versionLocation-all");
         createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
         createCSVFile(this.hasapiInhosts,"D:\\REST API file\\result","apiInHost-all");
+*/
+        FileOutputStream outStream = new FileOutputStream("D:\\REST API file\\result\\status-all.json");
+        JSONObject jo=JSONObject.fromObject(statuss);
+        outStream.write(jo.toString().getBytes("UTF-8"));
         System.out.println("end");
 
     }

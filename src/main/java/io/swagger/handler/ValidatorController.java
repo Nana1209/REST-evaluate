@@ -137,6 +137,11 @@ public class ValidatorController{
     private boolean hasAccept=false;//头文件（属性）中是否有accept
     private boolean hasVersionInHost=false;//服务器信息/域名中是否有版本信息
     private Map<String,Integer> status=new HashMap<>();//状态码使用情况的统计
+    private int[] statusUsage;//状态码使用情况（端点级别 是否使用各类状态码
+
+    public int[] getStatusUsage() {
+        return statusUsage;
+    }
 
     public Map<String, Integer> getStatus() {
         return status;
@@ -816,6 +821,7 @@ public class ValidatorController{
                     }
                 }
                 int opCount=0;
+                int x2s=0,x3s=0,x4s=0,x5s=0;
                 for(String pathName : result.getSwagger().getPaths().keySet()){
                     Path path = result.getSwagger().getPath(pathName);
                     if(path.getParameters()!=null)
@@ -823,25 +829,45 @@ public class ValidatorController{
                     //提取操作级别属性
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
                     for(io.swagger.models.Operation operation : operations){
+                        boolean x2=false;
+                        boolean x3=false;
+                        boolean x4=false;
+                        boolean x5=false;
                         //统计状态码使用情况
                         opCount++;
                         Map<String, io.swagger.models.Response> responses=operation.getResponses();
                         if(responses!=null){
                             for(String s:responses.keySet()){
-                                if(status.containsKey(s)){
+                                if(s.startsWith("2")){
+                                    x2=true;
+                                }else if(s.startsWith("3")){
+                                    x3=true;
+                                }else if(s.startsWith("4")){
+                                    x4=true;
+                                }else if(s.startsWith("5")){
+                                    x5=true;
+                                }
+                                /*if(status.containsKey(s)){
                                     status.put(s,status.get(s)+1);
                                 }else{
                                     status.put(s,1);
-                                }
+                                }*/
                             }
                         }
+                        x2s+=x2?1:0;
+                        x3s+=x3?1:0;
+                        x4s+=x4?1:0;
+                        x5s+=x5?1:0;
+
 
                         //加入操作级别属性到属性列表中
                         if(operation.getParameters()!=null)
                             parameters.addAll(operation.getParameters());
                     }
                 }
-                status.put("opcount",opCount);
+                //status.put("opcount",opCount);
+                statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
+                /*
                 if(parameters.size()!=0){
                     for(io.swagger.models.parameters.Parameter parameter:parameters){
                         if(parameter instanceof BodyParameter){
@@ -867,7 +893,7 @@ public class ValidatorController{
                             }
                         }
                     }
-                }
+                }*/
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
@@ -966,6 +992,7 @@ public class ValidatorController{
                 }
 
                 int opCount=0;
+                int x2s=0,x3s=0,x4s=0,x5s=0;
                 for(String pathName : result.getOpenAPI().getPaths().keySet()){
                     //path-》operation-》parameters
                     if(result.getOpenAPI().getPaths().get(pathName).getParameters()!=null)
@@ -974,6 +1001,10 @@ public class ValidatorController{
                     List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));//获取所有操作
                     //this.endpointNum+=operationsInAPath.size();//统计端点数
                     for(Operation operation:operationsInAPath){
+                        boolean x2=false;
+                        boolean x3=false;
+                        boolean x4=false;
+                        boolean x5=false;
                         opCount++;
                         //操作级别属性加入属性列表
                         if(operation.getParameters()!=null)
@@ -981,16 +1012,30 @@ public class ValidatorController{
 
                         if(operation.getResponses()!=null){
                             for(String s:operation.getResponses().keySet()){
-                                if(status.containsKey(s)){
+                                if(s.startsWith("2")){
+                                    x2=true;
+                                }else if(s.startsWith("3")){
+                                    x3=true;
+                                }else if(s.startsWith("4")){
+                                    x4=true;
+                                }else if(s.startsWith("5")){
+                                    x5=true;
+                                }
+                                /*if(status.containsKey(s)){
                                     status.put(s,status.get(s)+1);
                                 }else{
                                     status.put(s,1);
-                                }
+                                }*/
                             }
                         }
+                        x2s+=x2?1:0;
+                        x3s+=x3?1:0;
+                        x4s+=x4?1:0;
+                        x5s+=x5?1:0;
                     }
                 }
-                status.put("opcount",opCount);
+                //status.put("opcount",opCount);
+                statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
                 /*
                 if(parameters.size()!=0){//对属性进行检测
                     for(Parameter parameter:parameters){

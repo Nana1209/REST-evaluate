@@ -169,7 +169,8 @@ public class fileHandle {
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
 
-            statuss.put(name,validator.getStatus());
+            //statuss.put(name,validator.getStatus());
+            statuss.put(name,validator.getStatusUsage());
 
             /*基本信息（路径、端点、get，post，delete，put，head，patch）*/
             /*List<String> basicInfo=new ArrayList<>();
@@ -304,7 +305,7 @@ public class fileHandle {
         createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
         createCSVFile(this.hasapiInhosts,"D:\\REST API file\\result","apiInHost-all");
 */
-        FileOutputStream outStream = new FileOutputStream("D:\\REST API file\\result\\status-all.json");
+        FileOutputStream outStream = new FileOutputStream("D:\\REST API file\\result\\statusUsage-all.json");
         JSONObject jo=JSONObject.fromObject(statuss);
         outStream.write(jo.toString().getBytes("UTF-8"));
         System.out.println("end");

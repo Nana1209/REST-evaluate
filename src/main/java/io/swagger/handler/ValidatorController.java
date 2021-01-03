@@ -145,6 +145,11 @@ public class ValidatorController{
     private int dotCountInPath;//path中版本号的.数，用来判断是否语义版本号
     private boolean semanticVersion=false;//是否使用语义版本号
     private boolean hateoas=false;//是否实现HATEOAS原则
+    private boolean hasResponseContentType=false;//响应头文件中是否有contenetType
+
+    public boolean isHasResponseContentType() {
+        return hasResponseContentType;
+    }
 
     public boolean isHateoas() {
         return hateoas;
@@ -893,6 +898,8 @@ public class ValidatorController{
                                             hasStrongCacheStatic=true;
                                         }else if(headerName.equals("etag") || headerName.equals("last-modified")){
                                             hasEtagStatic=true;
+                                        }else if(headerName.equals("content-type") ){
+                                            this.hasResponseContentType=true;
                                         }
                                     }
                                 }
@@ -1095,6 +1102,8 @@ public class ValidatorController{
                                             hasStrongCacheStatic=true;
                                         }else if(headerName.equals("etag") || headerName.equals("last-modified")){
                                             hasEtagStatic=true;
+                                        }else if(headerName.equals("content-type") ){
+                                            this.hasResponseContentType=true;
                                         }
                                     }
                                 }

@@ -34,6 +34,7 @@ public class fileHandle {
     private List<List<String>> hasapiInhosts=new ArrayList<>();
     private List<List<String>> hasCacStatics=new ArrayList<>();
     private List<List<String>> isHATEOAS=new ArrayList<>();
+    private List<List<String>> hasResponseContentType=new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         fileHandle fileHandle=new fileHandle();
@@ -280,10 +281,16 @@ public class fileHandle {
             versionLocation.add(String.valueOf(validator.getDotCountInPath()));
             versionLocation.add(String.valueOf(validator.isSemanticVersion()));
             versionLocations.add(versionLocation);*/
+           /* //是否实现HATEOAS原则
             List<String> isH=new ArrayList<>();
             isH.add(name);
             isH.add(String.valueOf(validator.isHateoas()));//是否实现HATEOAS原则
-            isHATEOAS.add(isH);
+            isHATEOAS.add(isH);*/
+
+            List<String> hascontent=new ArrayList<>();
+            hascontent.add(name);
+            hascontent.add(String.valueOf(validator.isHasResponseContentType()));//是否响应头文件中是否有contenetType
+            hasResponseContentType.add(hascontent);
 
      /*       //头文件（accept、身份验证信息（key、token、authoriaztion）实验
             List<String> hasAccept=new ArrayList<>();
@@ -318,7 +325,9 @@ public class fileHandle {
         //createCSVFile(CRUDPathOperations,"D:\\REST API\\result","CRUDPathOperations-allV2");
         //统计版本信息出现的位置
         //createCSVFile(this.versionLocations,"D:\\REST API file\\result","versionLocationDot-all");
-        createCSVFile(this.isHATEOAS,"D:\\REST API file\\result","hateoas-all");
+        //HATEOAS
+        //createCSVFile(this.isHATEOAS,"D:\\REST API file\\result","hateoas-all");
+        createCSVFile(this.hasResponseContentType,"D:\\REST API file\\result","contentTypeResponse-all");
       /*   createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
         createCSVFile(this.hasapiInhosts,"D:\\REST API file\\result","apiInHost-all");
 */

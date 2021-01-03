@@ -26,6 +26,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.servers.ServerVariable;
@@ -131,6 +132,8 @@ public class ValidatorController{
 
     String contentType="";
     private boolean hasCacheScheme=false;//是否有缓存机制
+    private boolean hasStrongCacheStatic=false;//是否有强制缓存机制cache-control、expires、date-静态检测
+    private boolean hasEtagStatic=false;//是否有强制缓存机制cache-control、expires、date-静态检测
     boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
     private boolean versionInHead=false;//头文件中是否有版本信息
     private boolean securityInHeadPara=false;//头文件（属性）中是否有安全验证机制
@@ -138,6 +141,34 @@ public class ValidatorController{
     private boolean hasVersionInHost=false;//服务器信息/域名中是否有版本信息
     private Map<String,Integer> status=new HashMap<>();//状态码使用情况的统计
     private int[] statusUsage;//状态码使用情况（端点级别 是否使用各类状态码
+    private int dotCountInServer;//server中版本号的.数，用来判断是否语义版本号
+    private int dotCountInPath;//path中版本号的.数，用来判断是否语义版本号
+    private boolean semanticVersion=false;//是否使用语义版本号
+    private boolean hateoas=false;//是否实现HATEOAS原则
+
+    public boolean isHateoas() {
+        return hateoas;
+    }
+
+    public boolean isSemanticVersion() {
+        return semanticVersion;
+    }
+
+    public int getDotCountInServer() {
+        return dotCountInServer;
+    }
+
+    public int getDotCountInPath() {
+        return dotCountInPath;
+    }
+
+    public boolean isHasStrongCacheStatic() {
+        return hasStrongCacheStatic;
+    }
+
+    public boolean isHasEtagStatic() {
+        return hasEtagStatic;
+    }
 
     public int[] getStatusUsage() {
         return statusUsage;
@@ -806,12 +837,11 @@ public class ValidatorController{
 
                 //基本信息统计
                 basicInfoGet(result);
-
+*/
                 //域名检测
                 String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
                 serverEvaluate(serverurl);
                 validateResult.put("apiInServer",this.apiInServer);
-*/
                 //属性研究,swagger解析出属性:全局属性，路径级别属性，操作级别属性（path-> operation -> parameter）
                 List<io.swagger.models.parameters.Parameter> parameters= new ArrayList<>();
                 Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();//提取全局属性,加入到属性列表中
@@ -824,8 +854,10 @@ public class ValidatorController{
                 int x2s=0,x3s=0,x4s=0,x5s=0;
                 for(String pathName : result.getSwagger().getPaths().keySet()){
                     Path path = result.getSwagger().getPath(pathName);
-                    if(path.getParameters()!=null)
+
+                    if(path.getParameters()!=null) {
                         parameters.addAll(path.getParameters());//提取路径级别属性，加入属性列表中
+                    }
                     //提取操作级别属性
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
                     for(io.swagger.models.Operation operation : operations){
@@ -847,11 +879,33 @@ public class ValidatorController{
                                 }else if(s.startsWith("5")){
                                     x5=true;
                                 }
-                                /*if(status.containsKey(s)){
+                                if(status.containsKey(s)){
                                     status.put(s,status.get(s)+1);
                                 }else{
                                     status.put(s,1);
-                                }*/
+                                }
+                                io.swagger.models.Response response =responses.get(s);
+                                if(response.getHeaders()!=null){
+                                    for(String headerName:response.getHeaders().keySet()){
+                                        headerName=headerName.toLowerCase();
+                                        if(headerName.equals("cache-control") || headerName.equals("expires") || headerName.equals("date") ){
+
+                                            hasStrongCacheStatic=true;
+                                        }else if(headerName.equals("etag") || headerName.equals("last-modified")){
+                                            hasEtagStatic=true;
+                                        }
+                                    }
+                                }
+                                Model responseSchema = response.getResponseSchema();
+                                //检测是否实现hateoas原则
+                                if(responseSchema!=null){
+                                    Map<String, Property> properties = responseSchema.getProperties();
+                                    for(String proname:properties.keySet()){
+                                        if(proname.toLowerCase().contains("link")){
+                                            this.hateoas=true;
+                                        }
+                                    }
+                                }
                             }
                         }
                         x2s+=x2?1:0;
@@ -865,9 +919,10 @@ public class ValidatorController{
                             parameters.addAll(operation.getParameters());
                     }
                 }
+                /*
                 //status.put("opcount",opCount);
                 statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
-                /*
+
                 if(parameters.size()!=0){
                     for(io.swagger.models.parameters.Parameter parameter:parameters){
                         if(parameter instanceof BodyParameter){
@@ -967,7 +1022,7 @@ public class ValidatorController{
                 }
                 validateResult.put("securityList",getSecurity());
 
-
+*/
                 //域名检测
                 List<Server> servers=result.getOpenAPI().getServers();
                 if(servers!=null){
@@ -977,7 +1032,7 @@ public class ValidatorController{
 
                     }
                 }
-                validateResult.put("apiInServer",this.apiInServer);*/
+                validateResult.put("apiInServer",this.apiInServer);
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
@@ -999,7 +1054,8 @@ public class ValidatorController{
                         parameters.addAll(result.getOpenAPI().getPaths().get(pathName).getParameters());//路径级别属性加入属性列表
                     OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
                     List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));//获取所有操作
-                    //this.endpointNum+=operationsInAPath.size();//统计端点数
+                    this.endpointNum+=operationsInAPath.size();//统计端点数
+
                     for(Operation operation:operationsInAPath){
                         boolean x2=false;
                         boolean x3=false;
@@ -1021,11 +1077,27 @@ public class ValidatorController{
                                 }else if(s.startsWith("5")){
                                     x5=true;
                                 }
-                                /*if(status.containsKey(s)){
+
+                                if(status.containsKey(s)){
                                     status.put(s,status.get(s)+1);
                                 }else{
                                     status.put(s,1);
-                                }*/
+                                }
+                                ApiResponse response=operation.getResponses().get(s);
+                                if(response.getLinks()!=null){//检测是否实现hateoas原则
+                                    this.hateoas=true;
+                                }
+                                if(response.getHeaders()!=null){
+                                    for(String headerName:response.getHeaders().keySet()){
+                                        headerName=headerName.toLowerCase();
+                                        if(headerName.equals("cache-control") || headerName.equals("expires") || headerName.equals("date") ){
+
+                                            hasStrongCacheStatic=true;
+                                        }else if(headerName.equals("etag") || headerName.equals("last-modified")){
+                                            hasEtagStatic=true;
+                                        }
+                                    }
+                                }
                             }
                         }
                         x2s+=x2?1:0;
@@ -1034,9 +1106,10 @@ public class ValidatorController{
                         x5s+=x5?1:0;
                     }
                 }
-                //status.put("opcount",opCount);
+
+                status.put("opcount",opCount);
                 statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
-                /*
+/*
                 if(parameters.size()!=0){//对属性进行检测
                     for(Parameter parameter:parameters){
                         String paraName=parameter.getName().toLowerCase();
@@ -1095,13 +1168,26 @@ public class ValidatorController{
     private void serverEvaluate(String serverurl) {
         Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
         Matcher m1 = pattern1.matcher(serverurl); // 获取 matcher 对象
+        Pattern pattern2=Pattern.compile("v(ers?|ersion)?[0-9.]+(-?(alpha|beta|rc)([0-9.]+\\+?[0-9]?|[0-9]?))?");
+        Matcher m2=pattern2.matcher(serverurl);
         if(serverurl.contains("api")){//检测域名中包含“api”
             this.apiInServer=true;
             System.out.println(serverurl+"has api");
-        }else if(m1.find()){
+        }else if(m2.find()){
             //System.out.println("version shouldn't in paths "+p);
             //this.score=this.score-5>0?this.score-5:0;
             this.hasVersionInHost=true;
+            String version=m2.group();
+            /*int dotCount=0;
+            for(int i=0;i<version.length();i++){
+                if(version.charAt(i)=='.'){
+                    dotCount++;
+                }
+            }
+            this.dotCountInServer=dotCount;*/
+            if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
+                this.semanticVersion=true;
+            }
         }
     }
 
@@ -1360,7 +1446,7 @@ public class ValidatorController{
             Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
             //evaluateToScore()
-
+/*1228注释
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
@@ -1377,21 +1463,32 @@ public class ValidatorController{
             }else {
                 this.pathEvaData[1]++;
                 pathResult.put("lowercase",true);
-            }
-
-            //Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
+            }*/
 
             Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
-            if(m1.find()){
+            Pattern pattern2=Pattern.compile("v(ers?|ersion)?[0-9.]+(-?(alpha|beta|rc)([0-9.]+\\+?[0-9]?|[0-9]?))?");
+            Matcher m2=pattern2.matcher(p);
+            if(m2.find()){
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
+                String version=m2.group();
+                /*int dotCount=0;
+                for(int i=0;i<version.length();i++){
+                    if(version.charAt(i)=='.'){
+                        dotCount++;
+                    }
+                }
+                this.dotCountInPath=dotCount;*/
+                if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
+                    this.semanticVersion=true;
+                }
                 pathResult.put("noVersion",false);
             }else {
                 this.pathEvaData[2]++;
                 pathResult.put("noVersion",true);
             }
-
+/*1228注释
             if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
@@ -1450,12 +1547,6 @@ public class ValidatorController{
             }
             //层级之间的语义上下文关系
             List<String> splitPaths;
-            /*String[] split=pathclear.split("/");
-            for(String s:split){
-                if(s.length()!=0){
-                    splitPaths.add(s);
-                }
-            }*/
             String pathText=pathclear.replace("/"," ");
             splitPaths=StanfordNLP.getlemma(pathText);//词形还原
             if(splitPaths.size()>=2){
@@ -1518,7 +1609,7 @@ public class ValidatorController{
             }else {
 
             }
-            pathDetail.put(p,pathResult);
+            pathDetail.put(p,pathResult);*/
 
         }
         validateResult.put("pathEvaData",getPathEvaData());
@@ -1550,7 +1641,8 @@ public class ValidatorController{
             Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
             //evaluateToScore()
-
+/*
+1228注释
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
@@ -1568,19 +1660,32 @@ public class ValidatorController{
                 this.pathEvaData[1]++;
                 pathResult.put("lowercase",true);
             }
+*/
 
-            //Pattern pattern1 = Pattern.compile(VERSIONPATH_REGEX);
             Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
-            if(m1.find()){
+            Pattern pattern2=Pattern.compile("v(ers?|ersion)?[0-9.]+(-?(alpha|beta|rc)([0-9.]+\\+?[0-9]?|[0-9]?))?");
+            Matcher m2=pattern2.matcher(p);
+            if(m2.find()){
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
+                String version=m2.group();
+                /*int dotCount=0;
+                for(int i=0;i<version.length();i++){
+                    if(version.charAt(i)=='.'){
+                        dotCount++;
+                    }
+                }
+                this.dotCountInPath=dotCount;*/
+                if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
+                    this.semanticVersion=true;
+                }
                 pathResult.put("noVersion",false);
             }else {
                 this.pathEvaData[2]++;
                 pathResult.put("noVersion",true);
             }
-
+/*1228注释
             if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
@@ -1700,7 +1805,7 @@ public class ValidatorController{
             }else {
 
             }
-            pathDetail.put(p,pathResult);
+            pathDetail.put(p,pathResult);*/
         }
         validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
@@ -1821,7 +1926,7 @@ public class ValidatorController{
 
             String method=request.getMethod();
             System.out.println(method);
-            request.getHeader().put("authoriaztion","token 7d3d79e8be31ca6a367b1920acf5bd3bbd119881");
+            request.getHeader().put("authorization","token 7d3d79e8be31ca6a367b1920acf5bd3bbd119881");
 
             if(method=="get"){
                 HttpGet httpRequest = new HttpGet(urlString);//创建get请求,此时父类A的变量和静态方法会将子类的变量和静态方法隐藏。instanceA此时唯一可能调用的子类B的地方就是子类B中覆盖了父类A中的实例方法。

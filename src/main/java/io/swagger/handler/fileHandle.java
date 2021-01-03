@@ -32,16 +32,18 @@ public class fileHandle {
     private List<List<String>> versionLocations=new ArrayList<>();//版本信息出现位置的统计
     private List<List<String>> hasAccepts=new ArrayList<>();
     private List<List<String>> hasapiInhosts=new ArrayList<>();
+    private List<List<String>> hasCacStatics=new ArrayList<>();
+    private List<List<String>> isHATEOAS=new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         fileHandle fileHandle=new fileHandle();
         fileHandle.validateFiles("D:\\test\\data-all-clear");
         /*ValidatorController validator = new ValidatorController();
-        String content=validator.readFile("D:\\test\\data-all-clear\\adyen.com-AccountService-5-openapi.yaml");
+        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
         //动态检测
-        //validator.dynamicValidateByContent(content);
+        validator.dynamicValidateByContent(content);*/
 
-        //静态检测
+        /*//静态检测
         validator.validateByString(new RequestContext(), content);
         System.out.println(validator.isVersionInHead());
         System.out.println(validator.isVersionInQueryPara());
@@ -168,9 +170,16 @@ public class fileHandle {
             System.out.println(name+" start!");
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
-
-            //statuss.put(name,validator.getStatus());
-            statuss.put(name,validator.getStatusUsage());
+/*
+            //静态检测有无缓存机制
+            List<String> cacheStatic=new ArrayList<>();
+            cacheStatic.add(name);
+            cacheStatic.add(String.valueOf(validator.isHasStrongCacheStatic()));
+            cacheStatic.add(String.valueOf(validator.isHasEtagStatic()));
+            hasCacStatics.add(cacheStatic);*/
+            /*//状态码统计
+            statuss.put(name,validator.getStatus());
+            statuss.put(name,validator.getStatusUsage());*/
 
             /*基本信息（路径、端点、get，post，delete，put，head，patch）*/
             /*List<String> basicInfo=new ArrayList<>();
@@ -259,17 +268,24 @@ public class fileHandle {
                     System.out.println(ops);
                     CRUDPathOperations.add(ops);
                 }
-            }
+            }*/
 
-            //版本信息的位置
+            /*//版本信息的位置
             List<String> versionLocation=new ArrayList<>();
             versionLocation.add(name);
-            versionLocation.add(String.valueOf(validator.isVersionInHead()));//版本信息在头文件
-            versionLocation.add(String.valueOf(validator.isVersionInQueryPara()));//在查询参数
+            //versionLocation.add(String.valueOf(validator.isVersionInHead()));//版本信息在头文件
+            //versionLocation.add(String.valueOf(validator.isVersionInQueryPara()));//在查询参数
             versionLocation.add(String.valueOf(validator.isHasVersionInHost()));//在域名中
-            versionLocations.add(versionLocation);
+            versionLocation.add(String.valueOf(validator.getDotCountInServer()));
+            versionLocation.add(String.valueOf(validator.getDotCountInPath()));
+            versionLocation.add(String.valueOf(validator.isSemanticVersion()));
+            versionLocations.add(versionLocation);*/
+            List<String> isH=new ArrayList<>();
+            isH.add(name);
+            isH.add(String.valueOf(validator.isHateoas()));//是否实现HATEOAS原则
+            isHATEOAS.add(isH);
 
-            //头文件（accept、身份验证信息（key、token、authoriaztion）实验
+     /*       //头文件（accept、身份验证信息（key、token、authoriaztion）实验
             List<String> hasAccept=new ArrayList<>();
             hasAccept.add(name);
             hasAccept.add(String.valueOf(validator.isHasAccept()));//头文件中是否有accpet
@@ -301,13 +317,16 @@ public class fileHandle {
         //出现动词的路径使用的操作
         //createCSVFile(CRUDPathOperations,"D:\\REST API\\result","CRUDPathOperations-allV2");
         //统计版本信息出现的位置
-        /*createCSVFile(this.versionLocations,"D:\\REST API file\\result","versionLocation-all");
-        createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
+        //createCSVFile(this.versionLocations,"D:\\REST API file\\result","versionLocationDot-all");
+        createCSVFile(this.isHATEOAS,"D:\\REST API file\\result","hateoas-all");
+      /*   createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
         createCSVFile(this.hasapiInhosts,"D:\\REST API file\\result","apiInHost-all");
 */
+        /*//状态码统计
         FileOutputStream outStream = new FileOutputStream("D:\\REST API file\\result\\statusUsage-all.json");
         JSONObject jo=JSONObject.fromObject(statuss);
-        outStream.write(jo.toString().getBytes("UTF-8"));
+        outStream.write(jo.toString().getBytes("UTF-8"));*/
+        //createCSVFile(hasCacStatics,"D:\\REST API\\result","hasCacheStatic-all");
         System.out.println("end");
 
     }

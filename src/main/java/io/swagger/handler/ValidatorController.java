@@ -37,6 +37,7 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import io.swagger.v3.parser.util.OpenAPIDeserializer;
+import net.didion.jwnl.JWNLException;
 import net.sf.json.JSONException;
 import org.apache.commons.lang3.StringUtils;
 
@@ -815,7 +816,6 @@ public class ValidatorController{
                 return output;
             }
             if (result != null) {
-                /*20201218 状态码统计实验，为加速实验，注释掉其他检测
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                 }
@@ -842,7 +842,6 @@ public class ValidatorController{
 
                 //基本信息统计
                 basicInfoGet(result);
-*/
                 //域名检测
                 String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
                 serverEvaluate(serverurl);
@@ -987,8 +986,6 @@ public class ValidatorController{
             }
             if (result != null) {
 
-                Components component = result.getOpenAPI().getComponents();
-/*20201221 响应状态码实验，注释其他
 
                 //类别信息获取
                 setCategory(result);
@@ -1029,7 +1026,6 @@ public class ValidatorController{
                 }
                 validateResult.put("securityList",getSecurity());
 
-*/
                 //域名检测
                 List<Server> servers=result.getOpenAPI().getServers();
                 if(servers!=null){
@@ -1448,14 +1444,14 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/8/12
     */
-    private void pathEvaluate(Set paths, SwaggerDeserializationResult result) throws IOException {
+    private void pathEvaluate(Set paths, SwaggerDeserializationResult result) throws IOException, JWNLException {
         //setPathNum(paths.size());//提取路径数
+        JWNLwordnet jwnLwordnet=new JWNLwordnet();
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
             //evaluateToScore()
-/*1228注释
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
@@ -1472,7 +1468,7 @@ public class ValidatorController{
             }else {
                 this.pathEvaData[1]++;
                 pathResult.put("lowercase",true);
-            }*/
+            }
 
             Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
@@ -1497,7 +1493,6 @@ public class ValidatorController{
                 this.pathEvaData[2]++;
                 pathResult.put("noVersion",true);
             }
-/*1228注释
             if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
@@ -1559,8 +1554,10 @@ public class ValidatorController{
             String pathText=pathclear.replace("/"," ");
             splitPaths=StanfordNLP.getlemma(pathText);//词形还原
             if(splitPaths.size()>=2){
-                WordNet wordNet=new WordNet();
-                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系
+                /*WordNet wordNet=new WordNet();
+                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系*/
+
+                jwnLwordnet.hasRelation(splitPaths);
             }
 
 
@@ -1618,7 +1615,7 @@ public class ValidatorController{
             }else {
 
             }
-            pathDetail.put(p,pathResult);*/
+            pathDetail.put(p,pathResult);
 
         }
         validateResult.put("pathEvaData",getPathEvaData());
@@ -1643,15 +1640,14 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/5/16
     */
-    private void pathEvaluate(Set paths, SwaggerParseResult result) throws IOException {
+    private void pathEvaluate(Set paths, SwaggerParseResult result) throws IOException, JWNLException {
         //setPathNum(paths.size());//提取路径数
+        JWNLwordnet jwnLwordnet=new JWNLwordnet();
         evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
             //evaluateToScore()
-/*
-1228注释
             if(!(p.indexOf("_") < 0)){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
@@ -1669,7 +1665,6 @@ public class ValidatorController{
                 this.pathEvaData[1]++;
                 pathResult.put("lowercase",true);
             }
-*/
 
             Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
             Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
@@ -1694,7 +1689,6 @@ public class ValidatorController{
                 this.pathEvaData[2]++;
                 pathResult.put("noVersion",true);
             }
-/*1228注释
             if(p.toLowerCase().indexOf("api")>=0){
                 System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
@@ -1756,8 +1750,9 @@ public class ValidatorController{
             String pathText=pathclear.replace("/"," ");
             splitPaths=StanfordNLP.getlemma(pathText);//词形还原
             if(splitPaths.size()>=2){
-                WordNet wordNet=new WordNet();
-                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系
+                /*WordNet wordNet=new WordNet();
+                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系*/
+                jwnLwordnet.hasRelation(splitPaths);
             }
 
             //文件扩展名不应该包含在API的URL命名中
@@ -1814,7 +1809,7 @@ public class ValidatorController{
             }else {
 
             }
-            pathDetail.put(p,pathResult);*/
+            pathDetail.put(p,pathResult);
         }
         validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数

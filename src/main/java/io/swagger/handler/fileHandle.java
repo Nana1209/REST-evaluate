@@ -37,18 +37,17 @@ public class fileHandle {
     private List<List<String>> hasResponseContentType=new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
-        fileHandle fileHandle=new fileHandle();
-        fileHandle.validateFiles("D:\\test\\data-all-clear");
-        /*ValidatorController validator = new ValidatorController();
+        /*fileHandle fileHandle=new fileHandle();
+        fileHandle.validateFiles("D:\\test\\data-all-clear");*/
+        ValidatorController validator = new ValidatorController();
         String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
-        //动态检测
+        /*//动态检测
         validator.dynamicValidateByContent(content);*/
 
-        /*//静态检测
+        //静态检测
         validator.validateByString(new RequestContext(), content);
-        System.out.println(validator.isVersionInHead());
-        System.out.println(validator.isVersionInQueryPara());
-        */
+        //System.out.println(validator.isVersionInHead());
+        //System.out.println(validator.isVersionInQueryPara());
         /*//统计有类别信息的API document个数
         ObjectMapper YamlMapper = Yaml.mapper();
         File file = new File("D:\\test\\data-all-clear");

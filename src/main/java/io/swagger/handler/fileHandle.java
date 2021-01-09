@@ -35,17 +35,19 @@ public class fileHandle {
     private List<List<String>> hasCacStatics=new ArrayList<>();
     private List<List<String>> isHATEOAS=new ArrayList<>();
     private List<List<String>> hasResponseContentType=new ArrayList<>();
+    private List<List<String>> hasContextedRelations=new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
-        /*fileHandle fileHandle=new fileHandle();
-        fileHandle.validateFiles("D:\\test\\data-all-clear");*/
-        ValidatorController validator = new ValidatorController();
+        fileHandle fileHandle=new fileHandle();
+        fileHandle.validateFiles("D:\\test\\data-all-clear");
+        /*ValidatorController validator = new ValidatorController();
         String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
-        /*//动态检测
-        validator.dynamicValidateByContent(content);*/
+        //动态检测
+        validator.dynamicValidateByContent(content);
 
         //静态检测
         validator.validateByString(new RequestContext(), content);
+        System.out.println(validator.isHasContextedRelation());*/
         //System.out.println(validator.isVersionInHead());
         //System.out.println(validator.isVersionInQueryPara());
         /*//统计有类别信息的API document个数
@@ -286,10 +288,15 @@ public class fileHandle {
             isH.add(String.valueOf(validator.isHateoas()));//是否实现HATEOAS原则
             isHATEOAS.add(isH);*/
 
+            /*//响应头文件中是否有contenetTyp
             List<String> hascontent=new ArrayList<>();
             hascontent.add(name);
             hascontent.add(String.valueOf(validator.isHasResponseContentType()));//是否响应头文件中是否有contenetType
-            hasResponseContentType.add(hascontent);
+            hasResponseContentType.add(hascontent);*/
+            List<String> hascontextedr=new ArrayList<>();
+            hascontextedr.add(name);
+            hascontextedr.add(String.valueOf(validator.isHasContextedRelation()));//是否响应头文件中是否有contenetType
+            hasContextedRelations.add(hascontextedr);
 
      /*       //头文件（accept、身份验证信息（key、token、authoriaztion）实验
             List<String> hasAccept=new ArrayList<>();
@@ -326,8 +333,10 @@ public class fileHandle {
         //createCSVFile(this.versionLocations,"D:\\REST API file\\result","versionLocationDot-all");
         //HATEOAS
         //createCSVFile(this.isHATEOAS,"D:\\REST API file\\result","hateoas-all");
-        createCSVFile(this.hasResponseContentType,"D:\\REST API file\\result","contentTypeResponse-all");
-      /*   createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
+        //响应头里有无content-type
+        //createCSVFile(this.hasResponseContentType,"D:\\REST API file\\result","contentTypeResponse-all");
+        createCSVFile(this.hasContextedRelations,"D:\\REST API file\\result","contextedRelation-all");
+        /*   createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
         createCSVFile(this.hasapiInhosts,"D:\\REST API file\\result","apiInHost-all");
 */
         /*//状态码统计

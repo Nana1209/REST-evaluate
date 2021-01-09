@@ -147,6 +147,11 @@ public class ValidatorController{
     private boolean semanticVersion=false;//是否使用语义版本号
     private boolean hateoas=false;//是否实现HATEOAS原则
     private boolean hasResponseContentType=false;//响应头文件中是否有contenetType
+    private boolean hasContextedRelation=false;//是否有符合层级关系的路径
+
+    public boolean isHasContextedRelation() {
+        return hasContextedRelation;
+    }
 
     public boolean isHasResponseContentType() {
         return hasResponseContentType;
@@ -925,7 +930,7 @@ public class ValidatorController{
                             parameters.addAll(operation.getParameters());
                     }
                 }
-                /*
+
                 //status.put("opcount",opCount);
                 statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
 
@@ -954,7 +959,7 @@ public class ValidatorController{
                             }
                         }
                     }
-                }*/
+                }
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
@@ -963,9 +968,9 @@ public class ValidatorController{
                 validateResult.put("hasAccpet",this.hasAccept);
                 evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
 
-/*
+
                 //类别信息获取
-                setCategory(result);*/
+                setCategory(result);
 
 
 
@@ -1114,7 +1119,7 @@ public class ValidatorController{
 
                 status.put("opcount",opCount);
                 statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
-/*
+
                 if(parameters.size()!=0){//对属性进行检测
                     for(Parameter parameter:parameters){
                         String paraName=parameter.getName().toLowerCase();
@@ -1138,7 +1143,7 @@ public class ValidatorController{
                         }
                     }
 
-                }*/
+                }
                 validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
                 validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
@@ -1478,13 +1483,6 @@ public class ValidatorController{
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
                 String version=m2.group();
-                /*int dotCount=0;
-                for(int i=0;i<version.length();i++){
-                    if(version.charAt(i)=='.'){
-                        dotCount++;
-                    }
-                }
-                this.dotCountInPath=dotCount;*/
                 if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
                     this.semanticVersion=true;
                 }
@@ -1556,10 +1554,11 @@ public class ValidatorController{
             if(splitPaths.size()>=2){
                 /*WordNet wordNet=new WordNet();
                 wordNet.hasRelation(splitPaths);//检测是否具有上下文关系*/
+                if (jwnLwordnet.hasRelation(splitPaths)){
+                    this.hasContextedRelation=true;
+                }
 
-                jwnLwordnet.hasRelation(splitPaths);
             }
-
 
             //文件扩展名不应该包含在API的URL命名中
             //String suffix[]=SUFFIX_NAMES;
@@ -1674,13 +1673,13 @@ public class ValidatorController{
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
                 String version=m2.group();
-                /*int dotCount=0;
+                int dotCount=0;
                 for(int i=0;i<version.length();i++){
                     if(version.charAt(i)=='.'){
                         dotCount++;
                     }
                 }
-                this.dotCountInPath=dotCount;*/
+                this.dotCountInPath=dotCount;
                 if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
                     this.semanticVersion=true;
                 }
@@ -1709,7 +1708,8 @@ public class ValidatorController{
             }
             pathclear+=p.substring(endtemp);
             pathclear=pathclear.toLowerCase();
-            //String crudnames[]=CRUDNAMES;
+
+           //String crudnames[]=CRUDNAMES;
             String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",",-1);
 
             String dellistString=ConfigManager.getInstance().getValue("DELLIST");
@@ -1752,7 +1752,9 @@ public class ValidatorController{
             if(splitPaths.size()>=2){
                 /*WordNet wordNet=new WordNet();
                 wordNet.hasRelation(splitPaths);//检测是否具有上下文关系*/
-                jwnLwordnet.hasRelation(splitPaths);
+                if (jwnLwordnet.hasRelation(splitPaths)){
+                    this.hasContextedRelation=true;
+                }
             }
 
             //文件扩展名不应该包含在API的URL命名中

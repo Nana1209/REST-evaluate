@@ -341,6 +341,22 @@
             <version>4.0.0</version>
             <classifier>models-english</classifier>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/net.didion/jwnl -->
+        <!-- https://mvnrepository.com/artifact/net.didion.jwnl/jwnl -->
+<!--        <dependency>-->
+<!--            <groupId>net.didion.jwnl</groupId>-->
+<!--            <artifactId>jwnl</artifactId>-->
+<!--            <version>1.4.0.rc2</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>net.didion.jwnl</groupId>
+            <artifactId>jwnl</artifactId>
+            <version>1.4.0.rc2</version>
+            <scope>system</scope>
+            <systemPath>D:/安装包/jwnl14-rc2/jwnl14-rc2/jwnl.jar</systemPath>
+        </dependency>
+
+
     </dependencies>
     <repositories>
         <repository>
@@ -350,6 +366,10 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+<!--        <repository>-->
+<!--            <id>localrepository</id>-->
+<!--            <url>file://${basedir}/repo</url>-->
+<!--        </repository>-->
     </repositories>
     <properties>
         <testng-version>6.9.6</testng-version>

@@ -134,7 +134,7 @@ public class JWNLwordnet {
             IndexWord idxWord1 =Dictionary.getInstance().getIndexWord(POS.NOUN, splitPaths.get(i-1));
             IndexWord idxWord2 =Dictionary.getInstance().getIndexWord(POS.NOUN, splitPaths.get(i));
             if(idxWord1==null || idxWord2==null || idxWord1.getSenses().length==0 || idxWord2.getSenses().length==0){
-                System.out.println("no enough word");
+                //System.out.println("no enough word");
             }else{
                 List<Synset> word1Hypos=getAllHyponymSynset(idxWord1);//获得第一个词的所有下义词集
                 word1Hypos.addAll(getAllMeronymSynset(idxWord1));//添加第一个词的所有成员词集
@@ -149,7 +149,7 @@ public class JWNLwordnet {
                 }
 
             }
-            System.out.println("no relationship");
+            //System.out.println("no relationship");
         }
 
         return false;

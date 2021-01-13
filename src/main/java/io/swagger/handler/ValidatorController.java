@@ -97,6 +97,7 @@ public class ValidatorController{
     static boolean rejectLocal = StringUtils.isBlank(System.getProperty("rejectLocal")) ? true : Boolean.parseBoolean(System.getProperty("rejectLocal"));
     static boolean rejectRedirect = StringUtils.isBlank(System.getProperty("rejectRedirect")) ? true : Boolean.parseBoolean(System.getProperty("rejectRedirect"));
 
+    private String name;
     private float pathNum;//路径数
     private int endpointNum;//端点数
     private int score=100; //评分机制
@@ -134,12 +135,18 @@ public class ValidatorController{
     String contentType="";
     private boolean hasCacheScheme=false;//是否有缓存机制
     private boolean hasStrongCacheStatic=false;//是否有强制缓存机制cache-control、expires、date-静态检测
-    private boolean hasEtagStatic=false;//是否有强制缓存机制cache-control、expires、date-静态检测
-    boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
+    private boolean hasCacheControl=false;//是否有强制缓存机制cache-control-静态检测
+    private boolean hasExpires=false;//是否有强制缓存机制expires-静态检测
+    private boolean hasDate=false;//是否有强制缓存机制date-静态检测
+    private boolean hasEtagStatic=false;//是否有协商缓存机制etag last-modified静态检测
+    private boolean hasEtag=false;
+    private boolean hasLastModified=false;
+
+    private boolean versionInPath=false;//路径中是否有属性
+    private boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
     private boolean versionInHead=false;//头文件中是否有版本信息
-    private boolean securityInHeadPara=false;//头文件（属性）中是否有安全验证机制
-    private boolean hasAccept=false;//头文件（属性）中是否有accept
-    private boolean hasVersionInHost=false;//服务器信息/域名中是否有版本信息
+    private boolean versionInHost=false;//服务器信息/域名中是否有版本信息
+
     private Map<String,Integer> status=new HashMap<>();//状态码使用情况的统计
     private int[] statusUsage;//状态码使用情况（端点级别 是否使用各类状态码
     private int dotCountInServer;//server中版本号的.数，用来判断是否语义版本号
@@ -148,6 +155,35 @@ public class ValidatorController{
     private boolean hateoas=false;//是否实现HATEOAS原则
     private boolean hasResponseContentType=false;//响应头文件中是否有contenetType
     private boolean hasContextedRelation=false;//是否有符合层级关系的路径
+    private boolean hasAccept=false;//头文件（属性）中是否有accept
+    private boolean securityInHeadPara=false;//头文件（属性）中是否有安全验证机制
+    private boolean hasKey=false;//头文件（属性）中是否有key
+    private boolean hasToken=false;//头文件（属性）中是否有Token
+    private boolean hasAuthorization=false;//头文件（属性）中是否有TokenAuthorization
+
+    public void setValidateResult() {
+        validateResult.put("name",this.name);
+        validateResult.put("securityList",getSecurity());
+        validateResult.put("apiInServer",this.apiInServer);
+        validateResult.put("hasCacheControl",this.hasCacheControl);
+        validateResult.put("hasDate",this.hasDate);
+        validateResult.put("hasExpires",this.hasExpires);
+        validateResult.put("hasStrongCacheStatic",this.hasStrongCacheStatic);
+        validateResult.put("hasEtag",this.hasEtag);
+        validateResult.put("hasLastModified",this.hasLastModified);
+        validateResult.put("hasEtagStatic",this.hasEtagStatic);
+
+        validateResult.put("hateoas",this.hateoas);
+        validateResult.put("hasPagePara",isHasPagePara());
+        validateResult.put("pageParaList",getQuerypara());
+        validateResult.put("versionInQueryPara",this.versionInQueryPara);
+        validateResult.put("hasSecurityInHeadPara",this.securityInHeadPara);
+        validateResult.put("hasKey",this.hasKey);
+        validateResult.put("hasToken",this.hasToken);
+        validateResult.put("hasAuthorization",this.hasAuthorization);
+        validateResult.put("versionInHeader",this.versionInHead);
+        validateResult.put("hasAccpet",this.hasAccept);
+    }
 
     public boolean isHasContextedRelation() {
         return hasContextedRelation;
@@ -193,8 +229,8 @@ public class ValidatorController{
         return apiInServer;
     }
 
-    public boolean isHasVersionInHost() {
-        return hasVersionInHost;
+    public boolean isVersionInHost() {
+        return versionInHost;
     }
 
     public boolean isHasAccept() {
@@ -652,7 +688,7 @@ public class ValidatorController{
                                                         Map<String, Model> defs=result.getSwagger().getDefinitions();
                                                         Model def=defs.get(refsplits[2]);
                                                         Map<String, Property> propertiesFromDef=def.getProperties();
-                                                        entity=parsePropertiesToEntity(propertiesFromDef);
+                                                        entity=parsePropertiesToEntity(propertiesFromDef);//将property生成消息体
                                                     }
                                                 }
                                             }
@@ -824,7 +860,8 @@ public class ValidatorController{
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                 }
-                validateResult.put("name",result.getSwagger().getInfo().getTitle());
+                this.name=result.getSwagger().getInfo().getTitle();
+                //validateResult.put("name",this.name);
 
                 //路径（命名）检测
                 Set paths = result.getSwagger().getPaths().keySet();
@@ -843,14 +880,14 @@ public class ValidatorController{
                         System.out.println("securityType ：" + securityDefinitions.get(key).getType());
                     }
                 }
-                validateResult.put("securityList",getSecurity());
+                //validateResult.put("securityList",getSecurity());
 
                 //基本信息统计
                 basicInfoGet(result);
                 //域名检测
                 String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
                 serverEvaluate(serverurl);
-                validateResult.put("apiInServer",this.apiInServer);
+                //validateResult.put("apiInServer",this.apiInServer);
                 //属性研究,swagger解析出属性:全局属性，路径级别属性，操作级别属性（path-> operation -> parameter）
                 List<io.swagger.models.parameters.Parameter> parameters= new ArrayList<>();
                 Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();//提取全局属性,加入到属性列表中
@@ -897,11 +934,18 @@ public class ValidatorController{
                                 if(response.getHeaders()!=null){
                                     for(String headerName:response.getHeaders().keySet()){
                                         headerName=headerName.toLowerCase();
-                                        if(headerName.equals("cache-control") || headerName.equals("expires") || headerName.equals("date") ){
+                                        if(headerName.equals("cache-control") ){
+                                            hasCacheControl=true;
+                                        }else if( headerName.equals("expires")){
+                                            hasExpires=true;
+                                        }else if( headerName.equals("date") ){
+                                            hasDate=true;
 
-                                            hasStrongCacheStatic=true;
-                                        }else if(headerName.equals("etag") || headerName.equals("last-modified")){
-                                            hasEtagStatic=true;
+                                        }else if(headerName.equals("etag") ){
+                                            this.hasEtag=true;
+                                        } else if(headerName.equals("last-modified")){
+                                            this.hasLastModified=true;
+
                                         }else if(headerName.equals("content-type") ){
                                             this.hasResponseContentType=true;
                                         }
@@ -911,11 +955,14 @@ public class ValidatorController{
                                 //检测是否实现hateoas原则
                                 if(responseSchema!=null){
                                     Map<String, Property> properties = responseSchema.getProperties();
-                                    for(String proname:properties.keySet()){
-                                        if(proname.toLowerCase().contains("link")){
-                                            this.hateoas=true;
+                                    if(properties!=null){
+                                        for(String proname:properties.keySet()){
+                                            if(proname.toLowerCase().contains("link")){
+                                                this.hateoas=true;
+                                            }
                                         }
                                     }
+
                                 }
                             }
                         }
@@ -930,6 +977,17 @@ public class ValidatorController{
                             parameters.addAll(operation.getParameters());
                     }
                 }
+                hasStrongCacheStatic=hasCacheControl || hasDate || hasExpires;
+                hasEtagStatic=this.hasEtag || hasLastModified;
+                /*validateResult.put("hasCacheControl",this.hasCacheControl);
+                validateResult.put("hasDate",this.hasDate);
+                validateResult.put("hasExpires",this.hasExpires);
+                validateResult.put("hasStrongCacheStatic",this.hasStrongCacheStatic);
+                validateResult.put("hasEtag",this.hasEtag);
+                validateResult.put("hasLastModified",this.hasLastModified);
+                validateResult.put("hasEtagStatic",this.hasEtagStatic);
+
+                validateResult.put("hateoas",this.hateoas);*/
 
                 //status.put("opcount",opCount);
                 statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
@@ -952,26 +1010,37 @@ public class ValidatorController{
                         }else if(parameter.getIn().equals("header")){
                             if(parameter.getName().contains("version")){
                                 this.versionInHead=true;
-                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authorization") ){
-                                this.securityInHeadPara=true;
+                            }else if(paraName.contains("key") ){
+                                this.hasKey=true;
+                            } else if(paraName.contains("token")){
+                                this.hasToken=true;
+                            } else  if(paraName.contains("authorization") ){
+                                this.hasAuthorization=true;
+
                             }else if(paraName.equals("accept")){
                                 this.hasAccept=true;
                             }
                         }
                     }
                 }
-                validateResult.put("hasPagePara",isHasPagePara());
+                this.securityInHeadPara=this.hasKey || this.hasToken || this.hasAuthorization;
+                /*validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
-                validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
+                validateResult.put("versionInQueryPara",this.versionInQueryPara);
                 validateResult.put("hasSecurityInHeadPara",this.securityInHeadPara);
-                validateResult.put("hasVersionInHead",this.versionInHead);
-                validateResult.put("hasAccpet",this.hasAccept);
+                validateResult.put("hasKey",this.hasKey);
+                validateResult.put("hasToken",this.hasToken);
+                validateResult.put("hasAuthorization",this.hasAuthorization);
+                validateResult.put("versionInHeader",this.versionInHead);
+                validateResult.put("hasAccpet",this.hasAccept);*/
                 evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
 
 
                 //类别信息获取
                 setCategory(result);
 
+                //填写输出Json
+                setValidateResult();
 
 
             }//if result!=null
@@ -994,8 +1063,8 @@ public class ValidatorController{
 
                 //类别信息获取
                 setCategory(result);
-
-                validateResult.put("name",result.getOpenAPI().getInfo().getTitle());
+                this.name=result.getOpenAPI().getInfo().getTitle();
+                //validateResult.put("name",this.name);
                 for (String message : result.getMessages()) {
                     output.addMessage(message);
                     System.out.println(message);
@@ -1029,7 +1098,7 @@ public class ValidatorController{
                 }else{
                     evaluations.put("securityType","null");
                 }
-                validateResult.put("securityList",getSecurity());
+                //validateResult.put("securityList",getSecurity());
 
                 //域名检测
                 List<Server> servers=result.getOpenAPI().getServers();
@@ -1040,7 +1109,7 @@ public class ValidatorController{
 
                     }
                 }
-                validateResult.put("apiInServer",this.apiInServer);
+                //validateResult.put("apiInServer",this.apiInServer);
 
                 //属性研究
                 //openAPI完全按照说明文档进行解析，大部分属性信息在路径中
@@ -1098,11 +1167,18 @@ public class ValidatorController{
                                 if(response.getHeaders()!=null){
                                     for(String headerName:response.getHeaders().keySet()){
                                         headerName=headerName.toLowerCase();
-                                        if(headerName.equals("cache-control") || headerName.equals("expires") || headerName.equals("date") ){
+                                        if(headerName.equals("cache-control") ){
+                                            hasCacheControl=true;
+                                        }else if( headerName.equals("expires")){
+                                            hasExpires=true;
+                                        }else if( headerName.equals("date") ){
+                                            hasDate=true;
 
-                                            hasStrongCacheStatic=true;
-                                        }else if(headerName.equals("etag") || headerName.equals("last-modified")){
-                                            hasEtagStatic=true;
+                                        }else if(headerName.equals("etag") ){
+                                            this.hasEtag=true;
+                                        } else if(headerName.equals("last-modified")){
+                                            this.hasLastModified=true;
+
                                         }else if(headerName.equals("content-type") ){
                                             this.hasResponseContentType=true;
                                         }
@@ -1116,6 +1192,16 @@ public class ValidatorController{
                         x5s+=x5?1:0;
                     }
                 }
+                hasStrongCacheStatic=hasCacheControl || hasDate || hasExpires;
+                hasEtagStatic=this.hasEtag || hasLastModified;
+                /*validateResult.put("hasCacheControl",this.hasCacheControl);
+                validateResult.put("hasDate",this.hasDate);
+                validateResult.put("hasExpires",this.hasExpires);
+                validateResult.put("hasStrongCacheStatic",this.hasStrongCacheStatic);
+                validateResult.put("hasEtag",this.hasEtag);
+                validateResult.put("hasLastModified",this.hasLastModified);
+                validateResult.put("hasEtagStatic",this.hasEtagStatic);
+                validateResult.put("hateoas",this.hateoas);*/
 
                 status.put("opcount",opCount);
                 statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
@@ -1135,8 +1221,13 @@ public class ValidatorController{
                         }else if(parameter.getIn().equals("header")){//头文件属性
                             if(paraName.contains("version")){
                                 this.versionInHead=true;
-                            }else if(paraName.contains("key") || paraName.contains("token") || paraName.contains("authorization") ){
-                                this.securityInHeadPara=true;
+                            }else if(paraName.contains("key") ){
+                                this.hasKey=true;
+                            } else if(paraName.contains("token")){
+                                this.hasToken=true;
+                            } else  if(paraName.contains("authorization") ){
+                                this.hasAuthorization=true;
+
                             }else if(paraName.equals("accept")){
                                 this.hasAccept=true;
                             }
@@ -1144,13 +1235,18 @@ public class ValidatorController{
                     }
 
                 }
-                validateResult.put("hasPagePara",isHasPagePara());
+                this.securityInHeadPara=this.hasKey || this.hasToken || this.hasAuthorization;
+                /*validateResult.put("hasPagePara",isHasPagePara());
                 validateResult.put("pageParaList",getQuerypara());
-                validateResult.put("noVersionInQueryPara",!this.versionInQueryPara);
+                validateResult.put("versionInQueryPara",this.versionInQueryPara);
                 validateResult.put("hasSecurityInHeadPara",this.securityInHeadPara);
-                validateResult.put("hasVersionInHead",this.versionInHead);
-                validateResult.put("hasAccpet",this.hasAccept);
+                validateResult.put("hasKey",this.hasKey);
+                validateResult.put("hasToken",this.hasToken);
+                validateResult.put("hasAuthorization",this.hasAuthorization);
+                validateResult.put("versionInHeader",this.versionInHead);
+                validateResult.put("hasAccpet",this.hasAccept);*/
 
+                setValidateResult();
 
                 
             }
@@ -1186,7 +1282,7 @@ public class ValidatorController{
         }else if(m2.find()){
             //System.out.println("version shouldn't in paths "+p);
             //this.score=this.score-5>0?this.score-5:0;
-            this.hasVersionInHost=true;
+            this.versionInHost=true;
             String version=m2.group();
             /*int dotCount=0;
             for(int i=0;i<version.length();i++){
@@ -1199,6 +1295,9 @@ public class ValidatorController{
                 this.semanticVersion=true;
             }
         }
+        validateResult.put("versionInHost",this.versionInHost);
+        validateResult.put("semanticVersion",this.semanticVersion);
+        validateResult.put("apiInServer",this.apiInServer);
     }
 
     private void pathSemanticsEvaluate(Set paths) {
@@ -1353,7 +1452,8 @@ public class ValidatorController{
             }else if(header.getName().equals("expires")){
                 System.out.println(url+" response has expires");
                 hasExpires=true;
-            }else if(header.getName().equals("cache-control")){
+            }else if(header.getName().equals("" +
+                    "")){
                 System.out.println(url+" response has cache-control");
                 hasCacheControl=true;
             }else if(header.getName().equals("content-type")){
@@ -1457,7 +1557,7 @@ public class ValidatorController{
             Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
             //evaluateToScore()
-            if(!(p.indexOf("_") < 0)){
+            if(p.contains("_")){
                 //System.out.println(p+" has _");
                 //this.score=this.score-20>0?this.score-20:0;
                 pathResult.put("no_",false);
@@ -1483,6 +1583,7 @@ public class ValidatorController{
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
                 String version=m2.group();
+                this.versionInPath=true;
                 if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
                     this.semanticVersion=true;
                 }
@@ -1491,7 +1592,7 @@ public class ValidatorController{
                 this.pathEvaData[2]++;
                 pathResult.put("noVersion",true);
             }
-            if(p.toLowerCase().indexOf("api")>=0){
+            if(p.toLowerCase().contains("api")){
                 System.out.println("api shouldn't in path "+p);
                 //this.score=this.score-10>0?this.score-10:0;
                 pathResult.put("noapi",false);
@@ -1620,6 +1721,8 @@ public class ValidatorController{
         validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
         validateResult.put("avgHierarchies",getAvgHierarchy());
+        validateResult.put("versionInPath",this.versionInPath);
+        validateResult.put("semanticVersion",this.semanticVersion);
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
         evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
@@ -1670,6 +1773,7 @@ public class ValidatorController{
             Pattern pattern2=Pattern.compile("v(ers?|ersion)?[0-9.]+(-?(alpha|beta|rc)([0-9.]+\\+?[0-9]?|[0-9]?))?");
             Matcher m2=pattern2.matcher(p);
             if(m2.find()){
+                this.versionInPath=true;
                 System.out.println("version shouldn't in paths "+p);
                 //this.score=this.score-5>0?this.score-5:0;
                 String version=m2.group();
@@ -1814,6 +1918,8 @@ public class ValidatorController{
             pathDetail.put(p,pathResult);
         }
         validateResult.put("pathEvaData",getPathEvaData());
+        validateResult.put("versionInPath",this.versionInPath);
+        validateResult.put("semanticVersion",this.semanticVersion);
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
         validateResult.put("avgHierarchies",getAvgHierarchy());
         evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数

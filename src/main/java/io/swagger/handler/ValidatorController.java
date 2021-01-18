@@ -176,13 +176,25 @@ public class ValidatorController{
         validateResult.put("hateoas",this.hateoas);
         validateResult.put("hasPagePara",isHasPagePara());
         validateResult.put("pageParaList",getQuerypara());
-        validateResult.put("versionInQueryPara",this.versionInQueryPara);
+
         validateResult.put("hasSecurityInHeadPara",this.securityInHeadPara);
         validateResult.put("hasKey",this.hasKey);
         validateResult.put("hasToken",this.hasToken);
         validateResult.put("hasAuthorization",this.hasAuthorization);
-        validateResult.put("versionInHeader",this.versionInHead);
         validateResult.put("hasAccpet",this.hasAccept);
+
+        validateResult.put("versionInPath",this.versionInPath);
+        validateResult.put("versionInQueryPara",this.versionInQueryPara);
+        validateResult.put("versionInHeader",this.versionInHead);
+        validateResult.put("semanticVersion",this.semanticVersion);
+
+        validateResult.put("avgHierarchies",getAvgHierarchy());
+
+        validateResult.put("statusUsage",this.statusUsage);
+        validateResult.put("status",this.status);
+
+        validateResult.put("contextualizedPath",this.hasContextedRelation);
+        validateResult.put("path",pathDetail);
     }
 
     public boolean isHasContextedRelation() {
@@ -867,7 +879,6 @@ public class ValidatorController{
                 Set paths = result.getSwagger().getPaths().keySet();
                 pathlist= new ArrayList<>(paths);
                 pathEvaluate(paths,result);
-                //pathSemanticsEvaluate(paths);
 
 
 
@@ -1720,10 +1731,10 @@ public class ValidatorController{
         }
         validateResult.put("pathEvaData",getPathEvaData());
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
-        validateResult.put("avgHierarchies",getAvgHierarchy());
+        /*validateResult.put("avgHierarchies",getAvgHierarchy());
         validateResult.put("versionInPath",this.versionInPath);
-        validateResult.put("semanticVersion",this.semanticVersion);
-        evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
+        validateResult.put("semanticVersion",this.semanticVersion);*/
+        /*evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
         evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
         evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
         evaluations.put("lowcaseRate",Float.toString(pathEvaData[1]/getPathNum()));//小写实现率
@@ -1731,9 +1742,9 @@ public class ValidatorController{
         evaluations.put("noapiRate",Float.toString(pathEvaData[3]/getPathNum()));//不出现"api"实现率
         evaluations.put("noCRUDRate",Float.toString(pathEvaData[4]/getPathNum()));//不出现动词实现率
         evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
-        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
+        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率*/
 
-        validateResult.put("path",pathDetail);
+        /*validateResult.put("path",pathDetail);*/
     }
     /**
     *@Description: 路径（命名）验证,v3.0
@@ -1917,22 +1928,15 @@ public class ValidatorController{
             }
             pathDetail.put(p,pathResult);
         }
-        validateResult.put("pathEvaData",getPathEvaData());
-        validateResult.put("versionInPath",this.versionInPath);
-        validateResult.put("semanticVersion",this.semanticVersion);
         setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
-        validateResult.put("avgHierarchies",getAvgHierarchy());
-        evaluations.put("avgHierarchy",Float.toString(getAvgHierarchy()));//向评估结果中填入平均层级数
-        evaluations.put("maxHierarchy",Float.toString(pathEvaData[8]));//最大层级数
-        evaluations.put("noUnderscoreRate",Float.toString(pathEvaData[0]/getPathNum()));//不出现下划线实现率
-        evaluations.put("lowcaseRate",Float.toString(pathEvaData[1]/getPathNum()));//小写实现率
-        evaluations.put("noVersionRate",Float.toString(pathEvaData[2]/getPathNum()));//不出现版本信息实现率
-        evaluations.put("noapiRate",Float.toString(pathEvaData[3]/getPathNum()));//不出现"api"实现率
-        evaluations.put("noCRUDRate",Float.toString(pathEvaData[4]/getPathNum()));//不出现动词实现率
-        evaluations.put("noSuffixRate",Float.toString(pathEvaData[5]/getPathNum()));//不出现格式后缀实现率
-        evaluations.put("noEndSlashRate",Float.toString(pathEvaData[6]/getPathNum()));//没有尾斜杠实现率
+        validateResult.put("pathEvaData",getPathEvaData());
+        /*validateResult.put("versionInPath",this.versionInPath);
+        validateResult.put("semanticVersion",this.semanticVersion);
 
-        validateResult.put("path",pathDetail);
+        validateResult.put("avgHierarchies",getAvgHierarchy());
+
+
+        validateResult.put("path",pathDetail);*/
     }
 
     /**

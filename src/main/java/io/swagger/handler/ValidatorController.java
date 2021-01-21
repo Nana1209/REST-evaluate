@@ -135,10 +135,15 @@ public class ValidatorController{
     String contentType="";
     private boolean hasCacheScheme=false;//是否有缓存机制
     private boolean hasStrongCacheStatic=false;//是否有强制缓存机制cache-control、expires、date-静态检测
-    private boolean hasCacheControl=false;//是否有强制缓存机制cache-control-静态检测
-    private boolean hasExpires=false;//是否有强制缓存机制expires-静态检测
-    private boolean hasDate=false;//是否有强制缓存机制date-静态检测
-    private boolean hasEtagStatic=false;//是否有协商缓存机制etag last-modified静态检测
+    private boolean hasCacheControlStatic=false;//是否有强制缓存机制cache-control-静态检测
+    private boolean hasExpiresStatic=false;//是否有强制缓存机制expires-静态检测
+    private boolean hasDateStatic=false;//是否有强制缓存机制date-静态检测
+    private boolean hasNegCacheStatic=false;//是否有协商缓存机制静态检测
+    private boolean hasEtagStatic=false;//是否有协商缓存机制etag静态检测
+    private boolean hasLastModifiedStatic=false;//是否有协商缓存机制 last-modified静态检测
+    private boolean hasResponseContentTypeStatic;
+
+    private boolean hasStrongCache=false;//是否有强制缓存机制cache-control
     private boolean hasEtag=false;
     private boolean hasLastModified=false;
 
@@ -153,6 +158,7 @@ public class ValidatorController{
     private int dotCountInPath;//path中版本号的.数，用来判断是否语义版本号
     private boolean semanticVersion=false;//是否使用语义版本号
     private boolean hateoas=false;//是否实现HATEOAS原则
+    private boolean hateoasStatic;//是否实现HATEOAS原则-静态检测
     private boolean hasResponseContentType=false;//响应头文件中是否有contenetType
     private boolean hasContextedRelation=false;//是否有符合层级关系的路径
     private boolean hasAccept=false;//头文件（属性）中是否有accept
@@ -161,19 +167,22 @@ public class ValidatorController{
     private boolean hasToken=false;//头文件（属性）中是否有Token
     private boolean hasAuthorization=false;//头文件（属性）中是否有TokenAuthorization
 
+
+
     public void setValidateResult() {
         validateResult.put("name",this.name);
         validateResult.put("securityList",getSecurity());
         validateResult.put("apiInServer",this.apiInServer);
-        validateResult.put("hasCacheControl",this.hasCacheControl);
-        validateResult.put("hasDate",this.hasDate);
-        validateResult.put("hasExpires",this.hasExpires);
-        validateResult.put("hasStrongCacheStatic",this.hasStrongCacheStatic);
-        validateResult.put("hasEtag",this.hasEtag);
-        validateResult.put("hasLastModified",this.hasLastModified);
-        validateResult.put("hasEtagStatic",this.hasEtagStatic);
 
-        validateResult.put("hateoas",this.hateoas);
+        validateResult.put("hasCacheControl",this.hasCacheControlStatic);
+        validateResult.put("hasDate",this.hasDateStatic);
+        validateResult.put("hasExpires",this.hasExpiresStatic);
+        validateResult.put("hasStrongCache",this.hasStrongCacheStatic);
+        validateResult.put("hasEtag",this.hasEtagStatic);
+        validateResult.put("hasLastModified",this.hasLastModifiedStatic);
+        validateResult.put("hasNegCache",this.hasNegCacheStatic);
+
+        validateResult.put("hateoas",this.hateoasStatic);
         validateResult.put("hasPagePara",isHasPagePara());
         validateResult.put("pageParaList",getQuerypara());
 
@@ -195,6 +204,19 @@ public class ValidatorController{
 
         validateResult.put("contextualizedPath",this.hasContextedRelation);
         validateResult.put("path",pathDetail);
+
+        validateResult.put("category",getCategory());
+        validateResult.put("endpointNum",this.getEndpointNum());
+        validateResult.put("opGET",this.getOpGet());
+        validateResult.put("opPOST",this.getOpPost());
+        validateResult.put("opDELETE",getOpDelete());
+        validateResult.put("opPUT",getOpPut());
+        validateResult.put("opHEAD",getOpHead());
+        validateResult.put("opPATCH",getOpPatch());
+        validateResult.put("opOPTIONS",getOpOptions());
+        validateResult.put("opTRACE",getOpTrace());
+
+        validateResult.put("hasPagePara",this.hasPagePara);
     }
 
     public boolean isHasContextedRelation() {
@@ -891,14 +913,12 @@ public class ValidatorController{
                         System.out.println("securityType ：" + securityDefinitions.get(key).getType());
                     }
                 }
-                //validateResult.put("securityList",getSecurity());
 
                 //基本信息统计
                 basicInfoGet(result);
                 //域名检测
                 String serverurl=result.getSwagger().getHost()+result.getSwagger().getBasePath();
                 serverEvaluate(serverurl);
-                //validateResult.put("apiInServer",this.apiInServer);
                 //属性研究,swagger解析出属性:全局属性，路径级别属性，操作级别属性（path-> operation -> parameter）
                 List<io.swagger.models.parameters.Parameter> parameters= new ArrayList<>();
                 Map<String, io.swagger.models.parameters.Parameter> parametersInSwagger = result.getSwagger().getParameters();//提取全局属性,加入到属性列表中
@@ -946,19 +966,19 @@ public class ValidatorController{
                                     for(String headerName:response.getHeaders().keySet()){
                                         headerName=headerName.toLowerCase();
                                         if(headerName.equals("cache-control") ){
-                                            hasCacheControl=true;
+                                            this.hasCacheControlStatic=true;
                                         }else if( headerName.equals("expires")){
-                                            hasExpires=true;
+                                            this.hasExpiresStatic=true;
                                         }else if( headerName.equals("date") ){
-                                            hasDate=true;
+                                            this.hasDateStatic=true;
 
                                         }else if(headerName.equals("etag") ){
-                                            this.hasEtag=true;
+                                            this.hasEtagStatic=true;
                                         } else if(headerName.equals("last-modified")){
-                                            this.hasLastModified=true;
+                                            this.hasLastModifiedStatic=true;
 
                                         }else if(headerName.equals("content-type") ){
-                                            this.hasResponseContentType=true;
+                                            this.hasResponseContentTypeStatic=true;
                                         }
                                     }
                                 }
@@ -969,7 +989,7 @@ public class ValidatorController{
                                     if(properties!=null){
                                         for(String proname:properties.keySet()){
                                             if(proname.toLowerCase().contains("link")){
-                                                this.hateoas=true;
+                                                this.hateoasStatic=true;
                                             }
                                         }
                                     }
@@ -988,17 +1008,8 @@ public class ValidatorController{
                             parameters.addAll(operation.getParameters());
                     }
                 }
-                hasStrongCacheStatic=hasCacheControl || hasDate || hasExpires;
-                hasEtagStatic=this.hasEtag || hasLastModified;
-                /*validateResult.put("hasCacheControl",this.hasCacheControl);
-                validateResult.put("hasDate",this.hasDate);
-                validateResult.put("hasExpires",this.hasExpires);
-                validateResult.put("hasStrongCacheStatic",this.hasStrongCacheStatic);
-                validateResult.put("hasEtag",this.hasEtag);
-                validateResult.put("hasLastModified",this.hasLastModified);
-                validateResult.put("hasEtagStatic",this.hasEtagStatic);
-
-                validateResult.put("hateoas",this.hateoas);*/
+                this.hasStrongCacheStatic=hasCacheControlStatic || hasDateStatic || hasExpiresStatic;
+                this.hasNegCacheStatic=this.hasEtagStatic || hasLastModifiedStatic;
 
                 //status.put("opcount",opCount);
                 statusUsage= new int[]{opCount, x2s, x3s, x4s, x5s};
@@ -1035,15 +1046,6 @@ public class ValidatorController{
                     }
                 }
                 this.securityInHeadPara=this.hasKey || this.hasToken || this.hasAuthorization;
-                /*validateResult.put("hasPagePara",isHasPagePara());
-                validateResult.put("pageParaList",getQuerypara());
-                validateResult.put("versionInQueryPara",this.versionInQueryPara);
-                validateResult.put("hasSecurityInHeadPara",this.securityInHeadPara);
-                validateResult.put("hasKey",this.hasKey);
-                validateResult.put("hasToken",this.hasToken);
-                validateResult.put("hasAuthorization",this.hasAuthorization);
-                validateResult.put("versionInHeader",this.versionInHead);
-                validateResult.put("hasAccpet",this.hasAccept);*/
                 evaluations.put("hasPageParameter",String.valueOf(isHasPagePara()));
 
 
@@ -1173,25 +1175,25 @@ public class ValidatorController{
                                 }
                                 ApiResponse response=operation.getResponses().get(s);
                                 if(response.getLinks()!=null){//检测是否实现hateoas原则
-                                    this.hateoas=true;
+                                    this.hateoasStatic=true;
                                 }
                                 if(response.getHeaders()!=null){
                                     for(String headerName:response.getHeaders().keySet()){
                                         headerName=headerName.toLowerCase();
                                         if(headerName.equals("cache-control") ){
-                                            hasCacheControl=true;
+                                            hasCacheControlStatic=true;
                                         }else if( headerName.equals("expires")){
-                                            hasExpires=true;
+                                            hasExpiresStatic=true;
                                         }else if( headerName.equals("date") ){
-                                            hasDate=true;
+                                            hasDateStatic=true;
 
                                         }else if(headerName.equals("etag") ){
-                                            this.hasEtag=true;
+                                            this.hasEtagStatic=true;
                                         } else if(headerName.equals("last-modified")){
-                                            this.hasLastModified=true;
+                                            this.hasLastModifiedStatic=true;
 
                                         }else if(headerName.equals("content-type") ){
-                                            this.hasResponseContentType=true;
+                                            this.hasResponseContentTypeStatic=true;
                                         }
                                     }
                                 }
@@ -1203,8 +1205,8 @@ public class ValidatorController{
                         x5s+=x5?1:0;
                     }
                 }
-                hasStrongCacheStatic=hasCacheControl || hasDate || hasExpires;
-                hasEtagStatic=this.hasEtag || hasLastModified;
+                hasStrongCacheStatic=hasCacheControlStatic || hasDateStatic || hasExpiresStatic;
+                hasEtagStatic=this.hasEtagStatic || hasLastModifiedStatic;
                 /*validateResult.put("hasCacheControl",this.hasCacheControl);
                 validateResult.put("hasDate",this.hasDate);
                 validateResult.put("hasExpires",this.hasExpires);
@@ -1345,15 +1347,7 @@ public class ValidatorController{
             this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
             this.opTrace = path.getTrace() != null ? this.opTrace+1 : this.opTrace;
         }
-        validateResult.put("endpointNum",this.getEndpointNum());
-        validateResult.put("opGET",this.getOpGet());
-        validateResult.put("opPOST",this.getOpPost());
-        validateResult.put("opDELETE",getOpDelete());
-        validateResult.put("opPUT",getOpPut());
-        validateResult.put("opHEAD",getOpHead());
-        validateResult.put("opPATCH",getOpPatch());
-        validateResult.put("opOPTIONS",getOpOptions());
-        validateResult.put("opTRACE",getOpTrace());
+
 
     }
 
@@ -1381,7 +1375,7 @@ public class ValidatorController{
             this.opPatch = path.getPatch() != null ? this.opPatch+1 : this.opPatch;
             this.opOptions = path.getOptions() != null ? this.opOptions+1 : this.opOptions;
         }
-        validateResult.put("endpointNum",this.getEndpointNum());
+        /*validateResult.put("endpointNum",this.getEndpointNum());
         validateResult.put("opGET",this.getOpGet());
         validateResult.put("opPOST",this.getOpPost());
         validateResult.put("opDELETE",getOpDelete());
@@ -1389,7 +1383,7 @@ public class ValidatorController{
         validateResult.put("opHEAD",getOpHead());
         validateResult.put("opPATCH",getOpPatch());
         validateResult.put("opOPTIONS",getOpOptions());
-        validateResult.put("opTRACE",getOpTrace());
+        validateResult.put("opTRACE",getOpTrace());*/
     }
 
     /**
@@ -1410,7 +1404,7 @@ public class ValidatorController{
             }
         }
 
-        validateResult.put("category",getCategory());
+
         return;
     }
 
@@ -1432,7 +1426,7 @@ public class ValidatorController{
             }
         }
 
-        validateResult.put("category",getCategory());
+        /*validateResult.put("category",getCategory());*/
         return;
     }
 
@@ -2070,6 +2064,13 @@ public class ValidatorController{
                     }
                 }
                 httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+                //设置消息体
+                JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
+                String string = jsonObject.toString();
+                System.out.println("entity: "+string);
+                StringEntity entity = new StringEntity(string, "UTF-8");
+                httpRequest.setEntity(entity);
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2078,12 +2079,7 @@ public class ValidatorController{
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
                 }
-                //设置消息体
-                JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
-                String string = jsonObject.toString();
-                System.out.println("entity: "+string);
-                StringEntity entity = new StringEntity(string, "UTF-8");
-                httpRequest.setEntity(entity);
+
             }else if(method=="put"){
                 HttpPut httpRequest=new HttpPut(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中

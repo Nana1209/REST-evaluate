@@ -7,11 +7,18 @@ import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
 /*import org.json.JSONException;
 import org.json.JSONObject;*/
 
 import javax.json.JsonArray;
 import java.io.*;
+import java.net.InetAddress;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
@@ -38,14 +45,38 @@ public class fileHandle {
     private List<List<String>> hasContextedRelations=new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
-        fileHandle fileHandle=new fileHandle();
-        fileHandle.validateFiles("D:\\test\\data-all-clear");
-        /*ValidatorController validator = new ValidatorController();
+        /*fileHandle fileHandle=new fileHandle();
+        fileHandle.validateFiles("D:\\test\\data-all-clear");*/
+
+        /*RequestConfig.Builder requestBuilder = RequestConfig.custom();//设置配置信息
+        requestBuilder = requestBuilder
+                .setConnectTimeout(5000)//连接超时时间
+                .setSocketTimeout(5000);//socket超时时间
+        HttpPost httpRequest=new HttpPost("https://api.github.com/gists");
+        httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
+        httpRequest.setHeader("authorization","token 7d3d79e8be31ca6a367b1920acf5bd3bbd119881");
+        httpRequest.setHeader("Accept", "application/json, ");//设置请求头文件
+        final CloseableHttpClient httpClient = getCarelessHttpClient(false);//创建HTTP客户端
+        if (httpClient != null) {
+            final CloseableHttpResponse response = httpClient.execute(httpRequest);
+            dynamicValidateByResponse(response,urlString,pathResult);
+            httpClient.close();
+        } else {
+            throw new IOException("CloseableHttpClient could not be initialized");
+        }
+        //设置消息体
+        JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
+        String string = jsonObject.toString();
+        System.out.println("entity: "+string);
+        StringEntity entity = new StringEntity(string, "UTF-8");
+        httpRequest.setEntity(entity);*/
+
+        ValidatorController validator = new ValidatorController();
         String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
         //动态检测
         validator.dynamicValidateByContent(content);
 
-        //静态检测
+        /*//静态检测
         validator.validateByString(new RequestContext(), content);
         System.out.println(validator.isHasContextedRelation());*/
         //System.out.println(validator.isVersionInHead());

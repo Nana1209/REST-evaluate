@@ -2224,7 +2224,7 @@ public class ValidatorController{
 
     private void entityEvaluate(String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {
         String entityString=EntityUtils.toString(entity);
-        //System.out.println(entityString);
+        System.out.println("entityString:"+entityString);
         Boolean isHATEOAS=false;
        if(entity.getContentType().getValue().contains("application/json")) {//判断响应体格式是否为json
            //JSONObject object = JSONObject.parseObject(entityString);

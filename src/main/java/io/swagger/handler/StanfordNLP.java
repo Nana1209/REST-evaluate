@@ -8,6 +8,9 @@ import edu.stanford.nlp.trees.*;
 import edu.stanford.nlp.util.CoreMap;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class StanfordNLP {
     public static String text = "getUserByID user/name. " +
             "In 2017, he went to Paris, France in the summer. " +
@@ -38,6 +41,27 @@ public class StanfordNLP {
             }
         }
         return wordslist;
+    }
+
+    /**
+     * 去除字符串中花括号以及里面内容
+     * @param ppname
+     * @return
+     */
+    public static String removeBrace(String ppname){
+        if(ppname.contains("{")){
+            Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
+            Matcher m = pp.matcher(ppname);
+            String pathclear = "";//去除属性{}之后的路径
+            int endtemp=0;
+            while(m.find()){
+                pathclear+=ppname.substring(endtemp,m.start());
+                endtemp=m.end();
+            }
+            pathclear+=ppname.substring(endtemp);
+            ppname=pathclear;
+        }
+        return ppname;
     }
     public static void main(String[] args){
         // set up pipeline properties

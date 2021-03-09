@@ -167,6 +167,8 @@ public class ValidatorController{
     private boolean hasToken=false;//头文件（属性）中是否有Token
     private boolean hasAuthorization=false;//头文件（属性）中是否有TokenAuthorization
 
+    private Map<String,PathTreeNode> pathTree;//路径结点树（森林）
+    private Map<String,Map<String,String >> pathParameterMap;//属性散列表
 
 
     public void setValidateResult() {
@@ -685,10 +687,22 @@ public class ValidatorController{
                                             String paraIn=parameter.getIn();
 
                                             //生成属性值
-                                            List<String> paraEnum=spara.getEnum();
+                                            List<String> paraEnum=spara.getEnum();//获得说明文档中的枚举值
+                                            String ppname;
+                                            if(paraIn=="path"){
+                                                ppname=StanfordNLP.removeBrace(pathString.substring(0,pathString.indexOf("/{"+paraName+"}")));
+                                            }else{
+                                                ppname=StanfordNLP.removeBrace(pathString);
+                                                ppname.replace("//","/");
+                                            }
+                                            String paraMapValue=pathParameterMap.get(ppname).get(paraName);//获取对应的路径属性散列表中的属性值
+
+                                            //生成属性值：优先级排序：说明文档提供的枚举值，路径属性散列表，类型默认值
                                             if(paraEnum!=null){
                                                 paraValue=paraEnum.get(0);
-                                            }else {
+                                            }else if(paraMapValue.length()!=0){
+                                                paraValue=paraMapValue;
+                                            }  else{
                                                 paraValue=getDefaultFromType(paraType).toString();
                                             }
 
@@ -743,7 +757,7 @@ public class ValidatorController{
                             String url=scheme.toValue()+"://"+host+basepath+pathString;
                             //System.out.println(url);
                             Request request=new Request(method,url,headers,entity);
-                            dynamicValidateByURL(request,false,false);
+                            dynamicValidateByURL(pathString,request,false,false);
                         }
                     }
 
@@ -934,6 +948,14 @@ public class ValidatorController{
 
                     if(path.getParameters()!=null) {
                         parameters.addAll(path.getParameters());//提取路径级别属性，加入属性列表中
+                        //构建路径必须属性散列表
+                        for(io.swagger.models.parameters.Parameter p:path.getParameters()){
+                            if(p.getRequired()==true){
+                                String pIn=p.getIn();//属性位置
+                                String pName=p.getName();//属性名称
+                                buildPathParameterMap(pathName,pName,pIn);
+                            }
+                        }
                     }
                     //提取操作级别属性
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
@@ -1006,6 +1028,15 @@ public class ValidatorController{
                         //加入操作级别属性到属性列表中
                         if(operation.getParameters()!=null)
                             parameters.addAll(operation.getParameters());
+
+                            //构建路径必须属性散列表
+                            for(io.swagger.models.parameters.Parameter p:operation.getParameters()){
+                                if(p.getRequired()==true){
+                                    String pIn=p.getIn();//属性位置
+                                    String pName=p.getName();//属性名称
+                                    buildPathParameterMap(pathName,pName,pIn);
+                                }
+                            }
                     }
                 }
                 this.hasStrongCacheStatic=hasCacheControlStatic || hasDateStatic || hasExpiresStatic;
@@ -1140,8 +1171,19 @@ public class ValidatorController{
                 int x2s=0,x3s=0,x4s=0,x5s=0;
                 for(String pathName : result.getOpenAPI().getPaths().keySet()){
                     //path-》operation-》parameters
-                    if(result.getOpenAPI().getPaths().get(pathName).getParameters()!=null)
+                    if(result.getOpenAPI().getPaths().get(pathName).getParameters()!=null){
                         parameters.addAll(result.getOpenAPI().getPaths().get(pathName).getParameters());//路径级别属性加入属性列表
+
+                        //构建路径必须属性散列表
+                        for(Parameter p:result.getOpenAPI().getPaths().get(pathName).getParameters()){
+                            if(p.getRequired()==true){
+                                String pIn=p.getIn();//属性位置
+                                String pName=p.getName();//属性名称
+                                buildPathParameterMap(pathName,pName,pIn);
+                            }
+                        }
+                    }
+
                     OpenAPIDeserializer deserializer = new OpenAPIDeserializer();
                     List<Operation> operationsInAPath = deserializer.getAllOperationsInAPath(result.getOpenAPI().getPaths().get(pathName));//获取所有操作
                     this.endpointNum+=operationsInAPath.size();//统计端点数
@@ -1153,8 +1195,19 @@ public class ValidatorController{
                         boolean x5=false;
                         opCount++;
                         //操作级别属性加入属性列表
-                        if(operation.getParameters()!=null)
+                        if(operation.getParameters()!=null){
                             parameters.addAll(operation.getParameters());
+                            //构建路径必须属性散列表
+                            for(Parameter p:operation.getParameters()){
+                                if(p.getRequired()==true){
+                                    String pIn=p.getIn();//属性位置
+                                    String pName=p.getName();//属性名称
+                                    buildPathParameterMap(pathName,pName,pIn);
+
+                                }
+                            }
+                        }
+
 
                         if(operation.getResponses()!=null){
                             for(String s:operation.getResponses().keySet()){
@@ -1278,6 +1331,32 @@ public class ValidatorController{
         }
 
         return output;
+    }
+
+    /**
+     * 构建路径必须属性散列表
+     * @param pathName 路径
+     * @param pName 属性名
+     * @param pIn 属性位置
+     */
+    private void buildPathParameterMap(String pathName, String pName, String pIn) {
+        String ppname="";
+        if(pIn=="path"){
+            ppname=StanfordNLP.removeBrace(pathName.substring(0,pathName.indexOf("/{"+pName+"}")));
+        }
+        else{
+            ppname=StanfordNLP.removeBrace(pathName);
+            ppname.replace("//","/");
+        }
+        if(pathParameterMap.containsKey(ppname)){
+            pathParameterMap.get(ppname).put(pName,"");
+
+        }else{
+            Map<String,String> paras=new HashMap<>();
+            paras.put(pName,"");
+            pathParameterMap.put(ppname,paras);
+
+        }
     }
 
     /**
@@ -1561,6 +1640,19 @@ public class ValidatorController{
         for (Iterator it = paths.iterator(); it.hasNext(); ) {
             Map<String,Object> pathResult=new HashMap<>();
             String p = (String) it.next();
+
+            /*String[] subPs=p.split("/");
+            String nodetemp=null;
+            if(!subPs[0].startsWith("{")){
+                nodetemp=subPs[0];
+                if(pathTree.containsKey(subP)){
+
+                }else{
+
+                }
+
+            }*/
+
             //evaluateToScore()
             if(p.contains("_")){
                 //System.out.println(p+" has _");
@@ -2011,7 +2103,7 @@ public class ValidatorController{
     *@Author: zhouxinyu
     *@date: 2020/5/18
     */
-    public void dynamicValidateByURL(Request request, boolean rejectLocal, boolean rejectRedirect) throws IOException, JSONException {
+    public void dynamicValidateByURL(String pathName,Request request, boolean rejectLocal, boolean rejectRedirect) throws IOException, JSONException {
         Map<String,Object> pathResult=new HashMap<>();
         String urlString=request.getUrl();
         System.out.println(urlString);
@@ -2050,7 +2142,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2074,7 +2166,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2092,7 +2184,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2109,7 +2201,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2126,7 +2218,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2143,7 +2235,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2160,7 +2252,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2178,7 +2270,7 @@ public class ValidatorController{
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
-                    dynamicValidateByResponse(response,urlString,pathResult);
+                    dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
                     throw new IOException("CloseableHttpClient could not be initialized");
@@ -2191,7 +2283,7 @@ public class ValidatorController{
         return;
     }
 
-    private void dynamicValidateByResponse(CloseableHttpResponse response,String urlString,Map<String,Object> pathResult) throws IOException {
+    private void dynamicValidateByResponse(CloseableHttpResponse response,String pathName,String urlString,Map<String,Object> pathResult) throws IOException {
         try {
 
 
@@ -2209,7 +2301,7 @@ public class ValidatorController{
 
             HttpEntity entity = response.getEntity();//获取响应体
             if(entity!=null){
-                entityEvaluate(urlString,entity,pathResult);//检测响应体
+                entityEvaluate(pathName,urlString,entity,pathResult);//检测响应体
             }
 
             //return EntityUtils.toString(entity, "UTF-8");
@@ -2222,10 +2314,17 @@ public class ValidatorController{
         }
     }
 
-    private void entityEvaluate(String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {
+    private void entityEvaluate(String pathName,String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {
         String entityString=EntityUtils.toString(entity);
         System.out.println("entityString:"+entityString);
         Boolean isHATEOAS=false;
+
+
+        String ppname=StanfordNLP.removeBrace(pathName);
+
+        Map pathParameters=pathParameterMap.get(ppname);
+
+
        if(entity.getContentType().getValue().contains("application/json")) {//判断响应体格式是否为json
            //JSONObject object = JSONObject.parseObject(entityString);
 
@@ -2257,22 +2356,24 @@ public class ValidatorController{
            }
            //检测是否实现HATEOAS原则，即响应体中是否含有link
            if(entityObject!=null){
-               for(Object key:entityObject.keySet()){
+               jsonArray.add(entityObject);
+           }
+           for(JSONObject entityjson:jsonArray){
+               for(Object key:entityjson.keySet()){
                    if(key.toString().contains("link")){
                        isHATEOAS=true;
-                       System.out.println(urlString+" has HATEOAS "+key+":"+entityObject.getString(key.toString()));
+                       System.out.println(urlString+"has HATEOAS "+key+":"+entityjson.getString(key.toString()));
                    }
-               }
-           }else if(jsonArray.size()!=0){
-               for(JSONObject entityjson:jsonArray){
-                   for(Object key:entityjson.keySet()){
-                       if(key.toString().contains("link")){
-                           isHATEOAS=true;
-                           System.out.println(urlString+"has HATEOAS "+key+":"+entityjson.getString(key.toString()));
+                   if (pathParameters != null) {
+                       for (Object paraName : pathParameters.keySet()) {
+                           if(key.toString().equals(paraName)){
+                               pathParameters.put(paraName,entityjson.get(key).toString());
+                           }
                        }
                    }
                }
            }
+
 
            //System.out.println("entityKeyset"+keySet.toString());
        }

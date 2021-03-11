@@ -73,14 +73,17 @@ public class fileHandle {
 
         ValidatorController validator = new ValidatorController();
         //String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
-        String content=validator.readFile("D:\\test\\data-all-clear\\openbanking.org.uk-v1.3-swagger.yaml");
+        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
 
+        //静态检测
+        validator.validateByString(new RequestContext(), content);
+        Map<String, Map<String, String>> map = validator.getPathParameterMap();
+        System.out.println(map.size());
         //动态检测
         validator.dynamicValidateByContent(content);
 
-        /*//静态检测
-        validator.validateByString(new RequestContext(), content);*/
-        System.out.println(validator.isHasContextedRelation());
+
+
         //System.out.println(validator.isVersionInHead());
         //System.out.println(validator.isVersionInQueryPara());
         /*//统计有类别信息的API document个数

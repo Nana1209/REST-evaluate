@@ -168,7 +168,7 @@ public class ValidatorController{
     private boolean hasAuthorization=false;//头文件（属性）中是否有TokenAuthorization
 
     private Map<String,PathTreeNode> pathTree;//路径结点树（森林）
-    private Map<String,Map<String,String >> pathParameterMap;//属性散列表
+    private Map<String,Map<String,String >> pathParameterMap=new HashMap<>();//属性散列表
 
 
     public void setValidateResult() {
@@ -219,6 +219,10 @@ public class ValidatorController{
         validateResult.put("opTRACE",getOpTrace());
 
         validateResult.put("hasPagePara",this.hasPagePara);
+    }
+
+    public Map<String, Map<String, String>> getPathParameterMap() {
+        return pathParameterMap;
     }
 
     public boolean isHasContextedRelation() {
@@ -693,8 +697,8 @@ public class ValidatorController{
                                                 ppname=StanfordNLP.removeBrace(pathString.substring(0,pathString.indexOf("/{"+paraName+"}")));
                                             }else{
                                                 ppname=StanfordNLP.removeBrace(pathString);
-                                                ppname.replace("//","/");
                                             }
+                                            ppname=StanfordNLP.removeSlash(ppname);//去除多余/和尾/
                                             String paraMapValue=pathParameterMap.get(ppname).get(paraName);//获取对应的路径属性散列表中的属性值
 
                                             //生成属性值：优先级排序：说明文档提供的枚举值，路径属性散列表，类型默认值
@@ -1346,8 +1350,8 @@ public class ValidatorController{
         }
         else{
             ppname=StanfordNLP.removeBrace(pathName);
-            ppname.replace("//","/");
         }
+        ppname=StanfordNLP.removeSlash(ppname);//去除多余/和尾/
         if(pathParameterMap.containsKey(ppname)){
             pathParameterMap.get(ppname).put(pName,"");
 
@@ -2321,6 +2325,7 @@ public class ValidatorController{
 
 
         String ppname=StanfordNLP.removeBrace(pathName);
+        ppname=StanfordNLP.removeSlash(ppname);
 
         Map pathParameters=pathParameterMap.get(ppname);
 

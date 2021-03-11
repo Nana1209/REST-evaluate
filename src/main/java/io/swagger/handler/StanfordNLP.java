@@ -63,6 +63,24 @@ public class StanfordNLP {
         }
         return ppname;
     }
+
+    public static String removeSlash(String ppname){
+        Pattern pp = Pattern.compile("//+");
+        Matcher m = pp.matcher(ppname);
+        String pathclear = "";//去除属性{}之后的路径
+        int endtemp=0;
+        while(m.find()){
+            pathclear+=ppname.substring(endtemp,m.start());
+            pathclear+="/";
+            endtemp=m.end();
+        }
+        pathclear+=ppname.substring(endtemp);
+        if(pathclear.endsWith("/")){
+            pathclear=pathclear.substring(0,pathclear.length()-1);
+        }
+        return pathclear;
+    }
+
     public static void main(String[] args){
         // set up pipeline properties
         Properties props = new Properties();

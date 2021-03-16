@@ -671,6 +671,7 @@ public class ValidatorController{
                             io.swagger.models.Operation operation=operations.get(method);
                             Map<String,String> headers=new HashMap<>();//请求头文件
                             Map<String,Object> entity=new HashMap<>();//请求体
+                            String requestPath=pathString;//请求路径
 
                             List<io.swagger.models.parameters.Parameter> parameters= operation.getParameters();
                             Map<String,String> queryParas=new HashMap<>();//查询参数
@@ -711,8 +712,9 @@ public class ValidatorController{
                                             }
 
                                             //根据属性位置给请求填充属性
+
                                             if(paraIn=="path") {//路径属性
-                                                pathString=pathString.replace("{"+paraName+"}",paraValue);
+                                                requestPath=requestPath.replace("{"+paraName+"}",paraValue);
                                             }else if(paraIn=="query"){//查询属性
                                                 queryParas.put(paraName,paraValue);
                                                 //pathString+="?"+paraName+"="+paraValue;
@@ -756,9 +758,9 @@ public class ValidatorController{
                                 }
                                 querPart="?"+querPart;
                                 querPart=querPart.substring(0,querPart.length()-1);
-                                pathString+=querPart;
+                                requestPath+=querPart;
                             }
-                            String url=scheme.toValue()+"://"+host+basepath+pathString;
+                            String url=scheme.toValue()+"://"+host+basepath+requestPath;
                             //System.out.println(url);
                             Request request=new Request(method,url,headers,entity);
                             dynamicValidateByURL(pathString,request,false,false);

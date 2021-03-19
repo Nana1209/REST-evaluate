@@ -695,13 +695,15 @@ public class ValidatorController{
                                             List<String> paraEnum=spara.getEnum();//获得说明文档中的枚举值
                                             String ppname;
                                             if(paraIn=="path"){
-                                                ppname=StanfordNLP.removeBrace(pathString.substring(0,pathString.indexOf("/{"+paraName+"}")));
+                                                ppname=StanfordNLP.removeBrace(pathString.substring(0,pathString.indexOf("{"+paraName+"}")));
                                             }else{
                                                 ppname=StanfordNLP.removeBrace(pathString);
                                             }
                                             ppname=StanfordNLP.removeSlash(ppname);//去除多余/和尾/
-                                            String paraMapValue=pathParameterMap.get(ppname).get(paraName);//获取对应的路径属性散列表中的属性值
-
+                                            String paraMapValue="";
+                                            if(pathParameterMap.containsKey(ppname)){
+                                                paraMapValue=pathParameterMap.get(ppname).get(paraName);//获取对应的路径属性散列表中的属性值
+                                            }
                                             //生成属性值：优先级排序：说明文档提供的枚举值，路径属性散列表，类型默认值
                                             if(paraEnum!=null){
                                                 paraValue=paraEnum.get(0);
@@ -742,9 +744,19 @@ public class ValidatorController{
                                                         Map<String, Model> defs=result.getSwagger().getDefinitions();
                                                         Model def=defs.get(refsplits[2]);
                                                         Map<String, Property> propertiesFromDef=def.getProperties();
-                                                        entity=parsePropertiesToEntity(propertiesFromDef);//将property生成消息体
+                                                        if(propertiesFromDef!=null){
+                                                            entity=parsePropertiesToEntity(propertiesFromDef);//将property生成消息体
+                                                        }else{//消息体中没有对参数的描述
+                                                            entity.put("body","rester");
+                                                        }
+
                                                     }
+                                                }else{//消息体中没有对参数的描述
+                                                    entity.put("body","rester");
                                                 }
+                                            }
+                                            else{//消息体中没有对参数的描述
+                                                entity.put("body","rester");
                                             }
                                         }
 

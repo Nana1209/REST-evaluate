@@ -73,7 +73,7 @@ public class fileHandle {
 
         ValidatorController validator = new ValidatorController();
         //String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
-        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
+        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger1.yaml");
 
         //静态检测
         validator.validateByString(new RequestContext(), content);

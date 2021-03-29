@@ -169,7 +169,16 @@ public class ValidatorController{
 
     private Map<String,PathTreeNode> pathTree;//路径结点树（森林）
     private Map<String,Map<String,String >> pathParameterMap=new HashMap<>();//属性散列表
+    private int responseNum=0;//获得的响应数目
+    private int validResponseNum=0;//获得的有效响应数目（2字头）
 
+    public int getResponseNum() {
+        return responseNum;
+    }
+
+    public int getValidResponseNum() {
+        return validResponseNum;
+    }
 
     public void setValidateResult() {
         validateResult.put("name",this.name);
@@ -664,10 +673,13 @@ public class ValidatorController{
             for(Scheme scheme:schemes){
                 for (Iterator it = paths.iterator(); it.hasNext(); ) {
                     String pathString = (String) it.next();
+                    if(pathString.contains("/watchers")){
+                        System.out.println("that's it");
+                    }
                     Path path=result.getSwagger().getPath(pathString);
                     Map<String,io.swagger.models.Operation> operations=getAllOperationsMapInAPath(path);
                     for(String method : operations.keySet()){//对于每一个操作,创建一个请求
-                        if(operations.get(method)!=null){
+                        if(operations.get(method)!=null && method!="delete"){//先不考虑删除操作，会影响资源的存在，因为资源之间的依赖导致请求无效
                             io.swagger.models.Operation operation=operations.get(method);
                             Map<String,String> headers=new HashMap<>();//请求头文件
                             Map<String,Object> entity=new HashMap<>();//请求体
@@ -707,7 +719,7 @@ public class ValidatorController{
                                             //生成属性值：优先级排序：说明文档提供的枚举值，路径属性散列表，类型默认值
                                             if(paraEnum!=null){
                                                 paraValue=paraEnum.get(0);
-                                            }else if(paraMapValue.length()!=0){
+                                            }else if(paraMapValue!=null && paraMapValue.length()!=0){
                                                 paraValue=paraMapValue;
                                             }  else{
                                                 paraValue=getDefaultFromType(paraType).toString();
@@ -1536,6 +1548,7 @@ public class ValidatorController{
     */
     private void headerEvaluate(String url, Header[] headers,Map<String,Object> pathResult) {
         //Map<String,Object> pathResult=new HashMap<>();
+        System.out.println("Start header evaluate!");
         boolean hasCacheScheme=false;
         boolean hasEtag=false;
         boolean hasCacheControl=false;
@@ -1580,6 +1593,7 @@ public class ValidatorController{
         pathResult.put("hasCacheControl",hasCacheControl);
         pathResult.put("hasContentType",hasContentType);
         pathResult.put("contentType",contentType);
+        System.out.println("header evaluate end.");
 
     }
 
@@ -2304,13 +2318,14 @@ public class ValidatorController{
     private void dynamicValidateByResponse(CloseableHttpResponse response,String pathName,String urlString,Map<String,Object> pathResult) throws IOException {
         try {
 
-
+            this.responseNum++;
             StatusLine line = response.getStatusLine();
             System.out.println("response status: "+line.getStatusCode());
             if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {//成功状态
                 return ;
                 //throw new IOException("failed to read swagger with code " + line.getStatusCode());
             }
+            this.validResponseNum++;
             Header[] headers = response.getAllHeaders();//获取头文件
             if(headers!=null){
                 headerEvaluate(urlString,headers,pathResult);//对头文件进行检测
@@ -2333,8 +2348,9 @@ public class ValidatorController{
     }
 
     private void entityEvaluate(String pathName,String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {
+        System.out.println("Start entity evaluate!");
         String entityString=EntityUtils.toString(entity);
-        System.out.println("entityString:"+entityString);
+        //System.out.println("entityString:"+entityString);//打印响应消息体
         Boolean isHATEOAS=false;
 
 
@@ -2397,6 +2413,7 @@ public class ValidatorController{
            //System.out.println("entityKeyset"+keySet.toString());
        }
        pathResult.put("isHATEOAS",isHATEOAS);
+        System.out.println("entity evaluate end.");
     }
 
     private JsonSchema getSchema(boolean isVersion2) throws Exception {

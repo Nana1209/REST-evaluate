@@ -73,7 +73,7 @@ public class fileHandle {
 
         ValidatorController validator = new ValidatorController();
         //String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
-        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger1.yaml");
+        String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
 
         //静态检测
         validator.validateByString(new RequestContext(), content);
@@ -81,7 +81,8 @@ public class fileHandle {
         System.out.println(map.size());
         //动态检测
         validator.dynamicValidateByContent(content);
-
+        System.out.println("responseNum:"+validator.getResponseNum());
+        System.out.println("valideResponseNum:"+validator.getValidResponseNum());
 
 
         //System.out.println(validator.isVersionInHead());

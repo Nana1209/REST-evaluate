@@ -78,11 +78,11 @@ public class fileHandle {
         //静态检测
         validator.validateByString(new RequestContext(), content);
         Map<String, Map<String, String>> map = validator.getPathParameterMap();
-        System.out.println(map.size());
+        System.out.println(validator.getScore());
         //动态检测
-        validator.dynamicValidateByContent(content);
+        /*validator.dynamicValidateByContent(content);
         System.out.println("responseNum:"+validator.getResponseNum());
-        System.out.println("valideResponseNum:"+validator.getValidResponseNum());
+        System.out.println("valideResponseNum:"+validator.getValidResponseNum());*/
 
 
         //System.out.println(validator.isVersionInHead());

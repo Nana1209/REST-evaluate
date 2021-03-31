@@ -100,9 +100,9 @@ public class ValidatorController{
     private String name;
     private float pathNum;//路径数
     private int endpointNum;//端点数
-    private int score=100; //评分机制
+    private float score=100; //评分机制
     public Map<String,String> evaluations=new HashMap<String, String>();
-    private float pathEvaData[] =new float[10];//记录实现各规范的path数 [0 no_,1 lowercase,2 noVersion,3 noapi,4 noCRUD,5 noSuffix,6 noend/,7 sumHierarchy,8 maxHierarchy]
+    private float pathEvaData[] =new float[20];//记录实现各规范的path数 [0 no_,1 lowercase,2 noVersion,3 noapi,4 noCRUD,5 noSuffix,6 noend/,7 sumHierarchy,8 maxHierarchy]
     private float avgHierarchy;//路径平均层级数
     private List<String> hierarchies=new ArrayList<>();//所有路径层级数统计
 
@@ -141,7 +141,7 @@ public class ValidatorController{
     private boolean hasNegCacheStatic=false;//是否有协商缓存机制静态检测
     private boolean hasEtagStatic=false;//是否有协商缓存机制etag静态检测
     private boolean hasLastModifiedStatic=false;//是否有协商缓存机制 last-modified静态检测
-    private boolean hasResponseContentTypeStatic;
+    private boolean hasResponseContentTypeStatic;//是否有响应头content-type-静态检测
 
     private boolean hasStrongCache=false;//是否有强制缓存机制cache-control
     private boolean hasEtag=false;
@@ -171,6 +171,8 @@ public class ValidatorController{
     private Map<String,Map<String,String >> pathParameterMap=new HashMap<>();//属性散列表
     private int responseNum=0;//获得的响应数目
     private int validResponseNum=0;//获得的有效响应数目（2字头）
+    private boolean hasWrongStatus=false;//是否有HTTP协议定义外的状态码
+    private boolean hasWrongPost=false;//是否有对POST方法的误用
 
     public int getResponseNum() {
         return responseNum;
@@ -228,6 +230,8 @@ public class ValidatorController{
         validateResult.put("opTRACE",getOpTrace());
 
         validateResult.put("hasPagePara",this.hasPagePara);
+
+        validateResult.put("hasWrongStatus",this.hasWrongStatus);
     }
 
     public Map<String, Map<String, String>> getPathParameterMap() {
@@ -410,7 +414,7 @@ public class ValidatorController{
 
 
 
-    public int getScore() {
+    public float getScore() {
         return score;
     }
 
@@ -989,6 +993,7 @@ public class ValidatorController{
                     }
                     //提取操作级别属性
                     List<io.swagger.models.Operation> operations=getAllOperationsInAPath(path);
+
                     for(io.swagger.models.Operation operation : operations){
                         boolean x2=false;
                         boolean x3=false;
@@ -1007,6 +1012,9 @@ public class ValidatorController{
                                     x4=true;
                                 }else if(s.startsWith("5")){
                                     x5=true;
+                                }else if(s.charAt(0)>'5'){
+                                    this.hasWrongStatus=true;
+
                                 }
                                 if(status.containsKey(s)){
                                     status.put(s,status.get(s)+1);
@@ -1056,17 +1064,18 @@ public class ValidatorController{
 
 
                         //加入操作级别属性到属性列表中
-                        if(operation.getParameters()!=null)
+                        if(operation.getParameters()!=null) {
                             parameters.addAll(operation.getParameters());
 
                             //构建路径必须属性散列表
-                            for(io.swagger.models.parameters.Parameter p:operation.getParameters()){
-                                if(p.getRequired()==true){
-                                    String pIn=p.getIn();//属性位置
-                                    String pName=p.getName();//属性名称
-                                    buildPathParameterMap(pathName,pName,pIn);
+                            for (io.swagger.models.parameters.Parameter p : operation.getParameters()) {
+                                if (p.getRequired() == true) {
+                                    String pIn = p.getIn();//属性位置
+                                    String pName = p.getName();//属性名称
+                                    buildPathParameterMap(pathName, pName, pIn);
                                 }
                             }
+                        }
                     }
                 }
                 this.hasStrongCacheStatic=hasCacheControlStatic || hasDateStatic || hasExpiresStatic;
@@ -1348,6 +1357,7 @@ public class ValidatorController{
             }
         }
         evaluations.put("endpointNum",String.valueOf(this.endpointNum));//将端点数填入评估结果
+        this.score=scoreCalculate();
         // do actual JSON schema validation
         JsonSchema schema = getSchema(isVersion2);
         ProcessingReport report = schema.validate(spec);
@@ -1364,6 +1374,99 @@ public class ValidatorController{
     }
 
     /**
+     * REST API评估得分计算
+     */
+    private float scoreCalculate() {
+        float benchmark=Float.parseFloat(ConfigManager.getInstance().getValue("BENCHMARK"));
+        float ca=0,ca1t=0,ca2t=0,ca3t=0,ca4t=0;
+        float cb=0,cb1t=0,cb2t=0;
+        float cc=0,cc1t=0,cc2t=0;
+        float cd=0,cd1t=0,cd2t=0,cd3t=0;
+        if(pathEvaData[6]/pathNum>benchmark){
+            ca1t++;
+        }
+        if(pathEvaData[0]/pathNum>benchmark){
+            ca1t++;
+        }
+        if(pathEvaData[1]/pathNum>benchmark){
+            ca1t++;
+        }
+        if(pathEvaData[5]/pathNum>benchmark){
+            ca1t++;
+        }
+        ca+=ca1t/4*Float.parseFloat(ConfigManager.getInstance().getValue("WA1"));
+        if(hasContextedRelation){
+            ca2t++;
+        }
+        ca2t++;
+        ca+=ca2t/2*Float.parseFloat(ConfigManager.getInstance().getValue("WA2"));
+        if(pathEvaData[4]/pathNum>benchmark){
+            ca3t++;
+        }
+        if(pathEvaData[3]/pathNum>benchmark){
+            ca3t++;
+        }
+        if(apiInServer){
+            ca3t++;
+        }
+        ca+=ca3t/3*Float.parseFloat(ConfigManager.getInstance().getValue("WA3"));
+        if(hasPagePara){
+            ca4t++;
+        }
+        ca+=ca4t*Float.parseFloat(ConfigManager.getInstance().getValue("WA4"));
+
+        if(!hasWrongPost){
+            cb1t++;
+        }
+        cb1t++;
+        cb+=cb1t/2*Float.parseFloat(ConfigManager.getInstance().getValue("WB1"));
+        if(!hasWrongStatus){
+            cb2t++;
+        }
+        cb+=cb2t*Float.parseFloat(ConfigManager.getInstance().getValue("WB2"));
+
+        if(hasResponseContentTypeStatic){
+            cc1t++;
+        }
+        if(hasAccept){
+            cc1t++;
+        }
+        if(securityInHeadPara){
+            cc1t++;
+        }
+        cc+=cc1t/3*Float.parseFloat(ConfigManager.getInstance().getValue("WC1"));
+        if(hateoasStatic){
+            cc2t++;
+        }
+        cc+=cc2t*Float.parseFloat(ConfigManager.getInstance().getValue("WC2"));
+        if(versionInHead){
+            cd1t++;
+        }
+        if(pathEvaData[2]/pathNum>benchmark){
+            cd1t++;
+        }
+        if(!versionInQueryPara){
+            cd1t++;
+        }
+        cd+=cd1t/3*Float.parseFloat(ConfigManager.getInstance().getValue("WD1"));
+        if(getSecurity().size()!=0){
+            cd2t++;
+        }
+        cd+=cd2t*Float.parseFloat(ConfigManager.getInstance().getValue("WD2"));
+        if(hasStrongCacheStatic){
+            cd3t++;
+        }
+        if(hasNegCacheStatic){
+            cd3t++;
+        }
+        cd+=cd3t/2*Float.parseFloat(ConfigManager.getInstance().getValue("WD3"));
+        return ca*Float.parseFloat(ConfigManager.getInstance().getValue("WA"))
+                +cb*Float.parseFloat(ConfigManager.getInstance().getValue("WB"))
+                +cc*Float.parseFloat(ConfigManager.getInstance().getValue("WC"))
+                +cd*Float.parseFloat(ConfigManager.getInstance().getValue("WD"));
+    }
+
+    /**
      * 构建路径必须属性散列表
      * @param pathName 路径
      * @param pName 属性名
@@ -1372,7 +1475,7 @@ public class ValidatorController{
     private void buildPathParameterMap(String pathName, String pName, String pIn) {
         String ppname="";
         if(pIn=="path"){
-            ppname=StanfordNLP.removeBrace(pathName.substring(0,pathName.indexOf("/{"+pName+"}")));
+            ppname=StanfordNLP.removeBrace(pathName.substring(0,pathName.indexOf("{"+pName+"}")));
         }
         else{
             ppname=StanfordNLP.removeBrace(pathName);
@@ -1761,7 +1864,9 @@ public class ValidatorController{
                 if (temp.contains(crudnames[i])) {
                     isCrudy = true;
                     verblist.add(crudnames[i]);
-
+                    if(crudnames[i]!="create" && crudnames[i]!="add" && crudnames[i]!="post" && crudnames[i]!="new" && crudnames[i]!="push" ){
+                        this.hasWrongPost=true;
+                    }
                     CRUDPathOperation(p,crudnames[i], result);
                     break;
                 }

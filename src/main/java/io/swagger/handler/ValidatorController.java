@@ -141,11 +141,19 @@ public class ValidatorController{
     private boolean hasNegCacheStatic=false;//是否有协商缓存机制静态检测
     private boolean hasEtagStatic=false;//是否有协商缓存机制etag静态检测
     private boolean hasLastModifiedStatic=false;//是否有协商缓存机制 last-modified静态检测
-    private boolean hasResponseContentTypeStatic;//是否有响应头content-type-静态检测
 
-    private boolean hasStrongCache=false;//是否有强制缓存机制cache-control
-    private boolean hasEtag=false;
-    private boolean hasLastModified=false;
+    private boolean hasStrongCache=false;//是否有强制缓存机制cache-control、expires、date-动态检测
+    private boolean hasCacheControl=false;//是否有强制缓存机制cache-control-动态检测
+    private boolean hasExpires=false;//是否有强制缓存机制expires-动态检测
+    private boolean hasDate=false;//是否有强制缓存机制date-动态检测
+    private boolean hasNegCache=false;//是否有协商缓存机制-动态检测
+    private boolean hasEtag=false;//是否有协商缓存机制etag-动态检测
+    private boolean hasLastModified=false;//是否有协商缓存机制 last-modified-动态检测
+
+    private boolean hasResponseContentTypeStatic;//是否有响应头content-type-静态检测
+    private boolean hasResponseContentType=false;//响应头文件中是否有contenetType
+
+
 
     private boolean versionInPath=false;//路径中是否有属性
     private boolean versionInQueryPara=false;//查询属性中是否有版本信息（版本信息不应该出现在查询属性中）
@@ -157,9 +165,9 @@ public class ValidatorController{
     private int dotCountInServer;//server中版本号的.数，用来判断是否语义版本号
     private int dotCountInPath;//path中版本号的.数，用来判断是否语义版本号
     private boolean semanticVersion=false;//是否使用语义版本号
-    private boolean hateoas=false;//是否实现HATEOAS原则
+    private boolean hateoas=false;//是否实现HATEOAS原则-动态
     private boolean hateoasStatic;//是否实现HATEOAS原则-静态检测
-    private boolean hasResponseContentType=false;//响应头文件中是否有contenetType
+
     private boolean hasContextedRelation=false;//是否有符合层级关系的路径
     private boolean hasAccept=false;//头文件（属性）中是否有accept
     private boolean securityInHeadPara=false;//头文件（属性）中是否有安全验证机制
@@ -196,6 +204,8 @@ public class ValidatorController{
         validateResult.put("hasNegCache",this.hasNegCacheStatic);
 
         validateResult.put("hateoas",this.hateoasStatic);
+        validateResult.put("hateoas-dy",this.hateoas);
+
         validateResult.put("hasPagePara",isHasPagePara());
         validateResult.put("pageParaList",getQuerypara());
 
@@ -798,7 +808,10 @@ public class ValidatorController{
 
                 }
             }
-        }else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
+            hasStrongCache=hasCacheControl || hasExpires || hasDate;
+            hasNegCache=hasEtag || hasLastModified;
+        }
+        else if (version == null || (version.startsWith("\"3") || version.startsWith("3"))) {
             SwaggerParseResult result = null;
             try {
                 result = readOpenApi(content);
@@ -839,6 +852,27 @@ public class ValidatorController{
                 }
             }
         }
+        consistencyDetect();
+    }
+
+    /**
+     * 一致性检测
+     */
+    private void consistencyDetect() {
+        System.out.println("Consistency detection:");
+        if(this.hasStrongCache!=this.hasStrongCacheStatic){
+            System.out.println("strong cache has inconsistency:RAD "+this.hasStrongCacheStatic+"| real response "+this.hasStrongCache);
+        }
+        if(this.hasNegCacheStatic!=this.hasNegCache){
+            System.out.println("Negotiation cache has inconsistency:RAD "+this.hasNegCacheStatic+"| real response "+this.hasNegCache);
+        }
+        if(this.hasResponseContentType!=this.hasResponseContentTypeStatic){
+            System.out.println("content-type has inconsistency:RAD "+this.hasResponseContentTypeStatic+"| real response "+this.hasResponseContentType);
+        }
+        if(this.hateoasStatic!=this.hateoas){
+            System.out.println("HATEOAS has inconsistency:RAD "+this.hateoasStatic+"| real response "+this.hateoas);
+        }
+        System.out.println("Consistency detection end!");
     }
 
     /**
@@ -1654,6 +1688,7 @@ public class ValidatorController{
         System.out.println("Start header evaluate!");
         boolean hasCacheScheme=false;
         boolean hasEtag=false;
+        boolean hasDate=false;
         boolean hasCacheControl=false;
         boolean hasContentType=false;
         boolean hasLastModified=false;
@@ -1670,10 +1705,12 @@ public class ValidatorController{
             }else if(header.getName().equals("expires")){
                 System.out.println(url+" response has expires");
                 hasExpires=true;
-            }else if(header.getName().equals("" +
-                    "")){
+            }else if(header.getName().equals("cache-control")){
                 System.out.println(url+" response has cache-control");
                 hasCacheControl=true;
+            }else if(header.getName().equals("date")){
+                System.out.println(url+" response has date");
+                hasDate=true;
             }else if(header.getName().equals("content-type")){
 
                 //evaluations.put("content-type",header.getValue());
@@ -1691,12 +1728,22 @@ public class ValidatorController{
         evaluations.put("hasContentType",hasContentType==true?contentType:"false");*/
         pathResult.put("hasCacheScheme",hasCacheScheme);
         pathResult.put("hasEtag",hasEtag);
+        pathResult.put("hasDate",hasDate);
         pathResult.put("hasExpires",hasExpires);
         pathResult.put("hasLastModified",hasLastModified);
         pathResult.put("hasCacheControl",hasCacheControl);
         pathResult.put("hasContentType",hasContentType);
         pathResult.put("contentType",contentType);
         System.out.println("header evaluate end.");
+
+        this.hasExpires=hasExpires==true?true:this.hasExpires;
+        this.hasCacheControl=hasCacheControl==true?true:this.hasCacheControl;
+        this.hasEtag=hasEtag==true?true:this.hasEtag;
+        this.hasLastModified=hasLastModified==true?true:this.hasLastModified;
+        this.hasDate=hasDate==true?true:this.hasDate;
+        this.hasResponseContentType=hasContentType==true?true:this.hasResponseContentType;
+
+
 
     }
 
@@ -2452,10 +2499,19 @@ public class ValidatorController{
         }
     }
 
+    /**
+     * 响应消息体分析评估
+     * @param pathName
+     * @param urlString
+     * @param entity
+     * @param pathResult
+     * @throws IOException
+     * @throws JSONException
+     */
     private void entityEvaluate(String pathName,String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {
         System.out.println("Start entity evaluate!");
         String entityString=EntityUtils.toString(entity);
-        //System.out.println("entityString:"+entityString);//打印响应消息体
+        System.out.println("entityString:"+entityString);//打印响应消息体
         Boolean isHATEOAS=false;
 
 
@@ -2506,9 +2562,15 @@ public class ValidatorController{
                    }
                    if (pathParameters != null) {
                        for (Object paraName : pathParameters.keySet()) {
-                           if(key.toString().equals(paraName)){
-                               pathParameters.put(paraName,entityjson.get(key).toString());
+                           if(pathParameters.get(paraName)==""){
+                               if(key.toString().toLowerCase().equals(paraName.toString().toLowerCase())){//精确匹配优先
+                                   pathParameters.put(paraName,entityjson.get(key).toString());
+                               }
+                               else if(key.toString().toLowerCase().contains(paraName.toString().toLowerCase()) || paraName.toString().toLowerCase().contains(key.toString().toLowerCase())){//模糊匹配
+                                   pathParameters.put(paraName,entityjson.get(key).toString());
+                               }
                            }
+
                        }
                    }
                }
@@ -2517,7 +2579,8 @@ public class ValidatorController{
 
            //System.out.println("entityKeyset"+keySet.toString());
        }
-       pathResult.put("isHATEOAS",isHATEOAS);
+       pathResult.put("isHATEOAS-dy",isHATEOAS);
+       this.hateoas=isHATEOAS;
         System.out.println("entity evaluate end.");
     }
 

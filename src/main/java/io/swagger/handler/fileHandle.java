@@ -81,6 +81,73 @@ public class fileHandle {
         System.out.println(validator.getScore());
         //动态检测
         validator.dynamicValidateByContent(content);
+        Map<String,Object> pathdetaildynamic=validator.getPathDetailDynamic();
+        JSONObject jsonObject=JSONObject.fromObject(pathdetaildynamic);
+        String string = jsonObject.toString();//消息体字符串
+        File csvFile = null;
+        BufferedWriter csvFileOutputStream = null;
+        try {
+            File file = new File("D:\\REST API file\\result");
+            if (!file.exists()) {
+                if (file.mkdirs()) {
+                    System.out.println("创建成功");
+                } else {
+                    System.out.println("创建失败");
+                }
+            }
+            //定义文件名格式并创建
+            csvFile = File.createTempFile("pathDetailDynamic", ".csv", new File("D:\\REST API file\\result"));
+            csvFileOutputStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(csvFile), StandardCharsets.UTF_8), 1024);
+            for (String endpointname:pathdetaildynamic.keySet()) {
+                Map<String,Object> pathmap= (Map<String, Object>) pathdetaildynamic.get(endpointname);
+                csvFileOutputStream.write(endpointname+",");
+                csvFileOutputStream.write(pathmap.get("url").toString()+",");
+                csvFileOutputStream.write(pathmap.get("method").toString()+",");
+                String requestheader=JSONObject.fromObject(pathmap.get("header")).toString();
+                requestheader="\"" + requestheader.replaceAll("\"", "\"\"")+ "\"";
+                csvFileOutputStream.write(requestheader+",");
+                String entitystring;
+                if(pathmap.containsKey("entity")){
+                    entitystring="\"" + pathmap.get("entity").toString().replaceAll("\"", "\"\"")+ "\"";
+                }else{
+                    entitystring="";
+                }
+                csvFileOutputStream.write(entitystring+",");
+                csvFileOutputStream.write(pathmap.get("status").toString()+",");
+                String resentitystring;
+                if(pathmap.containsKey("responseEntity")){
+                    resentitystring="\"" + pathmap.get("responseEntity").toString().replaceAll("\"", "\"\"")+ "\"";
+                }else{
+                    resentitystring="";
+                }
+                csvFileOutputStream.write(resentitystring+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("isHATEOAS-dy","").toString()+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("hasCacheScheme","").toString()+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("hasCacheControl","").toString()+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("hasEtag","").toString()+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("hasDate","").toString()+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("hasExpires","").toString()+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("hasLastModified","").toString()+",");
+
+                csvFileOutputStream.write(pathmap.getOrDefault("hasContentType","").toString()+",");
+                csvFileOutputStream.write(pathmap.getOrDefault("contentType","").toString());
+//                csvFileOutputStream.write(",");
+//                writeRow(exportDatum, csvFileOutputStream);
+                csvFileOutputStream.newLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (csvFileOutputStream != null) {
+                    csvFileOutputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+//        System.out.println("pathDetail-dynamic:"+string);
         System.out.println("responseNum:"+validator.getResponseNum());
         System.out.println("valideResponseNum:"+validator.getValidResponseNum());
 

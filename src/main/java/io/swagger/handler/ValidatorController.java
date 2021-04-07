@@ -37,6 +37,7 @@ import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import io.swagger.v3.parser.util.OpenAPIDeserializer;
+//import jdk.internal.access.JavaSecurityAccess;
 import net.didion.jwnl.JWNLException;
 import net.sf.json.JSONException;
 import org.apache.commons.lang3.StringUtils;
@@ -109,8 +110,8 @@ public class ValidatorController{
     private Map<String,Object> validateResult=new HashMap<>(); //检测结果json
 
 
-
-    private Map<String,Object> pathDetail=new HashMap<>();
+    private Map<String,Object> pathDetailDynamic=new HashMap<>();//动态检测的路径结果
+    private Map<String,Object> pathDetail=new HashMap<>();//静态检测 的结果
 
     private boolean hasPagePara = false;//是否有分页相关属性
 
@@ -182,6 +183,7 @@ public class ValidatorController{
     private boolean hasWrongStatus=false;//是否有HTTP协议定义外的状态码
     private boolean hasWrongPost=false;//是否有对POST方法的误用
 
+
     public int getResponseNum() {
         return responseNum;
     }
@@ -242,6 +244,10 @@ public class ValidatorController{
         validateResult.put("hasPagePara",this.hasPagePara);
 
         validateResult.put("hasWrongStatus",this.hasWrongStatus);
+    }
+
+    public Map<String, Object> getPathDetailDynamic() {
+        return pathDetailDynamic;
     }
 
     public Map<String, Map<String, String>> getPathParameterMap() {
@@ -1686,6 +1692,7 @@ public class ValidatorController{
     private void headerEvaluate(String url, Header[] headers,Map<String,Object> pathResult) {
         //Map<String,Object> pathResult=new HashMap<>();
         System.out.println("Start header evaluate!");
+        System.out.println("header：");
         boolean hasCacheScheme=false;
         boolean hasEtag=false;
         boolean hasDate=false;
@@ -1695,23 +1702,24 @@ public class ValidatorController{
         boolean hasExpires=false;
         String contentType="";
         for(Header header:headers){
-            if(header.getName().equals("etag")){
+//            System.out.println(header.getName());
+            if(header.getName().toLowerCase().equals("etag")){
                 System.out.println(url+" response has etag");
                 hasEtag=true;
 
-            }else if(header.getName().equals("last-modified")){
+            }else if(header.getName().toLowerCase().equals("last-modified")){
                 System.out.println(url+" response has last-modified");
                 hasLastModified=true;
-            }else if(header.getName().equals("expires")){
+            }else if(header.getName().toLowerCase().equals("expires")){
                 System.out.println(url+" response has expires");
                 hasExpires=true;
-            }else if(header.getName().equals("cache-control")){
+            }else if(header.getName().toLowerCase().equals("cache-control")){
                 System.out.println(url+" response has cache-control");
                 hasCacheControl=true;
-            }else if(header.getName().equals("date")){
+            }else if(header.getName().toLowerCase().equals("date")){
                 System.out.println(url+" response has date");
                 hasDate=true;
-            }else if(header.getName().equals("content-type")){
+            }else if(header.getName().toLowerCase().equals("content-type")){
 
                 //evaluations.put("content-type",header.getValue());
                 contentType=header.getValue();
@@ -2291,6 +2299,8 @@ public class ValidatorController{
         Map<String,Object> pathResult=new HashMap<>();
         String urlString=request.getUrl();
         System.out.println(urlString);
+        pathResult.put("url",urlString);
+        String method=request.getMethod();
         if(urlString.contains("{")){
             return  ;
         }else {
@@ -2310,19 +2320,31 @@ public class ValidatorController{
                     .setConnectTimeout(5000)//连接超时时间
                     .setSocketTimeout(5000);//socket超时时间
 
-            String method=request.getMethod();
+
+            Map<String, String> header=request.getHeader();
+            //指定身份认证
+            header.put("authorization","token 7d3d79e8be31ca6a367b1920acf5bd3bbd119881");
+            header.put("Accept", "application/json, */*");
+
+            JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
+            String string = jsonObject.toString();//消息体字符串
+
+
             System.out.println(method);
-            request.getHeader().put("authorization","token 7d3d79e8be31ca6a367b1920acf5bd3bbd119881");
+            pathResult.put("method",method);
+            pathResult.put("header",header);
+
+
 
             if(method=="get"){
                 HttpGet httpRequest = new HttpGet(urlString);//创建get请求,此时父类A的变量和静态方法会将子类的变量和静态方法隐藏。instanceA此时唯一可能调用的子类B的地方就是子类B中覆盖了父类A中的实例方法。
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2334,22 +2356,21 @@ public class ValidatorController{
             }else if(method=="post"){
                 HttpPost httpRequest=new HttpPost(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
                 //设置消息体
-                JSONObject jsonObject=JSONObject.fromObject(request.getEntity());
-                String string = jsonObject.toString();
-                System.out.println("entity: "+string);
                 StringEntity entity = new StringEntity(string, "UTF-8");
                 httpRequest.setEntity(entity);
+                System.out.println("entity: "+string);
+                pathResult.put("requestEntity",string);
 
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
-                    final CloseableHttpResponse response = httpClient.execute(httpRequest);
+                    final CloseableHttpResponse response = httpClient.execute(httpRequest);//获得响应
                     dynamicValidateByResponse(response,pathName,urlString,pathResult);
                     httpClient.close();
                 } else {
@@ -2359,12 +2380,18 @@ public class ValidatorController{
             }else if(method=="put"){
                 HttpPut httpRequest=new HttpPut(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
+                //设置消息体
+                StringEntity entity = new StringEntity(string, "UTF-8");
+                httpRequest.setEntity(entity);
+                System.out.println("entity: "+string);
+                pathResult.put("requestEntity",string);
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2376,12 +2403,12 @@ public class ValidatorController{
             }else if(method=="delete"){
                 HttpDelete httpRequest=new HttpDelete(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2393,12 +2420,12 @@ public class ValidatorController{
             }else if(method=="head"){
                 HttpHead httpRequest=new HttpHead(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2410,12 +2437,18 @@ public class ValidatorController{
             }else if(method=="patch"){
                 HttpPatch httpRequest=new HttpPatch(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
+                //设置消息体
+                StringEntity entity = new StringEntity(string, "UTF-8");
+                httpRequest.setEntity(entity);
+                System.out.println("entity: "+string);
+                pathResult.put("requestEntity",string);
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2427,12 +2460,12 @@ public class ValidatorController{
             }else if(method=="options"){
                 HttpOptions httpRequest=new HttpOptions(urlString);
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2445,12 +2478,12 @@ public class ValidatorController{
             else{
                 HttpGet httpRequest = new HttpGet(urlString);//创建get请求
                 httpRequest.setConfig(requestBuilder.build());//将上面的配置信息运用到GET请求中
-                if(request.getHeader()!=null){
-                    for(String name:request.getHeader().keySet()){
-                        httpRequest.setHeader(name,request.getHeader().get(name));
-                    }
+
+                //设置头文件
+                for(String name:header.keySet()){
+                    httpRequest.setHeader(name,header.get(name));
                 }
-                httpRequest.setHeader("Accept", "application/json, */*");//设置请求头文件
+
                 final CloseableHttpClient httpClient = getCarelessHttpClient(rejectRedirect);//创建HTTP客户端
                 if (httpClient != null) {
                     final CloseableHttpResponse response = httpClient.execute(httpRequest);
@@ -2463,7 +2496,7 @@ public class ValidatorController{
 
 
         }
-        this.pathDetail.put(urlString,pathResult);//各url的动态检测结果
+        this.pathDetailDynamic.put(method+" "+pathName,pathResult);//各url的动态检测结果
         return;
     }
 
@@ -2473,18 +2506,22 @@ public class ValidatorController{
             this.responseNum++;
             StatusLine line = response.getStatusLine();
             System.out.println("response status: "+line.getStatusCode());
+
+            Header[] headers = response.getAllHeaders();//获取头文件
+            HttpEntity entity = response.getEntity();//获取响应体
+            pathResult.put("status",line.getStatusCode());
             if (line.getStatusCode() > 299 || line.getStatusCode() < 200) {//成功状态
                 return ;
                 //throw new IOException("failed to read swagger with code " + line.getStatusCode());
             }
             this.validResponseNum++;
-            Header[] headers = response.getAllHeaders();//获取头文件
+
             if(headers!=null){
                 headerEvaluate(urlString,headers,pathResult);//对头文件进行检测
                 //System.out.println("changesuccess?"+pathResult.size());
             }
 
-            HttpEntity entity = response.getEntity();//获取响应体
+
             if(entity!=null){
                 entityEvaluate(pathName,urlString,entity,pathResult);//检测响应体
             }
@@ -2511,7 +2548,8 @@ public class ValidatorController{
     private void entityEvaluate(String pathName,String urlString, HttpEntity entity,Map<String,Object> pathResult) throws IOException, JSONException {
         System.out.println("Start entity evaluate!");
         String entityString=EntityUtils.toString(entity);
-        System.out.println("entityString:"+entityString);//打印响应消息体
+        pathResult.put("responseEntity", entityString);
+        //System.out.println("entityString:"+entityString);//打印响应消息体
         Boolean isHATEOAS=false;
 
 
@@ -2556,7 +2594,7 @@ public class ValidatorController{
            }
            for(JSONObject entityjson:jsonArray){
                for(Object key:entityjson.keySet()){
-                   if(key.toString().contains("link")){
+                   if(key.toString().toLowerCase().contains("link")){
                        isHATEOAS=true;
                        System.out.println(urlString+"has HATEOAS "+key+":"+entityjson.getString(key.toString()));
                    }

@@ -59,6 +59,7 @@ import org.apache.http.util.EntityUtils;
 /*import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;*/
+import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,6 +78,12 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import net.sf.json.JSONObject;
 import net.sf.json.JSONArray;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Node;
+import org.jsoup.select.Elements;
+
 public class ValidatorController{
 
     static final String SCHEMA_FILE = "schema3.json";
@@ -936,6 +943,273 @@ public class ValidatorController{
         }
     }
 
+    public void validateByHengShengHtml(String html) throws FileNotFoundException, JWNLException {
+        JWNLwordnet jwnLwordnet=new JWNLwordnet();
+        String path="";
+        String server="";
+        String url="";
+        String operation="";
+        String supportType="";
+        List<String> reqParameters=new ArrayList<>();//请求参数名
+        List<String> resParameters=new ArrayList<>();//响应参数名
+        Document document = Jsoup.parse(html);
+
+        //像js一样，通过class 获取列表下的所有博客
+        Elements apiTables = document.getElementsByClass("api_table");
+        //循环处理每篇博客
+
+        for(int i=0;i<apiTables.size();i++){
+            Element apiTable=apiTables.get(i);
+            switch (i){
+                case 0:
+                    Element shaxiangTd=apiTable.getElementsByTag("td").get(1);
+                    server=shaxiangTd.text();
+                    break;
+                case 1:
+                    url=apiTable.text();
+                    path=url.substring(server.length());
+                    break;
+                case 2:
+                    break;
+                case 3:
+                    operation=apiTable.text();
+                    break;
+                case 4:
+                    supportType=apiTable.text();
+                    break;
+                case 5:
+                    Elements trs=apiTable.getElementsByTag("tr");
+                    for(int j=1;j<trs.size();j++){
+                        Element paraname=trs.get(j).getElementsByTag("td").get(0);
+                        reqParameters.add(paraname.text());
+                    }
+                    break;
+                case 6:
+                    Elements trsres=apiTable.getElementsByTag("tr");
+                    for(int j=1;j<trsres.size();j++){
+                        Element paraname=trsres.get(j).getElementsByTag("td").get(0);
+                        resParameters.add(paraname.text());
+                    }
+                    break;
+            }
+        }
+        //路径检测
+        Map<String,Object> pathResult=new HashMap<>();
+        String p=path;
+        //evaluateToScore()
+        if(p.contains("_")){
+            //System.out.println(p+" has _");
+            //this.score=this.score-20>0?this.score-20:0;
+            pathResult.put("no_",false);
+        }else {
+            this.pathEvaData[0]++;//Integer是Object子类，是对象，可以为null。int是基本数据类型，必须初始化，默认为0
+            pathResult.put("no_",true);
+        }
+
+        if(p!=p.toLowerCase()){
+            //System.out.println(p+"need to be lowercase");
+            //this.score=this.score-20>0?this.score-20:0;
+            pathResult.put("lowercase",false);
+        }else {
+            this.pathEvaData[1]++;
+            pathResult.put("lowercase",true);
+        }
+
+        Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
+        Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
+        Pattern pattern2=Pattern.compile("v(ers?|ersion)?[0-9.]+(-?(alpha|beta|rc)([0-9.]+\\+?[0-9]?|[0-9]?))?");
+        Matcher m2=pattern2.matcher(p);
+        if(m2.find()){
+            System.out.println("version shouldn't in paths "+p);
+            //this.score=this.score-5>0?this.score-5:0;
+            String version=m2.group();
+            this.versionInPath=true;
+            if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
+                this.semanticVersion=true;
+            }
+            pathResult.put("noVersion",false);
+        }else {
+            this.pathEvaData[2]++;
+            pathResult.put("noVersion",true);
+        }
+        if(p.toLowerCase().contains("api")){
+            System.out.println("api shouldn't in path "+p);
+            //this.score=this.score-10>0?this.score-10:0;
+            pathResult.put("noapi",false);
+        }else {
+            this.pathEvaData[3]++;
+            pathResult.put("noapi",true);
+        }
+
+        //this.pathlist.add(p);
+        Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
+        Matcher m = pp.matcher(p);
+        String pathclear = "";//去除属性{}之后的路径
+        int endtemp=0;
+        while(m.find()){
+            pathclear+=p.substring(endtemp,m.start());
+            endtemp=m.end();
+        }
+        pathclear+=p.substring(endtemp);
+        pathclear=pathclear.toLowerCase();
+        //String crudnames[]=CRUDNAMES;
+        String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",",-1);
+
+        String dellistString=ConfigManager.getInstance().getValue("DELLIST");
+        String str1[] = dellistString.split(";",-1);
+        String delList[][]=new String[str1.length][];
+        for(int i = 0;i < str1.length;i++) {
+
+            String str2[] = str1[i].split(",");
+            delList[i] = str2;
+        }
+        //String delList[][]=DELLIST;
+        boolean isCrudy = false;
+        List<String> verblist=new ArrayList<>();
+        for(int i=0; i< crudnames.length; i++){
+            // notice it should start with the CRUD name
+            String temp=fileHandle.delListFromString(pathclear,delList[i]);
+            if (temp.contains(crudnames[i])) {
+                isCrudy = true;
+                verblist.add(crudnames[i]);
+                if(crudnames[i]!="create" && crudnames[i]!="add" && crudnames[i]!="post" && crudnames[i]!="new" && crudnames[i]!="push" ){
+                    this.hasWrongPost=true;
+                }
+                List<String> pathOP=new ArrayList<>();
+                pathOP.add(p);
+                pathOP.add(crudnames[i]);
+                pathOP.add(operation);
+                CRUDPathOperations.add(pathOP);
+                break;
+            }
+        }
+        this.CRUDlist.addAll(verblist);
+        pathResult.put("CRUDlist",verblist);
+        if(isCrudy){
+            System.out.println("CRUD shouldn't in path "+p);
+            //this.score=this.score-20>0?this.score-20:0;
+            pathResult.put("noCRUD",false);
+
+        }else{
+            this.pathEvaData[4]++;
+            pathResult.put("noCRUD",true);
+        }
+        //层级之间的语义上下文关系
+        List<String> splitPaths;
+        String pathText=pathclear.replace("/"," ");
+        splitPaths=StanfordNLP.getlemma(pathText);//词形还原
+        if(splitPaths.size()>=2){
+                /*WordNet wordNet=new WordNet();
+                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系*/
+            if (jwnLwordnet.hasRelation(splitPaths)){
+                this.hasContextedRelation=true;
+            }
+
+        }
+
+        //文件扩展名不应该包含在API的URL命名中
+        //String suffix[]=SUFFIX_NAMES;
+        String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",",-1);
+        boolean isSuffix = false;
+        List<String> slist=new ArrayList<>();
+        for(int i=0; i< suffix.length; i++){
+            if (p.toLowerCase().indexOf(suffix[i]) >=0) {
+                isSuffix = true;
+                slist.add(suffix[i]);
+
+                break;
+            }
+        }
+        this.suffixlist.addAll(slist);
+        pathResult.put("suffixList",slist);
+        if(isSuffix){
+            System.out.println("suffix shouldn't in path "+p);
+            //this.score=this.score-20>0?this.score-20:0;
+            pathResult.put("noSuffix",false);
+        }else {
+            this.pathEvaData[5]++;
+            pathResult.put("noSuffix",true);
+        }
+
+
+
+        //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
+        int hierarchyNum=0;
+        if(p.endsWith("/") && p.length()>1){
+            //System.out.println(p+" :尾斜杠不包含在URL中");
+            //this.score=this.score-20>0?this.score-20:0;
+            hierarchyNum=substringCount(p,"/")-1;
+            this.hierarchies.add(Integer.toString(hierarchyNum));
+            this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+            this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+            pathResult.put("noend/",false);
+
+        }else{
+            pathResult.put("noend/",true);
+            this.pathEvaData[6]++;
+            //建议嵌套深度一般不超过3层
+            hierarchyNum=substringCount(p,"/");
+            this.hierarchies.add(Integer.toString(hierarchyNum));
+            this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+            this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+
+        }
+        pathResult.put("hierarchies",hierarchyNum);
+        pathDetail.put(p,pathResult);
+
+        //域名检测
+        serverEvaluate(server);
+
+        //请求参数检测
+        for(String paraName:reqParameters){
+            paraName=paraName.toLowerCase();
+            //网页介绍中的属性没有位置（in)
+            //if( parameter.getIn().equals("query")){//查询属性
+                if(isPagePara(paraName)){//功能性属性
+                    this.querypara.add(paraName);
+                    setHasPagePara(true);
+                    System.out.println(paraName+" is page parameter. ");
+                }else if(paraName.contains("version")){//版本信息
+                    this.versionInQueryPara=true;
+                    System.out.println("Query-parameter shouldn't has version parameter: "+paraName);
+                }
+            //}else if(parameter.getIn().equals("header")){//头文件属性
+                else if(paraName.contains("version")){
+                    this.versionInHead=true;
+                }else if(paraName.contains("key") ){
+                    this.hasKey=true;
+                } else if(paraName.contains("token")){
+                    this.hasToken=true;
+                } else  if(paraName.contains("authorization") ){
+                    this.hasAuthorization=true;
+
+                }else if(paraName.equals("accept")){
+                    this.hasAccept=true;
+                }
+            //}
+        }
+
+        for(String headerName:resParameters){
+            headerName=headerName.toLowerCase();
+            if(headerName.equals("cache-control") ){
+                hasCacheControlStatic=true;
+            }else if( headerName.equals("expires")){
+                hasExpiresStatic=true;
+            }else if( headerName.equals("date") ){
+                hasDateStatic=true;
+
+            }else if(headerName.equals("etag") ){
+                this.hasEtagStatic=true;
+            } else if(headerName.equals("last-modified")){
+                this.hasLastModifiedStatic=true;
+
+            }else if(headerName.equals("content-type") ){
+                this.hasResponseContentTypeStatic=true;
+            }
+        }
+        this.score=scoreCalculate();
+
+    }
     public ValidationResponse debugByContent(RequestContext request, String content) throws Exception {
 
         ValidationResponse output = new ValidationResponse();

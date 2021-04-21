@@ -45,6 +45,7 @@ public class fileHandle {
     private List<List<String>> hasContextedRelations=new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
+//        validateFiles("D:\\test\\data-all-clear");
         /*fileHandle fileHandle=new fileHandle();
         fileHandle.validateFiles("D:\\test\\data-all-clear");*/
 
@@ -72,6 +73,11 @@ public class fileHandle {
         httpRequest.setEntity(entity);*/
 
         ValidatorController validator = new ValidatorController();
+        String html=validator.getUrlContents("https://www.hs.net/wiki/api/598_quote_v1_stare_query_right_list.html");
+        validator.validateByHengShengHtml(html);
+        System.out.println(validator.getScore());
+        /*  //动态检测实验测试2021.4.10
+        ValidatorController validator = new ValidatorController();
         //String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
         String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
 
@@ -82,8 +88,13 @@ public class fileHandle {
         //动态检测
         validator.dynamicValidateByContent(content);
         Map<String,Object> pathdetaildynamic=validator.getPathDetailDynamic();
-        JSONObject jsonObject=JSONObject.fromObject(pathdetaildynamic);
-        String string = jsonObject.toString();//消息体字符串
+        JSONObject jsonObject=JSONObject.fromObject(pathdetaildynamic);*/
+
+
+//        System.out.println("pathDetail-dynamic:"+string);
+        System.out.println("responseNum:"+validator.getResponseNum());
+        System.out.println("valideResponseNum:"+validator.getValidResponseNum());
+/*String string = jsonObject.toString();//消息体字符串
         File csvFile = null;
         BufferedWriter csvFileOutputStream = null;
         try {
@@ -145,12 +156,7 @@ public class fileHandle {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-
-//        System.out.println("pathDetail-dynamic:"+string);
-        System.out.println("responseNum:"+validator.getResponseNum());
-        System.out.println("valideResponseNum:"+validator.getValidResponseNum());
-
+        }*/
 
         //System.out.println(validator.isVersionInHead());
         //System.out.println(validator.isVersionInQueryPara());
@@ -262,21 +268,38 @@ public class fileHandle {
     *@Author: zhouxinyu
     *@date: 2020/6/22
     */
-    public void validateFiles(String pathName) throws Exception {
-        //File file = new File("E:\\test\\openapi");
+    public static void validateFiles(String pathName) throws Exception {
+        //File file = new File("D:\\REST API file\\result");
+        //记录执行时间
+        File csvFile = File.createTempFile("pathDetailDynamic", ".csv", new File("D:\\REST API file\\result"));
+        BufferedWriter csvFileOutputStream = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(csvFile), StandardCharsets.UTF_8), 1024);
+
+        long startMili=System.currentTimeMillis();// 当前时间对应的毫秒数
+        System.out.println("start "+startMili);
         File file = new File(pathName);
         //File[] tempList = file.listFiles();
         ArrayList<File> fileList = getListFiles(pathName);
         Map<String,Object> statuss=new HashMap<>();
+        int RADcount=0;
+        int PathCount=0;
         for(File f : fileList){
             ValidatorController validator = new ValidatorController();
             String path=f.getPath();
             String name=f.getName();
+            csvFileOutputStream.write(name+",");
+            long startRAD=System.currentTimeMillis();//一个说明文档的开始时间
             String content=validator.readFile(path);
             System.out.println(name+" start!");
+            RADcount++;
             ResponseContext response = validator.validateByString(new RequestContext(), content);
             //ResponseContext response = validator.validateByUrl(new RequestContext(), url);
-/*
+            PathCount+=validator.getPathNum();
+            long endRAD=System.currentTimeMillis();//一个说明文档的结束时间
+            csvFileOutputStream.write(validator.getPathNum()+",");//路径数
+            csvFileOutputStream.write(endRAD-startRAD+",");//该API检测用时
+            csvFileOutputStream.write((endRAD-startRAD)/validator.getPathNum()+",");//该API路径检测的平均用时
+            csvFileOutputStream.newLine();
+            /*
             //静态检测有无缓存机制
             List<String> cacheStatic=new ArrayList<>();
             cacheStatic.add(name);
@@ -397,10 +420,10 @@ public class fileHandle {
             hascontent.add(name);
             hascontent.add(String.valueOf(validator.isHasResponseContentType()));//是否响应头文件中是否有contenetType
             hasResponseContentType.add(hascontent);*/
-            List<String> hascontextedr=new ArrayList<>();
+            /*List<String> hascontextedr=new ArrayList<>();
             hascontextedr.add(name);
             hascontextedr.add(String.valueOf(validator.isHasContextedRelation()));//是否响应头文件中是否有contenetType
-            hasContextedRelations.add(hascontextedr);
+            hasContextedRelations.add(hascontextedr);*/
 
      /*       //头文件（accept、身份验证信息（key、token、authoriaztion）实验
             List<String> hasAccept=new ArrayList<>();
@@ -414,6 +437,7 @@ public class fileHandle {
             hasapiInhost.add(name);
             hasapiInhost.add(String.valueOf(validator.isApiInServer()));
             hasapiInhosts.add(hasapiInhost);*/
+            System.out.println(name+" end!");
         }
         //基本信息（路径、端点）
         //createCSVFile(basicInfos,"result","pathValidate-all");
@@ -439,7 +463,7 @@ public class fileHandle {
         //createCSVFile(this.isHATEOAS,"D:\\REST API file\\result","hateoas-all");
         //响应头里有无content-type
         //createCSVFile(this.hasResponseContentType,"D:\\REST API file\\result","contentTypeResponse-all");
-        createCSVFile(this.hasContextedRelations,"D:\\REST API file\\result","contextedRelation-all");
+        //createCSVFile(this.hasContextedRelations,"D:\\REST API file\\result","contextedRelation-all");
         /*   createCSVFile(this.hasAccepts,"D:\\REST API file\\result","headers(accept/token)-all");
         createCSVFile(this.hasapiInhosts,"D:\\REST API file\\result","apiInHost-all");
 */
@@ -448,7 +472,11 @@ public class fileHandle {
         JSONObject jo=JSONObject.fromObject(statuss);
         outStream.write(jo.toString().getBytes("UTF-8"));*/
         //createCSVFile(hasCacStatics,"D:\\REST API\\result","hasCacheStatic-all");
-        System.out.println("end");
+        long endMili=System.currentTimeMillis();
+        System.out.println("end "+endMili);
+        System.out.println("总耗时为："+(endMili-startMili)+"毫秒");
+        System.out.println("总API数："+RADcount);
+        System.out.println("总路径数："+PathCount);
 
     }
 

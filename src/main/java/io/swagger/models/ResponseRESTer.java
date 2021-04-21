@@ -12,4 +12,28 @@ public class ResponseRESTer {
         headers=new ArrayList<>();
         examples=new ArrayList<>();
     }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public List<ParameterRESTer> getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(List<ParameterRESTer> headers) {
+        this.headers = headers;
+    }
+
+    public List<String> getExamples() {
+        return examples;
+    }
+
+    public void setExamples(List<String> examples) {
+        this.examples = examples;
+    }
 }

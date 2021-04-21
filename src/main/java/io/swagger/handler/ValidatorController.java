@@ -943,7 +943,104 @@ public class ValidatorController{
         }
     }
 
-    public void validateByHengShengHtml(String html) throws FileNotFoundException, JWNLException {
+    /**
+     * 通过API网页检测
+     * @param html
+     */
+    public void validateByHengSheng(String html) throws IOException, JWNLException {
+        RESTModel model=new HSModel(html);
+        validateByModel(model);
+
+    }
+
+    private void validateByModel(RESTModel model) throws IOException, JWNLException {
+        JWNLwordnet jwnLwordnet=new JWNLwordnet();
+        String path="";
+
+        String url="";
+        String supportType="";
+
+
+        //路径检测
+        Map<String,Object> paths=model.getPaths();
+        pathEvaluate(paths.keySet(),model);
+        //域名检测
+        List<String> servers=model.getBaseURLs();
+        serverEvaluate(servers.get(0));
+
+        //请求参数检测
+        List<ParameterRESTer> reqParameters=new ArrayList<>();//请求参数
+        List<ParameterRESTer> resParameters=new ArrayList<>();//响应参数
+        for(String pathname:paths.keySet()){
+            PathRESTer pathTemp= (PathRESTer) paths.get(pathname);
+            reqParameters.addAll(pathTemp.getPatameters());//收集路径级别参数
+            List<OperationRESTer> operations=pathTemp.getOperations();
+            for(OperationRESTer operation:operations){
+                reqParameters.addAll(operation.getParameters());//收集操作级别参数
+                List<ResponseRESTer> responses=operation.getResponses();
+                for(ResponseRESTer response:responses){
+                    resParameters.addAll(response.getHeaders());//收集响应参数
+                }
+            }
+
+        }
+        for(ParameterRESTer parameterRester:reqParameters){
+            String paraName=parameterRester.getName();
+            paraName=paraName.toLowerCase();
+            //网页介绍中的属性没有位置（in)
+            //if( parameter.getIn().equals("query")){//查询属性
+            if(isPagePara(paraName)){//功能性属性
+                this.querypara.add(paraName);
+                setHasPagePara(true);
+                System.out.println(paraName+" is page parameter. ");
+            }/*else if(paraName.contains("version")){//版本信息
+                this.versionInQueryPara=true;
+                System.out.println("Query-parameter shouldn't has version parameter: "+paraName);
+            }*/
+            //}else if(parameter.getIn().equals("header")){//头文件属性
+            else if(paraName.contains("version")){
+                this.versionInHead=true;
+            }else if(paraName.contains("key") ){
+                this.hasKey=true;
+            } else if(paraName.contains("token")){
+                this.hasToken=true;
+            } else  if(paraName.contains("authorization") ){
+                this.hasAuthorization=true;
+
+            }else if(paraName.equals("accept")){
+                this.hasAccept=true;
+            }
+            //}
+        }
+
+        //请求参数检测
+        for(ParameterRESTer resParameter:resParameters){
+            String headerName=resParameter.getName();
+            headerName=headerName.toLowerCase();
+            if(headerName.equals("cache-control") ){
+                hasCacheControlStatic=true;
+            }else if( headerName.equals("expires")){
+                hasExpiresStatic=true;
+            }else if( headerName.equals("date") ){
+                hasDateStatic=true;
+            }else if(headerName.equals("etag") ){
+                this.hasEtagStatic=true;
+            } else if(headerName.equals("last-modified")){
+                this.hasLastModifiedStatic=true;
+            }else if(headerName.equals("content-type") ){
+                this.hasResponseContentTypeStatic=true;
+            }
+        }
+        this.score=scoreCalculate();
+    }
+
+    /**
+     * 通过路径（端点）网页检测
+     * @param html
+     * @throws FileNotFoundException
+     * @throws JWNLException
+     */
+    public void validateByHengShengEndpoint(String html) throws FileNotFoundException, JWNLException {
         JWNLwordnet jwnLwordnet=new JWNLwordnet();
         String path="";
         String server="";
@@ -2298,6 +2395,199 @@ public class ValidatorController{
 
         /*validateResult.put("path",pathDetail);*/
     }
+
+    /**
+     * RESTer模型的路径检测（通用）
+     * @param paths
+     * @param result
+     * @throws IOException
+     * @throws JWNLException
+     */
+    private void pathEvaluate(Set paths, RESTModel result) throws IOException, JWNLException {
+        //setPathNum(paths.size());//提取路径数
+        JWNLwordnet jwnLwordnet=new JWNLwordnet();
+        evaluations.put("pathNum",Float.toString(getPathNum()));//向评估结果中填入路径数
+        for (Iterator it = paths.iterator(); it.hasNext(); ) {
+            Map<String,Object> pathResult=new HashMap<>();
+            String p = (String) it.next();
+            //evaluateToScore()
+            if(!(p.indexOf("_") < 0)){
+                //System.out.println(p+" has _");
+                //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("no_",false);
+            }else {
+                this.pathEvaData[0]++;//Integer是Object子类，是对象，可以为null。int是基本数据类型，必须初始化，默认为0
+                pathResult.put("no_",true);
+            }
+
+            if(p!=p.toLowerCase()){
+                //System.out.println(p+"need to be lowercase");
+                //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("lowercase",false);
+            }else {
+                this.pathEvaData[1]++;
+                pathResult.put("lowercase",true);
+            }
+
+            Pattern pattern1 = Pattern.compile(ConfigManager.getInstance().getValue("VERSIONPATH_REGEX"));
+            Matcher m1 = pattern1.matcher(p); // 获取 matcher 对象
+            Pattern pattern2=Pattern.compile("v(ers?|ersion)?[0-9.]+(-?(alpha|beta|rc)([0-9.]+\\+?[0-9]?|[0-9]?))?");
+            Matcher m2=pattern2.matcher(p);
+            if(m2.find()){
+                this.versionInPath=true;
+                System.out.println("version shouldn't in paths "+p);
+                //this.score=this.score-5>0?this.score-5:0;
+                String version=m2.group();
+                int dotCount=0;
+                for(int i=0;i<version.length();i++){
+                    if(version.charAt(i)=='.'){
+                        dotCount++;
+                    }
+                }
+                this.dotCountInPath=dotCount;
+                if(version.contains(".") || version.contains("alpha") || version.contains("beta") || version.contains("rc")){
+                    this.semanticVersion=true;
+                }
+                pathResult.put("noVersion",false);
+            }else {
+                this.pathEvaData[2]++;
+                pathResult.put("noVersion",true);
+            }
+            if(p.toLowerCase().indexOf("api")>=0){
+                System.out.println("api shouldn't in path "+p);
+                //this.score=this.score-10>0?this.score-10:0;
+                pathResult.put("noapi",false);
+            }else {
+                this.pathEvaData[3]++;
+                pathResult.put("noapi",true);
+            }
+
+            //this.pathlist.add(p);
+            Pattern pp = Pattern.compile("(\\{[^\\}]*\\})");
+            Matcher m = pp.matcher(p);
+            String pathclear = "";//去除属性{}之后的路径
+            int endtemp=0;
+            while(m.find()){
+                pathclear+=p.substring(endtemp,m.start());
+                endtemp=m.end();
+            }
+            pathclear+=p.substring(endtemp);
+            pathclear=pathclear.toLowerCase();
+
+            //String crudnames[]=CRUDNAMES;
+            String crudnames[]=ConfigManager.getInstance().getValue("CRUDNAMES").split(",",-1);
+
+            String dellistString=ConfigManager.getInstance().getValue("DELLIST");
+            String str1[] = dellistString.split(";",-1);
+            String delList[][]=new String[str1.length][];
+            for(int i = 0;i < str1.length;i++) {
+
+                String str2[] = str1[i].split(",");
+                delList[i] = str2;
+            }
+            //String delList[][]=DELLIST;
+            boolean isCrudy = false;
+            List<String> verblist=new ArrayList<>();
+            for(int i=0; i< crudnames.length; i++){
+                // notice it should start with the CRUD name
+                String temp=fileHandle.delListFromString(pathclear,delList[i]);
+                if (temp.indexOf(crudnames[i]) >=0) {
+                    isCrudy = true;
+                    verblist.add(crudnames[i]);
+
+                    CRUDPathOperation(p,crudnames[i], result);
+                    break;
+                }
+            }
+            this.CRUDlist.addAll(verblist);
+            pathResult.put("CRUDlist",verblist);
+            if(isCrudy){
+                System.out.println("CRUD shouldn't in path "+p);
+                //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("noCRUD",false);
+
+            }else{
+                this.pathEvaData[4]++;
+                pathResult.put("noCRUD",true);
+            }
+            //层级之间的语义上下文关系
+            List<String> splitPaths;
+            String pathText=pathclear.replace("/"," ");
+            splitPaths=StanfordNLP.getlemma(pathText);//词形还原
+            if(splitPaths.size()>=2){
+                /*WordNet wordNet=new WordNet();
+                wordNet.hasRelation(splitPaths);//检测是否具有上下文关系*/
+                if (jwnLwordnet.hasRelation(splitPaths)){
+                    this.hasContextedRelation=true;
+                }
+            }
+
+            //文件扩展名不应该包含在API的URL命名中
+            //String suffix[]=SUFFIX_NAMES;
+            String suffix[]=ConfigManager.getInstance().getValue("SUFFIX_NAMES").split(",",-1);
+            boolean isSuffix = false;
+            List<String> slist=new ArrayList<>();
+            for(int i=0; i< suffix.length; i++){
+                if (p.toLowerCase().indexOf(suffix[i]) >=0) {
+                    isSuffix = true;
+                    slist.add(suffix[i]);
+
+                    break;
+                }
+            }
+            this.suffixlist.addAll(slist);
+            pathResult.put("suffixList",slist);
+            if(isSuffix){
+                System.out.println("suffix shouldn't in path "+p);
+                //this.score=this.score-20>0?this.score-20:0;
+                pathResult.put("noSuffix",false);
+            }else {
+                this.pathEvaData[5]++;
+                pathResult.put("noSuffix",true);
+            }
+
+
+
+            //使用正斜杠分隔符“/”来表示一个层次关系，尾斜杠不包含在URL中
+            int hierarchyNum=0;
+            if(p.endsWith("/") && p.length()>1){
+                //System.out.println(p+" :尾斜杠不包含在URL中");
+                //this.score=this.score-20>0?this.score-20:0;
+                hierarchyNum=substringCount(p,"/")-1;
+                this.hierarchies.add(Integer.toString(hierarchyNum));
+                this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+                this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+                pathResult.put("noend/",false);
+
+            }else{
+                pathResult.put("noend/",true);
+                this.pathEvaData[6]++;
+                //建议嵌套深度一般不超过3层
+                hierarchyNum=substringCount(p,"/");
+                this.hierarchies.add(Integer.toString(hierarchyNum));
+                this.pathEvaData[7]+=hierarchyNum;//层级总数，算平均层级数
+                this.pathEvaData[8]=hierarchyNum>=this.pathEvaData[8]?hierarchyNum:this.pathEvaData[8];//最大层级数
+
+            }
+            pathResult.put("hierarchies",hierarchyNum);
+            if(hierarchyNum>3){
+                //System.out.println(p+": 嵌套深度建议不超过3层");
+                //this.score=this.score-5>0?this.score-5:0;
+            }else {
+
+            }
+            pathDetail.put(p,pathResult);
+        }
+        setAvgHierarchy(this.pathEvaData[7]/(float)paths.size());//计算平均层级数
+        validateResult.put("pathEvaData",getPathEvaData());
+        /*validateResult.put("versionInPath",this.versionInPath);
+        validateResult.put("semanticVersion",this.semanticVersion);
+
+        validateResult.put("avgHierarchies",getAvgHierarchy());
+
+
+        validateResult.put("path",pathDetail);*/
+    }
     /**
     *@Description: 路径（命名）验证,v3.0
     *@Param: [paths]路径名集合
@@ -2489,6 +2779,23 @@ public class ValidatorController{
 
 
         validateResult.put("path",pathDetail);*/
+    }
+
+    /**
+     * 路径中出现的动词以及所使用的操作-通用
+     * @param p
+     * @param crudname
+     * @param result
+     */
+    private void CRUDPathOperation(String p, String crudname, RESTModel result) {
+        List<String> pathOP=new ArrayList<>();
+        pathOP.add(p);
+        pathOP.add(crudname);
+        PathRESTer path = (PathRESTer) result.getPaths().get(p);
+        for(OperationRESTer op : path.getOperations()){
+            pathOP.add(op.getMethod());
+        }
+        CRUDPathOperations.add(pathOP);
     }
 
     /**
@@ -2961,7 +3268,7 @@ public class ValidatorController{
         return factory.getJsonSchema(schemaObject);
 
     }
-    private CloseableHttpClient getCarelessHttpClient(boolean disableRedirect) {
+    private static CloseableHttpClient getCarelessHttpClient(boolean disableRedirect) {
         CloseableHttpClient httpClient = null;
 
         try {
@@ -2987,10 +3294,10 @@ public class ValidatorController{
         return httpClient;
     }
 
-    public String getUrlContents(String urlString) throws IOException {
+    public static String getUrlContents(String urlString) throws IOException {
         return getUrlContents(urlString, false, false);
     }
-    public String getUrlContents(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {
+    public static String getUrlContents(String urlString, boolean rejectLocal, boolean rejectRedirect) throws IOException {
         LOGGER.trace("fetching URL contents");
         URL url = new URL(urlString);
         if(rejectLocal) {

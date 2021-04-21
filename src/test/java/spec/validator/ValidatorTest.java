@@ -144,7 +144,7 @@ public class ValidatorTest {
 
 
 
-    @Test
+    /*@Test
     public void testValidateValid20SpecByUrl() throws Exception {
         String url = "http://localhost:${dynamicPort}/validswagger/yaml";
         //String url = "http://localhost:${dynamicPort}/valid/json";
@@ -194,7 +194,7 @@ public class ValidatorTest {
         Assert.assertTrue( validateEquals(entity,valid) == true);
         System.out.println("success!score:"+validator.getScore());
 
-    }
+    }*/
 
     @Test
     public void testValidateValidAll() throws Exception {
@@ -228,7 +228,7 @@ public class ValidatorTest {
 
     }
 
-    @Test
+    /*@Test
     public void testValidateInvalid30SpecByUrl() throws Exception {
         //String url = "http://localhost:${dynamicPort}/invalid_1/yaml";
         String url = "http://localhost:${dynamicPort}/invalid/yaml";
@@ -244,7 +244,7 @@ public class ValidatorTest {
 
         Assert.assertTrue( validateEquals(entity,valid) == true);
 
-    }
+    }*/
 
     @Test
     public void functionTest() throws Exception {
@@ -261,7 +261,7 @@ public class ValidatorTest {
 
     }
 
-    @Test
+    /*@Test
     public void testValidateInvalid20SpecByUrl() throws Exception {
         String url = "http://localhost:${dynamicPort}/invalidswagger/yaml";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
@@ -276,9 +276,9 @@ public class ValidatorTest {
 
         Assert.assertTrue( validateEquals(entity,valid) == true);
 
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testValidateInvalid30SpecByContent() throws Exception {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final JsonNode rootNode = mapper.readTree(Files.readAllBytes(java.nio.file.Paths.get(getClass().getResource(INVALID_30_YAML).toURI())));
@@ -293,9 +293,9 @@ public class ValidatorTest {
         Assert.assertTrue( validateEquals(entity,valid) == true);
 
 
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testValidateInvalid20SpecByContent() throws Exception {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final JsonNode rootNode = mapper.readTree(Files.readAllBytes(java.nio.file.Paths.get(getClass().getResource(INVALID_20_YAML).toURI())));
@@ -310,10 +310,10 @@ public class ValidatorTest {
         Assert.assertTrue( validateEquals(entity,valid) == true);
 
 
-    }
+    }*/
 
 
-    @Test
+    /*@Test
     public void testValidateValid30SpecByContent() throws Exception {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final JsonNode rootNode = mapper.readTree(Files.readAllBytes(java.nio.file.Paths.get(getClass().getResource(VALID_30_YAML).toURI())));
@@ -355,10 +355,10 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByUrl(new RequestContext(), url);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages() == null || validationResponse.getMessages().size() == 0);
         Assert.assertTrue(validationResponse.getSchemaValidationMessages() == null || validationResponse.getSchemaValidationMessages().size() == 0);
@@ -374,16 +374,16 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByUrl(new RequestContext(), url);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages() == null || validationResponse.getMessages().size() == 0);
         Assert.assertTrue(validationResponse.getSchemaValidationMessages() == null || validationResponse.getSchemaValidationMessages().size() == 0);
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testDebugInvalid30SpecByUrl() throws Exception {
         String url = "http://localhost:${dynamicPort}/invalid/yaml";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
@@ -392,17 +392,17 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByUrl(new RequestContext(), url);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages().contains(INFO_MISSING));
         Assert.assertTrue(validationResponse.getSchemaValidationMessages().get(0).getMessage().equals(INFO_MISSING_SCHEMA));
 
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testDebugInvalid20SpecByUrl() throws Exception {
         String url = "http://localhost:${dynamicPort}/invalidswagger/yaml";
         url = url.replace("${dynamicPort}", String.valueOf(this.serverPort));
@@ -411,17 +411,17 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByUrl(new RequestContext(), url);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages().contains(INFO_MISSING));
         Assert.assertTrue(validationResponse.getSchemaValidationMessages().get(0).getMessage().equals(INFO_MISSING_SCHEMA));
 
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testDebugInvalid30SpecByContent() throws Exception {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final JsonNode rootNode = mapper.readTree(Files.readAllBytes(java.nio.file.Paths.get(getClass().getResource(INVALID_30_YAML).toURI())));
@@ -429,17 +429,17 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByContent(new RequestContext(), rootNode);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
 
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages().contains(INFO_MISSING));
         Assert.assertTrue(validationResponse.getSchemaValidationMessages().get(0).getMessage().equals(INFO_MISSING_SCHEMA));
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testDebugInvalid20SpecByContent() throws Exception {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final JsonNode rootNode = mapper.readTree(Files.readAllBytes(java.nio.file.Paths.get(getClass().getResource(INVALID_20_YAML).toURI())));
@@ -447,16 +447,16 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByContent(new RequestContext(), rootNode);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages().contains(INFO_MISSING));
         Assert.assertTrue(validationResponse.getSchemaValidationMessages().get(0).getMessage().equals(INFO_MISSING_SCHEMA));
-    }
+    }*/
 
-    @Test
+    /*@Test
     public void testDebugValid20SpecByContent() throws Exception {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         final JsonNode rootNode = mapper.readTree(Files.readAllBytes(java.nio.file.Paths.get(getClass().getResource(VALID_20_YAML).toURI())));
@@ -464,10 +464,10 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByContent(new RequestContext(), rootNode);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages() == null || validationResponse.getMessages().size() == 0);
         Assert.assertTrue(validationResponse.getSchemaValidationMessages() == null || validationResponse.getSchemaValidationMessages().size() == 0);
@@ -481,14 +481,14 @@ public class ValidatorTest {
         ResponseContext response = validator.reviewByContent(new RequestContext(), rootNode);
 
         // since inflector 2.0.3 content type is managed by inflector according to request headers and spec
-/*
+*//*
         Assert.assertEquals(APPLICATION, response.getContentType().getType());
         Assert.assertEquals(JSON, response.getContentType().getSubtype());
-*/
+*//*
         ValidationResponse validationResponse = (ValidationResponse) response.getEntity();
         Assert.assertTrue(validationResponse.getMessages() == null || validationResponse.getMessages().size() == 0);
         Assert.assertTrue(validationResponse.getSchemaValidationMessages() == null || validationResponse.getSchemaValidationMessages().size() == 0);
-    }
+    }*/
 
 
 

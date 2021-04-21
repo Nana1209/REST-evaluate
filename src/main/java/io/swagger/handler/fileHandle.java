@@ -82,12 +82,12 @@ public class fileHandle {
         httpRequest.setEntity(entity);*/
 
         ValidatorController validator = new ValidatorController();
-        String html=validator.getUrlContents("https://www.hs.net/wiki/api/598_quote_v1_stare_query_right_list.html");
+        /*String html=validator.getUrlContents("https://www.hs.net/wiki/api/598_quote_v1_stare_query_right_list.html");
         validator.validateByHengShengEndpoint(html);
-        System.out.println(validator.getScore());
+        System.out.println(validator.getScore());*/
         String html1=validator.getUrlContents("https://www.hs.net/wiki/service/182.html");
-        HSModel hs=new HSModel(html1);
-        System.out.println(hs.getName());
+        validator.validateByHengSheng(html1);
+        System.out.println(validator.getScore());
         /*  //动态检测实验测试2021.4.10
         ValidatorController validator = new ValidatorController();
         //String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");

@@ -12,9 +12,10 @@ import java.util.List;
 import java.util.Map;
 
 public class RESTModel {
-    private List<String> baseURLs;
-    private Map<String,Object> paths;
-    private Map<String,Object> securitySchemes;
+    protected String name;
+    protected List<String> baseURLs;
+    protected Map<String,Object> paths;
+    protected Map<String,Object> securitySchemes;
 
     /**
      * 从swagger构造
@@ -63,6 +64,18 @@ public class RESTModel {
             paths.put(path,result.getOpenAPI().getPaths().get(path));
         }
     }
+
+    public RESTModel() {
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setBaseURLs(List<String> baseURLs) {
         this.baseURLs = baseURLs;
     }

@@ -1,17 +1,26 @@
 package io.swagger.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.models.HSModel;
 import io.swagger.oas.inflector.models.RequestContext;
 import io.swagger.oas.inflector.models.ResponseContext;
 import io.swagger.util.Json;
 import io.swagger.util.Yaml;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 /*import org.json.JSONException;
 import org.json.JSONObject;*/
 
@@ -74,8 +83,11 @@ public class fileHandle {
 
         ValidatorController validator = new ValidatorController();
         String html=validator.getUrlContents("https://www.hs.net/wiki/api/598_quote_v1_stare_query_right_list.html");
-        validator.validateByHengShengHtml(html);
+        validator.validateByHengShengEndpoint(html);
         System.out.println(validator.getScore());
+        String html1=validator.getUrlContents("https://www.hs.net/wiki/service/182.html");
+        HSModel hs=new HSModel(html1);
+        System.out.println(hs.getName());
         /*  //动态检测实验测试2021.4.10
         ValidatorController validator = new ValidatorController();
         //String content=validator.readFile("D:\\test\\data-all-clear\\github.com-v3-swagger.yaml");
@@ -574,5 +586,45 @@ public class fileHandle {
             resultJson.put(key, map.get(key));
         }
         return resultJson;
+    }
+
+    /**
+     * 获取指定urlString地址的html字符串
+     * @param urlString
+     * @return
+     * @throws IOException
+     */
+    public static String getUrlContents(String urlString) throws IOException {
+        String html="";
+        //1.生成httpclient，相当于该打开一个浏览器
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        CloseableHttpResponse response = null;
+        //2.创建get请求，相当于在浏览器地址栏输入 网址
+        HttpGet request = new HttpGet(urlString);
+        try {
+            //3.执行get请求，相当于在输入地址栏后敲回车键
+            response = httpClient.execute(request);
+
+            //4.判断响应状态为200，进行处理
+            if(response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                //5.获取响应内容
+                HttpEntity httpEntity = response.getEntity();
+                html = EntityUtils.toString(httpEntity, "utf-8");
+//                System.out.println(html);
+            } else {
+                //如果返回状态不是200，比如404（页面不存在）等，根据情况做处理，这里略
+                System.out.println("返回状态不是200");
+                System.out.println(EntityUtils.toString(response.getEntity(), "utf-8"));
+            }
+        } catch (ClientProtocolException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            //6.关闭
+            HttpClientUtils.closeQuietly(response);
+            HttpClientUtils.closeQuietly(httpClient);
+        }
+        return html;
     }
 }

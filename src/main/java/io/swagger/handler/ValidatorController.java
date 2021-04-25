@@ -954,11 +954,6 @@ public class ValidatorController{
     }
 
     private void validateByModel(RESTModel model) throws IOException, JWNLException {
-        JWNLwordnet jwnLwordnet=new JWNLwordnet();
-        String path="";
-
-        String url="";
-        String supportType="";
 
 
         //路径检测
@@ -973,7 +968,7 @@ public class ValidatorController{
         List<ParameterRESTer> resParameters=new ArrayList<>();//响应参数
         for(String pathname:paths.keySet()){
             PathRESTer pathTemp= (PathRESTer) paths.get(pathname);
-            reqParameters.addAll(pathTemp.getPatameters());//收集路径级别参数
+            reqParameters.addAll(pathTemp.getParameters());//收集路径级别参数
             List<OperationRESTer> operations=pathTemp.getOperations();
             for(OperationRESTer operation:operations){
                 reqParameters.addAll(operation.getParameters());//收集操作级别参数
@@ -1032,6 +1027,8 @@ public class ValidatorController{
             }
         }
         this.score=scoreCalculate();
+        //填写输出Json
+        setValidateResult();
     }
 
     /**

@@ -85,7 +85,7 @@ public class fileHandle {
         /*String html=validator.getUrlContents("https://www.hs.net/wiki/api/598_quote_v1_stare_query_right_list.html");
         validator.validateByHengShengEndpoint(html);
         System.out.println(validator.getScore());*/
-        String html1=validator.getUrlContents("https://www.hs.net/wiki/service/182.html");
+        String html1=validator.getUrlContents("https://www.hs.net/wiki/service/598.html");
         validator.validateByHengSheng(html1);
         System.out.println(validator.getScore());
         /*  //动态检测实验测试2021.4.10

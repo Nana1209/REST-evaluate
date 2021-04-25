@@ -6,11 +6,11 @@ import java.util.List;
 public class PathRESTer {
     protected String pathName;
     protected List<OperationRESTer> operations;
-    protected List<ParameterRESTer> patameters;
+    protected List<ParameterRESTer> parameters;
     PathRESTer(){
         pathName="";
         operations=new ArrayList<>();
-        patameters=new ArrayList<>();
+        parameters=new ArrayList<>();
     }
 
     public String getPathName() {
@@ -29,11 +29,11 @@ public class PathRESTer {
         this.operations = operations;
     }
 
-    public List<ParameterRESTer> getPatameters() {
-        return patameters;
+    public List<ParameterRESTer> getParameters() {
+        return parameters;
     }
 
-    public void setPatameters(List<ParameterRESTer> patameters) {
-        this.patameters = patameters;
+    public void setPatameters(List<ParameterRESTer> parameters) {
+        this.parameters = parameters;
     }
 }

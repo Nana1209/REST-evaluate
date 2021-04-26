@@ -1,95 +1,433 @@
-<!-- HTML for static distribution bundle build -->
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Swagger UI</title>
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Source+Code+Pro:300,600|Titillium+Web:400,600,700" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="./swagger-ui.css" >
-  <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32" />
-  <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16" />
-  <style>
-    html
-    {
-      box-sizing: border-box;
-      overflow: -moz-scrollbars-vertical;
-      overflow-y: scroll;
+<!DOCTYPE html><html><head><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><title>rester-web</title><script src=http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js></script><link href=https://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css rel=stylesheet><link href=https://cdn.bootcss.com/font-awesome/4.4.0/css/font-awesome.min.css rel=stylesheet><link href=https://cdn.bootcss.com/animate.css/3.5.2/animate.min.css rel=stylesheet><link href=https://cdn.bootcss.com/chosen/1.8.2/chosen.css rel=stylesheet><link href=/static/css/app.4c1fdd246a76a98541e7df934eaf572d.css rel=stylesheet></head><body><div id=app></div><script type=text/javascript src=/static/js/manifest.2ae2e69a05c33dfc65f8.js></script><script type=text/javascript src=/static/js/vendor.91d7879157aef359802f.js></script><script type=text/javascript src=/static/js/app.d3fe175d72424e49b87f.js></script></body><script src=https://cdn.bootcss.com/jquery/2.1.4/jquery.min.js></script><script src=https://cdn.staticfile.org/echarts/4.3.0/echarts.js></script><script src=https://cdn.bootcss.com/chosen/1.8.2/chosen.jquery.js></script><script src=static/bootstrap-3.3.5-min.js></script><script src=static/canvas2image.js></script><script src=static/html2canvas.js></script><script src=static/jspdf.debug.js></script><script src=static/echarts-wordcloud.js></script><script type=text/javascript></script><script type=text/javascript>function mycollapse(that){
+      var o = $(that).closest("div.ibox"), e = $(that).find("i"), i = o.find("div.ibox-content");
+      console.log(o.data());
+      i.slideToggle(200), e.toggleClass("fa-chevron-up").toggleClass("fa-chevron-down"), o.toggleClass("").toggleClass("border-bottom"), setTimeout(function () {
+        o.resize(), o.find("[id^=map-]").resize()}, 50)
+    }</script><script type=text/javascript>var validateResult={};
+    //文件上传Ajax
+    //$("#jquery_post").on("click",function(){
+    /*function  submitFileForm(){
+      /!*var inputf=new FormData;
+      inputf.append("testfile",document.getElementById("file_upload").files[0]);*!/
+      var formdata=new FormData(document.getElementById("fileupload"));
+      $.ajax({
+        url:'http://localhost:8080/restapi',
+        type:"POST",
+        dataType:"JSON",
+        //data:inputf,
+        data:formdata,
+        /!*不加Ajax自动转换成字符串*!/
+        contentType: false,
+        processData: false,
+        success:function (data) {
+          //pushDom(JSON.parse(data));
+          console.log("filehuidiao");
+          validateResult=data;
+          console.log("parsesuccess");
+          replaceFunc();
+        }
+      })
+    }*/
+
+    function urlSubmitForm() {
+
+      $.ajax({
+
+        type: 'post',
+        url: 'http://localhost:8080/restapi',
+        data: $('#urlForm').serialize(), //将表单的数据拼成标准参数模式字符串，e.g.“username=chen&nickname=alien”
+        success: function (data) {
+          //pushDom(JSON.parse(data));
+          validateResult=JSON.parse(data);
+          console.log("huidiao");
+          replaceFunc();
+
+        },
+        error: function (data) {
+          console.log("huidiao error");
+          alert(JSON.stringify(data));
+        }
+      });
     }
-    *,
-    *:before,
-    *:after
-    {
-      box-sizing: inherit;
+    /*function textSubmitForm() {
+
+      $.ajax({
+
+        type: 'post',
+        url: 'http://localhost:8080/restapi',
+        data: $('#textForm').serialize(), //将表单的数据拼成标准参数模式字符串，e.g.“username=chen&nickname=alien”
+        success: function (data) {
+          //pushDom(JSON.parse(data));
+          validateResult=JSON.parse(data);
+          console.log("huidiao");
+          replaceFunc();
+
+        },
+        error: function (data) {
+          console.log("huidiao error");
+          alert(JSON.stringify(data));
+        }
+      });
+    }*/
+    function clickRow(obj){
+      $("#detailBody").children("tr").attr("style","font-family: Consolas");
+      $(obj).attr("style","font-family: Consolas; background-color: #b0d877");
     }
 
-    body {
-      margin:0;
-      background: #fafafa;
+    function details(obj) {
+      if ($(obj).text() == '展开') {
+        var len = $(obj).parent().parent().children().length;
+        var detailLog = "";
+        var logs = resultData["testResult"][parseInt($(obj).attr("buttonIndex"))]["log"];
+        $(obj).text("收缩");
+        $(obj).removeClass("btn-primary");
+        $(obj).addClass("btn-danger");
+        $.each(logs, function (i, n) {
+          detailLog = detailLog + "<p>" + n + "</p>";
+        });
+        $(obj).parent().parent().after("<tr><td colspan='" + len + "'><div style='font-family: Consolas;font-size:12px;overflow-x:auto;'>" + detailLog + "</div></td></tr>");
+      } else if ($(obj).text() == '收缩') {
+        $(obj).parent().parent().next().remove();
+        $(obj).text("展开");
+        $(obj).removeClass("btn-danger");
+        $(obj).addClass("btn-primary");
+      }
+
     }
-  </style>
-</head>
+    //$(replaceFunc);
 
-<body>
-<div>hello world!</div>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" style="position:absolute;width:0;height:0">
-  <defs>
-    <symbol viewBox="0 0 20 20" id="unlocked">
-      <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V6h2v-.801C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8z"></path>
-    </symbol>
+    function replaceFunc () {
+      $(".eva-result").css('display',"block");
+      $(".eva-in").css('display',"none");
+      console.log(validateResult.categoryResult[1]);
+      $("#apiName").text(validateResult['name']);
+      $("#category").text(validateResult['category']);
+      $("#openapiVersion").text(validateResult['openapiVersion']);
+      $("#pathNum").text(validateResult['pathNum']);
+      $("#endpointNum").text(validateResult['endpointNum']);
+      $("#avgEndpoint").text(validateResult['endpointNum']/validateResult['pathNum']);
+      $("#avgHierarchies").text(validateResult['avgHierarchies']);
+      $("#securitySchema").text(validateResult['securityList']);
 
-    <symbol viewBox="0 0 20 20" id="locked">
-      <path d="M15.8 8H14V5.6C14 2.703 12.665 1 10 1 7.334 1 6 2.703 6 5.6V8H4c-.553 0-1 .646-1 1.199V17c0 .549.428 1.139.951 1.307l1.197.387C5.672 18.861 6.55 19 7.1 19h5.8c.549 0 1.428-.139 1.951-.307l1.196-.387c.524-.167.953-.757.953-1.306V9.199C17 8.646 16.352 8 15.8 8zM12 8H8V5.199C8 3.754 8.797 3 10 3c1.203 0 2 .754 2 2.199V8z"/>
-    </symbol>
+      $("#categoryPathNum").text(validateResult.categoryResult[0]);
+      $("#categoryAvgEndpoint").text(validateResult.categoryResult[1]);
+      $("#categoryAvgHierarchies").text(validateResult.categoryResult[10]);
 
-    <symbol viewBox="0 0 20 20" id="close">
-      <path d="M14.348 14.849c-.469.469-1.229.469-1.697 0L10 11.819l-2.651 3.029c-.469.469-1.229.469-1.697 0-.469-.469-.469-1.229 0-1.697l2.758-3.15-2.759-3.152c-.469-.469-.469-1.228 0-1.697.469-.469 1.228-.469 1.697 0L10 8.183l2.651-3.031c.469-.469 1.228-.469 1.697 0 .469.469.469 1.229 0 1.697l-2.758 3.152 2.758 3.15c.469.469.469 1.229 0 1.698z"/>
-    </symbol>
+      function generatePathDetail() {
+        $("#pathDetail").children().remove();
+        $.each(validateResult["path"], function (key, value) {
+          var path = '<div class="panel panel-default">'+
+            '<div class="panel-heading"><h5>'+key+'</h5></div>'+
+            '<div class="panel-body"><p></p></div>'+
+            '<table class="table table-hover">'+
+            '<thead>'+
+            '<tr>'+
+            '<th>#</th><th>Standard</th><th>Degree</th><th>realized</th><th>note</th>'+
+            '</tr>'+
+            '</thead>'+
+            '<tbody id="detailBody">'+
+            '<tr><th>1</th><th>no_</th><th>MUST</th><th>'+value["no_"]+'</th><th>Use "-" to split</th></tr>'+
+            '<tr><th>2</th><th>lowercase</th><th>MUST</th><th>'+value["lowercase"]+'</th><th></th></tr>'+
+            '<tr><th>3</th><th>noVersion</th><th>RECOMMENDED</th><th>'+value["noVersion"]+'</th><th>Recommended to identify the version information in Header</th></tr>'+
+            '<tr><th>4</th><th>noAPI</th><th>MUST</th><th>'+value["noapi"]+'</th><th></th></tr>'+
+            '<tr><th>5</th><th>noCRUD</th><th>SHOULD</th><th>'+value["noCRUD"]+'</th><th>'+value["CRUDlist"]+'</th></tr>'+
+            '<tr><th>6</th><th>noSuffix</th><th>MUST</th><th>'+value["noSuffix"]+'</th><th>'+value["suffixList"]+'</th></tr>'+
+            '<tr><th>7</th><th>noEnd/</th><th>MUST</th><th>'+value["noend/"]+'</th><th></th></tr>'+
+            '</tbody>'+
+            '</table>'+
+            '</div>';
+          $("#pathDetail").append(path);
 
-    <symbol viewBox="0 0 20 20" id="large-arrow">
-      <path d="M13.25 10L6.109 2.58c-.268-.27-.268-.707 0-.979.268-.27.701-.27.969 0l7.83 7.908c.268.271.268.709 0 .979l-7.83 7.908c-.268.271-.701.27-.969 0-.268-.269-.268-.707 0-.979L13.25 10z"/>
-    </symbol>
-
-    <symbol viewBox="0 0 20 20" id="large-arrow-down">
-      <path d="M17.418 6.109c.272-.268.709-.268.979 0s.271.701 0 .969l-7.908 7.83c-.27.268-.707.268-.979 0l-7.908-7.83c-.27-.268-.27-.701 0-.969.271-.268.709-.268.979 0L10 13.25l7.418-7.141z"/>
-    </symbol>
 
 
-    <symbol viewBox="0 0 24 24" id="jump-to">
-      <path d="M19 7v4H5.83l3.58-3.59L8 6l-6 6 6 6 1.41-1.41L5.83 13H21V7z"/>
-    </symbol>
+        });
+      }
+      generatePathDetail();
 
-    <symbol viewBox="0 0 24 24" id="expand">
-      <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/>
-    </symbol>
 
-  </defs>
-</svg>
+      //$(".chosen-select").trigger("chosen:updated");
 
-<div id="swagger-ui"></div>
+      function pie() {
+        var option = {
+          title: {
+            text: 'HTTP Method Usage',
+            subtext: '',
+            x: 'center'
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c} ({d}%)"
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: ['GET', 'POST', 'DELETE','PUT','HEAD','PATCH','OPTIONS','TRACE']
+          },
+          series: [
+            {
+              name: 'Usage ratio',
+              type: 'pie',
+              radius: '50%',
+              center: ['50%', '50%'],
+              label: {
+                position: 'inner'
+              },
+              data: [
+                {value: validateResult['opGET'], name: 'GET'},
+                {value: validateResult['opPOST'], name: 'POST'},
+                {value: validateResult['opDELETE'], name: 'DELETE'},
+                {value: validateResult['opPUT'], name: 'PUT'},
+                {value: validateResult['opHEAD'], name: 'HEAD'},
+                {value: validateResult['opPATCH'], name: 'PATCH'},
+                {value: validateResult['opOPTIONS'], name: 'OPTIONS'},
+                {value: validateResult['opTRACE'], name: 'TRACE'},
+              ],
+              itemStyle: {
+                emphasis: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            },
+            {
+              name: 'Category Usage ratio',
+              tooltip: {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : ({d}%)"
+              },
+              type: 'pie',
+              radius: ['60%','80%'],
+              center: ['50%', '50%'],
+              data: [
+                {value: validateResult.categoryResult[2], name: 'GET'},
+                {value: validateResult.categoryResult[3], name: 'POST'},
+                {value: validateResult.categoryResult[4], name: 'DELETE'},
+                {value: validateResult.categoryResult[5], name: 'PUT'},
+                {value: validateResult.categoryResult[6], name: 'HEAD'},
+                {value: validateResult.categoryResult[7], name: 'PATCH'},
+                {value: validateResult.categoryResult[8], name: 'OPTIONS'},
+                {value: validateResult.categoryResult[9], name: 'TRACE'},
+              ],
+              itemStyle: {
+                emphasis: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          ]
+        };
+        var chart = echarts.init(document.getElementById("echarts-pie-chart"));
+        chart.setOption(option);
+      }
 
-<script src="./swagger-ui-bundle.js"> </script>
-<script src="./swagger-ui-standalone-preset.js"> </script>
-<script>
-  window.onload = function() {
-    // Build a system
-    apiUrl = window.location.protocol + "//" + window.location.host + "/validator/openapi.json";
-    const ui = SwaggerUIBundle({
-      oauth2RedirectUrl:  window.location.protocol + '//' + window.location.host + '/oauth2-redirect.html',
-      url: apiUrl,
-      dom_id: '#swagger-ui',
-      presets: [
-        SwaggerUIBundle.presets.apis,
-        SwaggerUIStandalonePreset
-      ],
-      plugins: [
-        SwaggerUIBundle.plugins.DownloadUrl
-      ],
-      layout: "StandaloneLayout"
-    })
+      pie();
+      function bar() {
+        console.log("validateResult.pathEvaData[0]");
+        console.log(validateResult.pathEvaData[0]);
+        var option = {
+          title: {
+            text: 'Standard Realization Rate',
+            subtext: '',
+            x: 'center'
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c}%"
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: ['Standard Realization Rate']
+          },
+          xAxis:{
+            axisLabel: {					//---坐标轴 标签
+              show: true,					//---是否显示
+              interval: 0,                //---强制显示所有标签
+              inside: false,				//---是否朝内
+              rotate: 0,					//---旋转角度
+              margin: 5,					//---刻度标签与轴线之间的距离
+              //color:'red',				//---默认取轴线的颜色
+            },
+            data:["no_","lowercase","noVersion","noAPI","noCRUD","noSuffix","noEnd/"]
+          },
+          yAxis:{
+            name:'Rate',				//---轴名称
+            type:'value',			//---轴类型，默认'category'
+            axisLabel: {
+              show: true,
+              interval: 'auto',
+              formatter: '{value} %'
+            },
+          },
+          series: [
+            {
+              name: 'Rate',
+              type: 'bar',
+              itemStyle:{					//---图形形状
+                barBorderRadius: [25, 25, 0, 0],
+                color: function(params) {
+                  // build a color map as your need.
+                  var colorList = ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'];
+                  return colorList[params.dataIndex]
+                }
 
-    window.ui = ui
-  }
-</script>
-</body>
+              },
+              barWidth:'40%',
+              z:10,
+              data: [validateResult.pathEvaData[0]/validateResult['pathNum']*100,validateResult.pathEvaData[1]/validateResult['pathNum']*100,
+                validateResult.pathEvaData[2]/validateResult['pathNum']*100,validateResult.pathEvaData[3]/validateResult['pathNum']*100,
+                validateResult.pathEvaData[4]/validateResult['pathNum']*100,validateResult.pathEvaData[5]/validateResult['pathNum']*100,
+                validateResult.pathEvaData[6]/validateResult['pathNum']*100]
 
-</html>
+            },
+            {
+              name: 'catrgoryAvgRate',
+              type: 'bar',
+              itemStyle:{					//---图形形状
+                barBorderRadius: [25, 25, 0, 0],
+                color: '#cdcdcd'
+
+              },
+              barGap:'-100%',
+              barWidth:'80%',
+              data: [validateResult.categoryResult[13]*100,validateResult.categoryResult[14]*100,validateResult.categoryResult[15]*100,
+                validateResult.categoryResult[16]*100,validateResult.categoryResult[17]*100,validateResult.categoryResult[18]*100,
+                validateResult.categoryResult[19]*100]
+
+            }
+          ]
+        };
+        var chart = echarts.init(document.getElementById("echarts-bar-chart"));
+        chart.setOption(option);
+      }
+      bar();
+
+      function barStatus() {
+        console.log(validateResult.statusUsage[0]);
+        var option = {
+          title: {
+            text: 'Statistics of HTTP response status code usage',
+            subtext: '',
+            x: 'center'
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: "{a} <br/>{b} : {c}%"
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: ['Proportion of Status Codes(%)']
+          },
+          xAxis:{
+            name:'Status',
+            axisLabel: {					//---坐标轴 标签
+              show: true,					//---是否显示
+              interval: 0,                //---强制显示所有标签
+              inside: false,				//---是否朝内
+              rotate: 0,					//---旋转角度
+              margin: 5,					//---刻度标签与轴线之间的距离
+              //color:'red',				//---默认取轴线的颜色
+            },
+            data:["2XX","3XX","4XX","5XX"]
+          },
+          yAxis:{
+            name:'Rate',				//---轴名称
+            type:'value',			//---轴类型，默认'category'
+            axisLabel: {
+              show: true,
+              interval: 'auto',
+              formatter: '{value} %'
+            },
+          },
+          series: [
+            {
+              name: 'Rate',
+              type: 'bar',
+              itemStyle:{					//---图形形状
+                color: function(params) {
+                  // build a color map as your need.
+                  var colorList = ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83',  '#ca8622', '#bda29a','#6e7074', '#546570', '#c4ccd3'];
+                  return colorList[params.dataIndex]
+                }
+
+              },
+              barWidth:'40%',
+              z:10,
+              data: [validateResult.statusUsage[1]/validateResult.statusUsage[0]*100,
+                validateResult.statusUsage[2]/validateResult.statusUsage[0]*100,
+                validateResult.statusUsage[3]/validateResult.statusUsage[0]*100,
+                validateResult.statusUsage[4]/validateResult.statusUsage[0]*100]
+
+            }/*,
+            {
+              name: 'catrgoryAvgRate',
+              type: 'bar',
+              itemStyle:{					//---图形形状
+                barBorderRadius: [25, 25, 0, 0],
+                color: '#cdcdcd'
+
+              },
+              barGap:'-100%',
+              barWidth:'80%',
+              data: [validateResult.categoryResult[13]*100,validateResult.categoryResult[14]*100,validateResult.categoryResult[15]*100,
+                validateResult.categoryResult[16]*100,validateResult.categoryResult[17]*100,validateResult.categoryResult[18]*100,
+                validateResult.categoryResult[19]*100]
+
+            }*/
+          ]
+        };
+        var chart = echarts.init(document.getElementById("echarts-statusUsage-bar"));
+        chart.setOption(option);
+      }
+      barStatus();
+      function wordCloud() {
+        var status;
+        var datas=[];
+        for(status in validateResult.status){
+          var data={};
+          data['name']=status;
+          data['value']=validateResult.status[status];
+          datas.push(data);
+        }
+
+        var chart = echarts.init(document.getElementById('echarts-status-wordcloud'));
+        var option = {
+          title: {
+            // text: '企业一专利热词'
+          },
+          tooltip: {},
+          series: [{
+            type: 'wordCloud',
+            gridSize: 2,
+            sizeRange: [12, 50],
+            // rotationRange: [-90, 90],
+            rotationRange: [-50, 50],
+            shape: 'triangle',
+            // width: 100,
+            // height: 400,
+            textStyle: {
+              normal: {
+                color: function () {
+                  return 'rgb(' + [
+                    Math.round(Math.random() * 160),
+                    Math.round(Math.random() * 160),
+                    Math.round(Math.random() * 160)
+                  ].join(',') + ')';
+                }
+              },
+              emphasis: {
+                shadowBlur: 10,
+                shadowColor: '#333'
+              }
+            },
+            data: datas
+          }]
+        };
+        chart.setOption(option);
+      }
+      wordCloud();
+    }</script></html>

@@ -1,14 +1,6 @@
 package com.rest.servlet;
 
-import com.google.common.primitives.Bytes;
 import io.swagger.handler.ConfigManager;
-import io.swagger.handler.ValidatorController;
-import io.swagger.handler.fileHandle;
-import io.swagger.oas.inflector.models.RequestContext;
-import org.apache.commons.fileupload.FileItem;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,9 +9,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class CategoryServlet extends HttpServlet {
